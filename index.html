@@ -378,8 +378,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
     <!-- LOGIN -->
     <div class="asec on" id="asec-login">
-      <div class="fg"><label class="fl">Username</label>
-        <input class="fi" id="l-user" type="text" autocomplete="username" placeholder="your username"></div>
+      <div class="fg"><label class="fl">Email</label>
+        <input class="fi" id="l-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
       <div class="fg"><label class="fl">Password</label>
         <input class="fi" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       <div class="aerr" id="l-err"></div>
@@ -396,33 +396,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         <div class="fg"><label class="fl">Last Name</label>
           <input class="fi" id="j-last" type="text" placeholder="Last"></div>
       </div>
-      <div class="fg">
-        <label class="fl">Username <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(unique within your family)</small></label>
-        <input class="fi" id="j-user" type="text" autocomplete="username" placeholder="e.g. rajan.k">
-      </div>
+      <div class="fg"><label class="fl">Email Address</label>
+        <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
       <div class="fg"><label class="fl">Password <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
         <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••"></div>
-      <div class="fg">
-        <label class="fl">Password Hint <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(visible to you if forgotten — no actual secrets)</small></label>
-        <input class="fi" id="j-hint" type="text" placeholder="e.g. childhood pet + year" autocomplete="off">
-      </div>
       <div class="aerr" id="j-err"></div>
       <button class="btn btn-gold" onclick="doJoin()">Request Access</button>
-      <div class="anote">An admin will approve your request. You need the Family Secret Key from an existing member.</div>
+      <div class="anote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
     </div>
 
     <!-- FORGOT -->
     <div class="asec" id="asec-forgot">
       <div style="font-size:13px;color:var(--ink4);line-height:1.65;margin-bottom:14px">
-        Gun.js passwords are cryptographic keys — they cannot be reset from a server. Enter your username below to see your saved hint.
+        Enter your email address and we'll send you a password reset link instantly.
       </div>
-      <div class="fg"><label class="fl">Your Username</label>
-        <input class="fi" id="f-user" type="text" placeholder="Enter username" oninput="showHint(this.value)"></div>
-      <div class="hint-box" id="f-hint">Enter your username above to see your hint.</div>
-      <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:14px">
-        If you still can't remember, ask your admin to remove your account and re-join with a new username.
-      </div>
-      <button class="btn btn-ghost" onclick="switchTab('login')" style="font-size:12px;padding:8px">← Back to Sign In</button>
+      <div class="fg"><label class="fl">Email Address</label>
+        <input class="fi" id="f-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
+      <div class="aerr" id="f-err"></div>
+      <button class="btn btn-gold" onclick="doForgot()">Send Reset Email</button>
+      <button class="btn btn-ghost" onclick="switchTab('login')" style="margin-top:8px;font-size:12px;padding:8px">← Back to Sign In</button>
     </div>
   </div>
 </div>
@@ -543,113 +535,94 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 </div>
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
-<script>
+<script type="module">
 'use strict';
 
-// ══ MULTI-RELAY FALLBACK ══════════════════════════════════════════
-// Uses multiple independent relays so if one goes down others serve sync.
-// NOTE: Gun.on('bye') fires transiently even on initial connect (peers
-// haven't responded yet) which causes false "offline" flicker. We debounce
-// it — only switch to amber if no peers re-join within 4 seconds.
-const RELAYS = [
-  'https://gun-manhattan.herokuapp.com/gun',
-  'https://peer.wallie.io/gun',
-  'https://gunjs.herokuapp.com/gun',
-];
-const gun = Gun({ peers: RELAYS, localStorage: true, radisk: true });
+// ══ FIREBASE CONFIG ════════════════════════════════════════════════
+import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword,
+         signInWithEmailAndPassword, signOut,
+         sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, set, get, update,
+         onValue, off, push, serverTimestamp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-let peerCount   = 0;
-let offlineTimer = null;
+const firebaseConfig = {
+  apiKey:            "AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw",
+  authDomain:        "parampara-4c9b7.firebaseapp.com",
+  databaseURL:       "https://parampara-4c9b7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "parampara-4c9b7",
+  storageBucket:     "parampara-4c9b7.firebasestorage.app",
+  messagingSenderId: "104094614060",
+  appId:             "1:104094614060:web:0f8219828e5d1918b98789"
+};
 
-function setSyncStatus(on, label) {
-  document.getElementById('sdot').className = 'dot ' + (on ? 'green' : 'amber');
-  document.getElementById('slbl').textContent = label;
-}
+const fbApp  = initializeApp(firebaseConfig);
+const auth   = getAuth(fbApp);
+const db     = getDatabase(fbApp);
 
-// Start green — assume online; only go amber after confirmed disconnect
-setSyncStatus(true, 'Ready');
+// ══ HELPERS ════════════════════════════════════════════════════════
+function el(id)     { return document.getElementById(id); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function v(id)      { return (el(id)||{}).value || ''; }
+function fullName(p){ return [p.first,p.last].filter(Boolean).join(' ') || 'Unnamed'; }
+function lifeSpan(p){ if(!p.dob&&!p.dod)return ''; const b=p.dob?p.dob.slice(0,4):'?'; return p.dod?`${b}–${p.dod.slice(0,4)}`:`b. ${b}`; }
+function fmtDT(ts)  { return ts ? new Date(ts).toLocaleString()     : ''; }
+function fmtD(ts)   { return ts ? new Date(ts).toLocaleDateString() : ''; }
 
-gun.on('hi', () => {
-  peerCount++;
-  clearTimeout(offlineTimer);
-  setSyncStatus(true, 'Synced ✓');
-});
-gun.on('bye', () => {
-  peerCount = Math.max(0, peerCount - 1);
-  if (peerCount === 0) {
-    // Debounce: wait 4s before declaring offline (avoids initial-connect flicker)
-    offlineTimer = setTimeout(() => {
-      if (!navigator.onLine) {
-        setSyncStatus(false, 'Offline — saved locally');
-      } else {
-        setSyncStatus(false, 'Relay reconnecting…');
-      }
-    }, 4000);
-  }
-});
-window.addEventListener('online',  () => { clearTimeout(offlineTimer); setSyncStatus(true,  'Back online ✓'); });
-window.addEventListener('offline', () => { clearTimeout(offlineTimer); setSyncStatus(false, 'Offline — saved locally'); });
-
-// ══ NAMESPACING — prevents username collisions across families ══════
-// Gun usernames are global; we prefix with a hash of the family key
-// so "rajan" in family A becomes "a3b9c_rajan" in Gun's global space
+// ── Family key → safe Firebase path key (no dots/slashes etc.) ─────
 function famHash(key) {
   let h = 0;
-  for (let c of key) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
-  return 'f' + Math.abs(h).toString(36).slice(0, 8);
-}
-function gunAlias(displayAlias, famKey) {
-  return famHash(famKey) + '_' + displayAlias;
+  for (const c of key) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
+  return 'f' + Math.abs(h).toString(36).slice(0, 10);
 }
 
-// ══ DATA ══════════════════════════════════════════════════════════
-let DB   = { people:{}, rels:[] };
-let NID  = 1;
-let CU   = null;   // current session: {displayAlias, famKey, fh, role, first, last, pass, hint}
-let FAM  = null;   // current family hash (active Gun namespace)
+// ── Firebase path helpers ──────────────────────────────────────────
+function famRef(fh)     { return ref(db, `families/${fh}`); }
+function peopleRef(fh)  { return ref(db, `families/${fh}/people`); }
+function relsRef(fh)    { return ref(db, `families/${fh}/rels`); }
+function membersRef(fh) { return ref(db, `families/${fh}/members`); }
+function histRef(fh,pid){ return ref(db, `families/${fh}/history/${pid}`); }
+function memberRef(fh,uid){ return ref(db, `families/${fh}/members/${uid}`); }
+function adminFlagRef(fh) { return ref(db, `families/${fh}/adminSet`); }
 
-function gid() { return 'p' + (NID++) + '_' + Date.now(); }
-function famNode()    { return gun.get('parampara_' + FAM); }
-function peopleNode() { return famNode().get('people'); }
-function relsNode()   { return famNode().get('rels'); }
-function membersNode(){ return famNode().get('members'); }
-function histNode()   { return famNode().get('history'); }
+// ── Email ↔ Firebase-safe key ──────────────────────────────────────
+// Firebase keys cannot contain . so we encode email for use as a key
+function emailKey(email) { return email.replace(/\./g, ','); }
 
-// ══ MULTI-FAMILY SESSION STORAGE ══════════════════════════════════
-// localStorage: { families: [ {displayAlias, famKey, fh, role, first, last, pass, hint} ] }
-// Each entry = one family membership
-function getSessions() {
-  try { return JSON.parse(localStorage.getItem('para_v2') || '{"families":[]}'); }
-  catch { return {families:[]}; }
+// ══ APP STATE ══════════════════════════════════════════════════════
+let DB  = { people:{}, rels:{} }; // rels stored as object keyed by id
+let CU  = null;   // { uid, email, displayName, first, last, famKey, fh, role }
+let FAM = null;   // current family hash
+let fbUser = null;// Firebase auth user
+
+// active Firebase listeners — tracked so we can unsubscribe on family switch
+let _listeners = [];
+function clearListeners() {
+  _listeners.forEach(({ r, fn }) => off(r, 'value', fn));
+  _listeners = [];
 }
-function saveSession(fam) {
-  const s = getSessions();
-  const i = s.families.findIndex(f => f.fh === fam.fh && f.displayAlias === fam.displayAlias);
-  if (i >= 0) s.families[i] = fam; else s.families.push(fam);
-  localStorage.setItem('para_v2', JSON.stringify(s));
+function listen(r, fn) {
+  onValue(r, fn);
+  _listeners.push({ r, fn });
 }
-function deleteSession(fh, displayAlias) {
-  const s = getSessions();
-  s.families = s.families.filter(f => !(f.fh === fh && f.displayAlias === displayAlias));
-  localStorage.setItem('para_v2', JSON.stringify(s));
+
+// ══ SYNC STATUS ════════════════════════════════════════════════════
+function setSyncStatus(state, label) {
+  el('sdot').className = 'dot ' + (state === 'ok' ? 'green' : 'amber');
+  el('slbl').textContent = label;
 }
 
 // ══ SCREEN MANAGEMENT ══════════════════════════════════════════════
-const SCREEN_IDS = ['s-lang','s-family','s-auth','s-pending'];
+const SCREENS = ['s-lang','s-family','s-auth','s-pending'];
 function showScreen(id) {
-  SCREEN_IDS.forEach(s => {
-    document.getElementById(s).classList.toggle('hide', s !== id);
-  });
-  document.getElementById('app').classList.remove('show');
+  SCREENS.forEach(s => el(s).classList.toggle('hide', s !== id));
+  el('app').classList.remove('show');
 }
 function showApp() {
-  SCREEN_IDS.forEach(s => document.getElementById(s).classList.add('hide'));
-  document.getElementById('app').classList.add('show');
+  SCREENS.forEach(s => el(s).classList.add('hide'));
+  el('app').classList.add('show');
   updatePermUI();
   startSync();
-  render();
   applyHeaderH(52);
 }
 
@@ -661,23 +634,52 @@ function setLang(l) {
   boot();
 }
 
+// ══ MULTI-FAMILY SESSION ═══════════════════════════════════════════
+// We store which families the logged-in user belongs to in localStorage
+// as a cache — the authoritative copy is in Firebase
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('para_v3') || '{"families":[]}'); }
+  catch { return { families:[] }; }
+}
+function saveSession(fam) {
+  const s = getSessions();
+  const i = s.families.findIndex(f => f.fh === fam.fh);
+  if (i >= 0) s.families[i] = fam; else s.families.push(fam);
+  localStorage.setItem('para_v3', JSON.stringify(s));
+}
+
 // ══ BOOT ═══════════════════════════════════════════════════════════
 function boot() {
   if (!LANG) { showScreen('s-lang'); return; }
-  const s = getSessions();
-  if (!s.families.length) { showScreen('s-auth'); return; }
-  if (s.families.length === 1) resumeFamily(s.families[0]);
-  else buildFamilyPicker(s.families);
+  // Firebase auth state drives everything
+  onAuthStateChanged(auth, user => {
+    fbUser = user;
+    if (!user) {
+      showScreen('s-auth');
+      setSyncStatus('off', 'Not signed in');
+      return;
+    }
+    // User is signed in — find their families
+    const s = getSessions();
+    if (!s.families.length) {
+      // Signed in but no family joined yet
+      showScreen('s-auth');
+      switchTab('join');
+      return;
+    }
+    if (s.families.length === 1) resumeFamily(s.families[0]);
+    else buildFamilyPicker(s.families);
+  });
 }
 
+// ══ FAMILY PICKER ══════════════════════════════════════════════════
 function buildFamilyPicker(families) {
-  const list = document.getElementById('fp-list');
-  list.innerHTML = families.map(f => `
-    <div class="fam-row" onclick='resumeFamily(${JSON.stringify(f)})'>
+  el('fp-list').innerHTML = families.map(f => `
+    <div class="fam-row" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
       <div style="font-size:26px">🌳</div>
       <div class="fam-info">
         <div class="fam-name">${escHtml(f.famKey)}</div>
-        <div class="fam-meta">@${escHtml(f.displayAlias)} · ${escHtml(f.first||'')} ${escHtml(f.last||'')}</div>
+        <div class="fam-meta">${escHtml(f.first||'')} ${escHtml(f.last||'')}</div>
       </div>
       <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
     </div>`).join('');
@@ -687,176 +689,131 @@ function buildFamilyPicker(families) {
 function openFamilySwitcher() {
   const s = getSessions();
   if (s.families.length <= 1) return;
-  clearSync();
+  clearListeners();
+  DB = { people:{}, rels:{} };
   buildFamilyPicker(s.families);
 }
 
-function resumeFamily(fam) {
-  const alias = gunAlias(fam.displayAlias, fam.famKey);
-  gun.user().auth(alias, fam.pass, ack => {
-    if (ack.err) { toast('Session expired — please sign in again'); showScreen('s-auth'); return; }
-    FAM = fam.fh;
-    CU  = { ...fam, alias };
-    // refresh role from Gun (admin may have changed it)
-    membersNode().get(fam.displayAlias).once(data => {
-      const role = (data && data.role) || 'pending';
-      CU.role  = role;
-      fam.role = role;
-      saveSession(fam);
-      DB = { people:{}, rels:[] };
-      document.getElementById('nodes-layer').innerHTML = '';
-      if (role === 'pending') { showScreen('s-pending'); return; }
-      showApp();
-    });
-  });
+async function resumeFamily(fam) {
+  FAM = fam.fh;
+  setSyncStatus('off', 'Loading…');
+  // Fetch fresh role from Firebase
+  try {
+    const snap = await get(memberRef(FAM, fbUser.uid));
+    if (!snap.exists()) {
+      // Member record missing — maybe removed by admin
+      toast('You are not a member of this family anymore');
+      const s = getSessions();
+      s.families = s.families.filter(f => f.fh !== fam.fh);
+      localStorage.setItem('para_v3', JSON.stringify(s));
+      boot(); return;
+    }
+    const data = snap.val();
+    CU = { ...fam, uid: fbUser.uid, email: fbUser.email, role: data.role };
+    fam.role = data.role;
+    saveSession(fam);
+    DB = { people:{}, rels:{} };
+    el('nodes-layer').innerHTML = '';
+    if (data.role === 'pending') { showScreen('s-pending'); return; }
+    showApp();
+  } catch(e) {
+    setSyncStatus('off', 'Error loading family');
+    toast('Error: ' + e.message);
+  }
 }
 
-// ══ FORGOT PASSWORD — show stored hint ════════════════════════════
-function showHint(username) {
-  const box = document.getElementById('f-hint');
-  if (!username.trim()) { box.textContent = 'Enter your username above to see your hint.'; return; }
-  const s = getSessions();
-  const match = s.families.find(f => f.displayAlias === username.trim());
-  if (match && match.hint) box.innerHTML = `<b style="color:var(--copper)">Hint:</b> ${escHtml(match.hint)}`;
-  else if (match)          box.textContent = 'No hint was saved for this account.';
-  else                     box.textContent = 'Username not found in any saved family on this device.';
-}
-
-// ══ AUTH ACTIONS ═══════════════════════════════════════════════════
+// ══ AUTH — SIGN IN / JOIN / FORGOT ════════════════════════════════
 function switchTab(t) {
   ['login','join','forgot'].forEach(id => {
-    const tab = document.getElementById('tab-'+id);
-    const sec = document.getElementById('asec-'+id);
+    const tab = el('tab-'+id), sec = el('asec-'+id);
     if (tab) tab.classList.toggle('on', id===t);
     if (sec) sec.classList.toggle('on', id===t);
   });
 }
 
 async function doLogin() {
-  const du = el('l-user').value.trim();
-  const pass = el('l-pass').value;
+  const email = v('l-email').trim();
+  const pass  = v('l-pass');
   const errEl = el('l-err');
   errEl.textContent = '';
-  if (!du || !pass) { errEl.textContent = 'Please fill all fields'; return; }
-
-  const s = getSessions();
-  const candidates = s.families.filter(f => f.displayAlias === du);
-  if (!candidates.length) {
-    errEl.textContent = 'No family found for this username. Use Join Family first.'; return;
-  }
+  if (!email || !pass) { errEl.textContent = 'Please fill all fields'; return; }
   errEl.textContent = 'Signing in…';
-
-  for (const fam of candidates) {
-    const alias = gunAlias(du, fam.famKey);
-
-    // ── Check if admin set a temp password ───────────────────────
-    const tmpData = await new Promise(res => {
-      let d = null;
-      gun.get('parampara_'+fam.fh).get('members').get(du).once(data => { d = data; });
-      setTimeout(() => res(d), 1500);
-    });
-    if (tmpData && tmpData.tmpPass && pass === tmpData.tmpPass) {
-      // Temp password matched — prompt for new password
-      const newPass = prompt(`Temporary password accepted.\n\nPlease set a new password (min 8 characters):`);
-      if (!newPass || newPass.length < 8) { errEl.textContent = 'New password must be at least 8 characters'; return; }
-      // Gun SEA can't change passwords — create a NEW account entry with same displayAlias
-      // but under new key. Store the new pass in the session.
-      fam.pass = newPass;
-      saveSession(fam);
-      // Clear the temp token
-      gun.get('parampara_'+fam.fh).get('members').get(du).get('tmpPass').put(null);
-      toast('Password updated — please sign in with your new password');
-      errEl.textContent = 'Password changed. Please sign in again with your new password.';
-      el('l-pass').value = '';
-      return;
-    }
-
-    const ok = await new Promise(res => gun.user().auth(alias, pass, a => res(!a.err)));
-    if (ok) {
-      fam.pass = pass;
-      saveSession(fam);
-      FAM = fam.fh;
-      CU  = { ...fam, alias, pass };
-      DB  = { people:{}, rels:[] };
-      document.getElementById('nodes-layer').innerHTML = '';
-      membersNode().get(du).once(data => {
-        CU.role  = (data && data.role) || 'pending';
-        fam.role = CU.role;
-        saveSession(fam);
-        if (CU.role === 'pending') showScreen('s-pending');
-        else showApp();
-      });
-      return;
-    }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged will fire and call boot()
+  } catch(e) {
+    errEl.textContent = friendlyAuthError(e.code);
   }
-  errEl.textContent = 'Invalid password';
 }
 
 async function doJoin() {
-  const key   = el('j-key').value.trim();
-  const first = el('j-first').value.trim();
-  const last  = el('j-last').value.trim();
-  const du    = el('j-user').value.trim();
-  const pass  = el('j-pass').value;
-  const hint  = el('j-hint').value.trim();
+  const key   = v('j-key').trim();
+  const first = v('j-first').trim();
+  const last  = v('j-last').trim();
+  const email = v('j-email').trim();
+  const pass  = v('j-pass');
   const errEl = el('j-err');
   errEl.textContent = '';
 
-  if (!key || !first || !du || !pass) { errEl.textContent = 'Please fill all required fields'; return; }
+  if (!key || !first || !email || !pass) { errEl.textContent = 'Please fill all required fields'; return; }
   if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
-  if (!/^[a-zA-Z0-9._-]+$/.test(du)) { errEl.textContent = 'Username: letters, numbers, . _ - only'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email address'; return; }
 
-  const fh    = famHash(key);
-  const alias = gunAlias(du, key);
-  FAM = fh;
+  const fh = famHash(key);
+  errEl.textContent = 'Checking family…';
 
-  errEl.textContent = 'Checking username availability…';
-
-  // ── Username uniqueness check in this family ───────────────────
-  const existing = await new Promise(res => {
-    let found = false;
-    membersNode().get(du).once(data => { if (data && data.displayAlias) found = true; });
-    setTimeout(() => res(found), 2500);
-  });
-  if (existing) { errEl.textContent = 'Username already taken in this family. Choose another.'; return; }
+  // Check if family admin slot is taken
+  let isFirstMember = false;
+  try {
+    const snap = await get(adminFlagRef(fh));
+    isFirstMember = !snap.exists();
+  } catch(e) { /* network issue — assume not first */ }
 
   errEl.textContent = 'Creating account…';
 
-  // ── Create Gun user account ────────────────────────────────────
-  const created = await new Promise(res =>
-    gun.user().create(alias, pass, ack => res(!ack.err || ack.err.toLowerCase().includes('already')))
-  );
-  if (!created) { errEl.textContent = 'Could not create account — username may conflict globally. Try a different name.'; return; }
-
-  const authed = await new Promise(res => gun.user().auth(alias, pass, a => res(!a.err)));
-  if (!authed) { errEl.textContent = 'Authentication failed. Please try again.'; return; }
-
-  // ── Determine role using a dedicated adminSet flag ──────────────
-  // Counting members to detect first-join is unreliable: on slow/cold
-  // relay connections Gun may not sync existing member records within
-  // the timeout window, so new members incorrectly become admin.
-  // Instead we write a single tiny boolean 'adminSet' when the first
-  // admin is created. This key syncs far faster than enumerating members.
-  errEl.textContent = 'Checking family status…';
-  const adminAlreadySet = await new Promise(res => {
-    let found = false;
-    gun.get('parampara_' + fh).get('adminSet').once(val => { if (val === true) found = true; });
-    setTimeout(() => res(found), 3000);
-  });
-
-  const role = adminAlreadySet ? 'pending' : 'admin';
-  const memberData = { displayAlias: du, famKey: key, fh, role, first, last, hint, joinedAt: Date.now() };
-  membersNode().get(du).put(memberData);
-
-  // Write adminSet flag only when a new admin is being created
-  if (role === 'admin') {
-    gun.get('parampara_' + fh).get('adminSet').put(true);
+  // Create or sign into Firebase Auth account
+  let user;
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    user = cred.user;
+  } catch(e) {
+    if (e.code === 'auth/email-already-in-use') {
+      // Already has an account — sign them in and add to this family
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        user = cred.user;
+      } catch(e2) {
+        errEl.textContent = 'Email already registered. Check your password or use Sign In tab.';
+        return;
+      }
+    } else {
+      errEl.textContent = friendlyAuthError(e.code);
+      return;
+    }
   }
 
-  const famData = { displayAlias: du, famKey: key, fh, role, first, last, pass, hint };
+  // Check if this user is already in this family
+  const existingSnap = await get(memberRef(fh, user.uid));
+  if (existingSnap.exists()) {
+    errEl.textContent = 'You are already a member of this family. Use Sign In instead.';
+    await signOut(auth);
+    return;
+  }
+
+  const role = isFirstMember ? 'admin' : 'pending';
+  const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
+
+  // Write member record and admin flag atomically
+  const updates = {};
+  updates[`families/${fh}/members/${user.uid}`] = memberData;
+  if (isFirstMember) updates[`families/${fh}/adminSet`] = true;
+  await update(ref(db), updates);
+
+  const famData = { fh, famKey: key, first, last, role };
   saveSession(famData);
-  CU  = { ...famData, alias };
-  DB  = { people:{}, rels:[] };
+  CU = { ...famData, uid: user.uid, email };
+  FAM = fh;
+  DB  = { people:{}, rels:{} };
 
   if (role === 'admin') {
     toast('Welcome! You are the family admin.');
@@ -867,37 +824,62 @@ async function doJoin() {
   }
 }
 
-function checkApproval() {
-  if (!CU || !FAM) return;
-  membersNode().get(CU.displayAlias).once(data => {
-    if (data && data.role && data.role !== 'pending') {
-      CU.role = data.role;
-      const s = getSessions();
-      const f = s.families.find(x => x.fh === CU.fh && x.displayAlias === CU.displayAlias);
-      if (f) { f.role = CU.role; saveSession(f); }
-      DB = { people:{}, rels:[] };
-      showApp();
-    } else toast('Still pending — please wait for admin approval');
-  });
+async function doForgot() {
+  const email = v('f-email').trim();
+  const errEl = el('f-err');
+  errEl.textContent = '';
+  if (!email) { errEl.textContent = 'Enter your email address'; return; }
+  errEl.textContent = 'Sending…';
+  try {
+    await sendPasswordResetEmail(auth, email);
+    errEl.style.color = '#5cab6a';
+    errEl.textContent = 'Reset email sent — check your inbox';
+  } catch(e) {
+    errEl.style.color = '#e07070';
+    errEl.textContent = friendlyAuthError(e.code);
+  }
 }
 
-function fullLogout() {
-  gun.user().leave();
+function friendlyAuthError(code) {
+  const map = {
+    'auth/invalid-email':          'Invalid email address',
+    'auth/user-not-found':         'No account found with this email',
+    'auth/wrong-password':         'Incorrect password',
+    'auth/invalid-credential':     'Invalid email or password',
+    'auth/email-already-in-use':   'This email is already registered',
+    'auth/weak-password':          'Password must be at least 6 characters',
+    'auth/too-many-requests':      'Too many attempts — please wait a moment',
+    'auth/network-request-failed': 'Network error — check your connection',
+  };
+  return map[code] || 'Error: ' + code;
+}
+
+async function checkApproval() {
+  if (!CU || !FAM) return;
+  try {
+    const snap = await get(memberRef(FAM, fbUser.uid));
+    if (snap.exists() && snap.val().role !== 'pending') {
+      CU.role = snap.val().role;
+      const s = getSessions();
+      const f = s.families.find(x => x.fh === FAM);
+      if (f) { f.role = CU.role; saveSession(f); }
+      DB = { people:{}, rels:{} };
+      showApp();
+    } else toast('Still pending — please wait for admin approval');
+  } catch(e) { toast('Error checking status'); }
+}
+
+async function fullLogout() {
+  clearListeners();
   CU = null; FAM = null;
-  DB = { people:{}, rels:[] };
-  clearSync();
-  document.getElementById('nodes-layer').innerHTML = '';
-  document.getElementById('world-svg').innerHTML   = '';
-  showScreen('s-auth');
+  DB = { people:{}, rels:{} };
+  el('nodes-layer').innerHTML = '';
+  el('world-svg').innerHTML   = '';
+  await signOut(auth);
+  // onAuthStateChanged will fire showScreen('s-auth')
 }
 
 // ══ PERMISSIONS ════════════════════════════════════════════════════
-// Roles:
-//   admin       — full access + approve/set roles
-//   editor      — add + edit anyone
-//   contributor — add + edit own entries only
-//   viewer      — view only
-//   pending     — view only (read-only)
 function can(action) {
   const r = CU && CU.role;
   if (!r) return false;
@@ -912,7 +894,7 @@ function can(action) {
 }
 function canEditPerson(p) {
   if (can('edit')) return true;
-  if (can('editOwn') && p.addedBy === CU.displayAlias) return true;
+  if (can('editOwn') && p.addedBy === fbUser.uid) return true;
   return false;
 }
 function updatePermUI() {
@@ -922,42 +904,67 @@ function updatePermUI() {
   ['btn-add','btn-add-m'].forEach(id => { const e=el(id); if(e) e.style.display=canAdd?'':'none'; });
 }
 
-// ══ SYNC ═══════════════════════════════════════════════════════════
-let _off = [];
-function clearSync() { _off.forEach(fn => fn && typeof fn === 'function' && fn()); _off = []; }
+// ══ REAL-TIME SYNC ═════════════════════════════════════════════════
 function startSync() {
-  clearSync();
-  peopleNode().map().on((data, id) => {
-    if (!data || id === '_') return;
-    if (data.deleted) delete DB.people[id];
-    else DB.people[id] = data;
+  clearListeners();
+  setSyncStatus('off', 'Connecting…');
+
+  // People listener
+  listen(peopleRef(FAM), snap => {
+    DB.people = {};
+    if (snap.exists()) {
+      snap.forEach(child => {
+        const p = child.val();
+        if (!p.deleted) DB.people[child.key] = p;
+      });
+    }
     render();
+    setSyncStatus('ok', 'Synced ✓');
   });
-  relsNode().map().on((data, id) => {
-    if (!data || id === '_') return;
-    if (data.deleted) DB.rels = DB.rels.filter(r => r.id !== id);
-    else {
-      const i = DB.rels.findIndex(r => r.id === id);
-      if (i >= 0) DB.rels[i] = data; else DB.rels.push(data);
+
+  // Rels listener
+  listen(relsRef(FAM), snap => {
+    DB.rels = {};
+    if (snap.exists()) {
+      snap.forEach(child => {
+        const r = child.val();
+        if (!r.deleted) DB.rels[child.key] = r;
+      });
     }
     render();
   });
 }
 
-function putPerson(id, data) { peopleNode().get(id).put({...data, id}); }
-function putRel(rel)         { relsNode().get(rel.id).put(rel); }
-function deleteRel(id)       { relsNode().get(id).put({id, deleted:true}); DB.rels = DB.rels.filter(r => r.id !== id); }
-function logHistory(pid, action, changes) {
-  histNode().get(pid).get('h'+Date.now()).put({
-    who: CU ? CU.displayAlias : '?',
-    action, changes: JSON.stringify(changes||{}), at: Date.now()
+// ── Write helpers ──────────────────────────────────────────────────
+async function putPerson(id, data) {
+  await set(ref(db, `families/${FAM}/people/${id}`), data);
+}
+async function putRel(id, data) {
+  await set(ref(db, `families/${FAM}/rels/${id}`), data);
+}
+async function deleteRelFb(id) {
+  await set(ref(db, `families/${FAM}/rels/${id}`), { id, deleted: true });
+  delete DB.rels[id];
+}
+async function logHistory(pid, action, changes) {
+  const hRef = push(histRef(FAM, pid));
+  await set(hRef, {
+    who: CU ? `${CU.first} ${CU.last}`.trim() || CU.email : '?',
+    action,
+    changes: JSON.stringify(changes || {}),
+    at: Date.now()
   });
 }
-function getHistory(pid, cb) {
+async function getHistory(pid) {
+  const snap = await get(histRef(FAM, pid));
+  if (!snap.exists()) return [];
   const entries = [];
-  histNode().get(pid).map().once((d,k) => { if (d && k !== '_') entries.push(d); });
-  setTimeout(() => cb(entries.sort((a,b) => (b.at||0)-(a.at||0))), 500);
+  snap.forEach(child => entries.push(child.val()));
+  return entries.sort((a,b) => (b.at||0) - (a.at||0));
 }
+
+// ── Generate unique ID ─────────────────────────────────────────────
+function gid() { return 'p' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
 // ══ ADMIN PANEL ════════════════════════════════════════════════════
 const ALL_ROLES = ['admin','editor','contributor','viewer'];
@@ -969,92 +976,90 @@ function openAdminMo() {
 }
 function closeAMo() { el('admin-mo').classList.remove('on'); }
 
-function loadMembers() {
-  const members = [];
-  membersNode().map().once((d,k) => { if (d && k !== '_') members.push(d); });
-  setTimeout(() => {
-    if (!members.length) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
+async function loadMembers() {
+  try {
+    const snap = await get(membersRef(FAM));
+    if (!snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
+    const members = [];
+    snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
+
     const pending = members.filter(m => m.role === 'pending');
     const active  = members.filter(m => m.role !== 'pending');
+
     let html = `<div class="sec-t">Family Secret Key</div>
       <div class="key-box">${escHtml(CU.famKey)}</div>
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Share only with trusted family members.</div>`;
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Share only with trusted family members to let them join.</div>`;
+
     if (pending.length) {
       html += `<div class="sec-t" style="color:var(--rose)">Pending Approval (${pending.length})</div>`;
       pending.forEach(m => html += memberRow(m, true));
     }
     html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
     active.forEach(m => html += memberRow(m, false));
-    html += `<div class="sec-t" style="margin-top:18px">💾 Where Your Data Lives</div>
+
+    html += `<div class="sec-t" style="margin-top:18px">💾 Data Storage</div>
       <div style="font-size:12px;color:var(--ink2);line-height:1.7;background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:12px">
-        <b>On each device:</b> Browser localStorage (key: <code>gun/</code>) stores all tree data as JSON. Each device is its own source of truth. Limit: ~5–10 MB per browser.<br><br>
-        <b>Sync relay:</b> Gun.js sends encrypted changes through public relay servers temporarily — they are message couriers, not databases. If all devices go offline, data lives only on those devices.<br><br>
-        <b>Your data is NOT on any central server.</b> Back up by exporting (future feature) or keeping the app open on multiple devices.<br><br>
-        <b>Password note:</b> Passwords are cryptographic keys — they cannot be recovered from a server. Use "🔑 Reset Pass" above to generate a temp password for a locked-out member.
+        Data is stored in <b>Firebase Realtime Database</b> (Google). All members share the same live database — changes sync instantly across all devices.<br><br>
+        <b>Password reset:</b> Members can reset passwords via email using the Forgot Password tab on the sign-in screen.<br><br>
+        <b>Admin reset:</b> Use the button below to send a password reset email to any member.
       </div>`;
+
     el('amo-bd').innerHTML = html;
-  }, 700);
+  } catch(e) {
+    el('amo-bd').innerHTML = `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;
+  }
 }
 
 function memberRow(m, isPending) {
-  const ini = ((m.first||m.displayAlias||'?')[0] + (m.last||'')[0]).toUpperCase();
-  const isSelf = m.displayAlias === CU.displayAlias;
+  const ini = ((m.first||m.email||'?')[0] + (m.last||'')[0]).toUpperCase();
+  const isSelf = m.uid === fbUser.uid;
   const rb = `<span class="role-badge rb-${m.role||'pending'}">${m.role||'pending'}</span>`;
-  const hintLine = m.hint ? `<div style="font-size:9px;color:var(--ink4);margin-top:2px">Hint: ${escHtml(m.hint)}</div>` : '';
   let acts = '';
   if (isPending) {
-    acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.displayAlias}','editor')">✓ Approve</button>
-            <button class="mbtn mbtn-reject" onclick="setRole('${m.displayAlias}','rejected')">✕ Reject</button>`;
+    acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.uid}','editor')">✓ Approve</button>
+            <button class="mbtn mbtn-reject"  onclick="setRole('${m.uid}','rejected')">✕ Reject</button>`;
   } else if (!isSelf) {
     const opts = ALL_ROLES.map(r => `<option value="${r}"${r===m.role?' selected':''}>${r}</option>`).join('');
-    acts = `<select class="role-sel" onchange="setRole('${m.displayAlias}',this.value)"><option disabled>Set role</option>${opts}</select>
-            <button class="mbtn" style="background:var(--slate);color:white" onclick="adminResetPass('${m.displayAlias}')">🔑 Reset Pass</button>
-            <button class="mbtn mbtn-reject" onclick="removeM('${m.displayAlias}')">Remove</button>`;
+    acts = `<select class="role-sel" onchange="setRole('${m.uid}',this.value)"><option disabled>Set role</option>${opts}</select>
+            <button class="mbtn" style="background:var(--slate);color:white" onclick="adminSendReset('${escHtml(m.email||'')}')">🔑 Reset</button>
+            <button class="mbtn mbtn-reject" onclick="removeM('${m.uid}')">Remove</button>`;
   } else {
     acts = `<span style="font-size:10px;color:var(--ink4)">(you)</span>`;
   }
   return `<div class="member-row">
     <div class="member-av">${ini}</div>
     <div class="member-info">
-      <div class="member-name">@${escHtml(m.displayAlias||'')} ${rb}</div>
-      <div class="member-meta">${escHtml(m.first||'')} ${escHtml(m.last||'')} · joined ${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</div>
-      ${hintLine}
+      <div class="member-name">${escHtml(m.first||'')} ${escHtml(m.last||'')} ${rb}</div>
+      <div class="member-meta">${escHtml(m.email||'')} · joined ${fmtD(m.joinedAt)}</div>
       <div class="member-acts">${acts}</div>
     </div>
   </div>`;
 }
 
-function setRole(alias, role) {
-  membersNode().get(alias).get('role').put(role);
-  toast(`@${alias} → ${role}`);
-  setTimeout(loadMembers, 400);
+async function setRole(uid, role) {
+  await set(ref(db, `families/${FAM}/members/${uid}/role`), role);
+  toast('Role updated');
+  setTimeout(loadMembers, 300);
 }
-function removeM(alias) {
-  if (!confirm(`Remove @${alias} from this family? They can re-join with the family key.`)) return;
-  membersNode().get(alias).get('role').put('removed');
-  toast(`@${alias} removed`);
-  setTimeout(loadMembers, 400);
+async function removeM(uid) {
+  if (!confirm('Remove this member from the family?')) return;
+  await set(ref(db, `families/${FAM}/members/${uid}/role`), 'removed');
+  toast('Member removed');
+  setTimeout(loadMembers, 300);
 }
-
-// Admin-initiated password reset: sets a temporary password the user must change on login
-function adminResetPass(alias) {
-  const tmp = 'Reset' + Math.random().toString(36).slice(2, 8).toUpperCase();
-  // Gun SEA doesn't allow external password change — we store a temp token
-  // the member uses in a special "reset login" flow
-  membersNode().get(alias).get('tmpPass').put(tmp);
-  membersNode().get(alias).get('tmpPassAt').put(Date.now());
-  const msg = `Temporary password for @${alias}:\n\n${tmp}\n\nShare this privately. They enter it as "temp: ${tmp}" in the password field to set a new password.`;
-  alert(msg);
-  // Also copy to clipboard
-  navigator.clipboard && navigator.clipboard.writeText(tmp).catch(()=>{});
-  toast('Temp password set — share it privately');
+async function adminSendReset(email) {
+  if (!email) { toast('No email on record for this member'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast('Password reset email sent to ' + email);
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
-// ══ VIEWPORT ═══════════════════════════════════════════════════════
-const wrap   = document.getElementById('canvas-wrap');
-const world  = document.getElementById('world');
-const wsvg   = document.getElementById('world-svg');
-const nodesL = document.getElementById('nodes-layer');
+// ══ VIEWPORT / CANVAS ══════════════════════════════════════════════
+const wrap   = el('canvas-wrap');
+const world  = el('world');
+const wsvg   = el('world-svg');
+const nodesL = el('nodes-layer');
 let vp = { x:60, y:60, s:1 };
 const CW = 158, CH = 92;
 
@@ -1065,46 +1070,46 @@ function applyVP() {
 function zoomAt(cx,cy,dz) {
   const prev = vp.s;
   vp.s = Math.max(.15, Math.min(3, vp.s+dz));
-  vp.x = cx - (cx-vp.x)*(vp.s/prev);
-  vp.y = cy - (cy-vp.y)*(vp.s/prev);
+  vp.x = cx-(cx-vp.x)*(vp.s/prev);
+  vp.y = cy-(cy-vp.y)*(vp.s/prev);
   applyVP();
 }
 function doZoom(dz) { const r=wrap.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,dz); }
 function fitScreen() {
-  const ids = Object.keys(DB.people); if (!ids.length) return;
-  const xs = ids.map(id=>DB.people[id].x||0), ys = ids.map(id=>DB.people[id].y||0);
-  const x0=Math.min(...xs), x1=Math.max(...xs)+CW, y0=Math.min(...ys), y1=Math.max(...ys)+CH;
+  const ids = Object.keys(DB.people); if(!ids.length) return;
+  const xs=ids.map(id=>DB.people[id].x||0), ys=ids.map(id=>DB.people[id].y||0);
+  const x0=Math.min(...xs),x1=Math.max(...xs)+CW,y0=Math.min(...ys),y1=Math.max(...ys)+CH;
   const r=wrap.getBoundingClientRect(), pad=40;
-  vp.s = Math.min(.98, Math.min((r.width-pad*2)/(x1-x0||1),(r.height-pad*2)/(y1-y0||1)));
-  vp.x = (r.width-(x1-x0)*vp.s)/2 - x0*vp.s;
-  vp.y = (r.height-(y1-y0)*vp.s)/2 - y0*vp.s;
+  vp.s=Math.min(.98,Math.min((r.width-pad*2)/(x1-x0||1),(r.height-pad*2)/(y1-y0||1)));
+  vp.x=(r.width-(x1-x0)*vp.s)/2-x0*vp.s;
+  vp.y=(r.height-(y1-y0)*vp.s)/2-y0*vp.s;
   applyVP();
 }
 
-// pan
+// ── Pan ────────────────────────────────────────────────────────────
 let pan = {on:false,sx:0,sy:0,ox:0,oy:0,moved:false};
-const panStart = (cx,cy) => { pan={on:true,sx:cx,sy:cy,ox:vp.x,oy:vp.y,moved:false}; wrap.classList.add('grabbing'); };
-const panMove  = (cx,cy) => { if(!pan.on)return; const dx=cx-pan.sx,dy=cy-pan.sy; if(Math.abs(dx)>3||Math.abs(dy)>3)pan.moved=true; vp.x=pan.ox+dx; vp.y=pan.oy+dy; applyVP(); };
-const panEnd   = ()      => { pan.on=false; wrap.classList.remove('grabbing'); };
+const panStart=(cx,cy)=>{ pan={on:true,sx:cx,sy:cy,ox:vp.x,oy:vp.y,moved:false}; wrap.classList.add('grabbing'); };
+const panMove =(cx,cy)=>{ if(!pan.on)return; const dx=cx-pan.sx,dy=cy-pan.sy; if(Math.abs(dx)>3||Math.abs(dy)>3)pan.moved=true; vp.x=pan.ox+dx; vp.y=pan.oy+dy; applyVP(); };
+const panEnd  =()=>{ pan.on=false; wrap.classList.remove('grabbing'); };
 
-wrap.addEventListener('mousedown', e => { if(e.button!==0||e.target.closest('.card')) return; panStart(e.clientX,e.clientY); });
-window.addEventListener('mousemove', e => { panMove(e.clientX,e.clientY); ndMove(e.clientX,e.clientY); });
-window.addEventListener('mouseup', () => { panEnd(); ndEnd(); });
+wrap.addEventListener('mousedown',e=>{ if(e.button!==0||e.target.closest('.card'))return; panStart(e.clientX,e.clientY); });
+window.addEventListener('mousemove',e=>{ panMove(e.clientX,e.clientY); ndMove(e.clientX,e.clientY); });
+window.addEventListener('mouseup',()=>{ panEnd(); ndEnd(); });
 
-// touch pan on #world — header is outside and unaffected
+// ── Touch pan on #world — header sits outside, fully unaffected ────
 let tp = {pts:{},lastD:null};
-world.addEventListener('touchstart', e => {
-  if (e.target.closest('.card')) return;
-  [...e.changedTouches].forEach(t => tp.pts[t.identifier]={x:t.clientX,y:t.clientY});
-  const pts = Object.values(tp.pts);
-  if (pts.length===1) panStart(pts[0].x,pts[0].y);
-  else if (pts.length===2) { panEnd(); tp.lastD=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y); }
+world.addEventListener('touchstart',e=>{
+  if(e.target.closest('.card'))return;
+  [...e.changedTouches].forEach(t=>tp.pts[t.identifier]={x:t.clientX,y:t.clientY});
+  const pts=Object.values(tp.pts);
+  if(pts.length===1) panStart(pts[0].x,pts[0].y);
+  else if(pts.length===2){panEnd();tp.lastD=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);}
 },{passive:true});
-world.addEventListener('touchmove', e => {
-  [...e.changedTouches].forEach(t => { if(tp.pts[t.identifier]) tp.pts[t.identifier]={x:t.clientX,y:t.clientY}; });
-  const pts = Object.values(tp.pts);
-  if (pts.length===1) panMove(pts[0].x,pts[0].y);
-  else if (pts.length===2 && tp.lastD) {
+world.addEventListener('touchmove',e=>{
+  [...e.changedTouches].forEach(t=>{if(tp.pts[t.identifier])tp.pts[t.identifier]={x:t.clientX,y:t.clientY};});
+  const pts=Object.values(tp.pts);
+  if(pts.length===1) panMove(pts[0].x,pts[0].y);
+  else if(pts.length===2&&tp.lastD){
     const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
     const r=wrap.getBoundingClientRect();
     zoomAt((pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top,vp.s*(d/tp.lastD)-vp.s);
@@ -1112,123 +1117,112 @@ world.addEventListener('touchmove', e => {
   }
   e.preventDefault();
 },{passive:false});
-world.addEventListener('touchend', e => {
-  [...e.changedTouches].forEach(t => delete tp.pts[t.identifier]);
-  if (!Object.keys(tp.pts).length) { panEnd(); tp.lastD=null; }
+world.addEventListener('touchend',e=>{
+  [...e.changedTouches].forEach(t=>delete tp.pts[t.identifier]);
+  if(!Object.keys(tp.pts).length){panEnd();tp.lastD=null;}
 },{passive:true});
-wrap.addEventListener('wheel', e => {
+wrap.addEventListener('wheel',e=>{
   e.preventDefault();
   const r=wrap.getBoundingClientRect();
   zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?.1:-.1);
 },{passive:false});
 
-// node drag
+// ── Node drag ──────────────────────────────────────────────────────
 let nd = {on:false,id:null,sx:0,sy:0,ox:0,oy:0,moved:false};
-function ndStart(e,id,cx,cy) { nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false}; e.stopPropagation(); }
-function ndMove(cx,cy) {
-  if (!nd.on) return;
-  const dx=(cx-nd.sx)/vp.s, dy=(cy-nd.sy)/vp.s;
-  if (Math.abs(dx)>3||Math.abs(dy)>3) nd.moved=true;
-  if (!nd.moved) return;
+function ndStart(e,id,cx,cy){ nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false}; e.stopPropagation(); }
+function ndMove(cx,cy){
+  if(!nd.on)return;
+  const dx=(cx-nd.sx)/vp.s,dy=(cy-nd.sy)/vp.s;
+  if(Math.abs(dx)>3||Math.abs(dy)>3)nd.moved=true;
+  if(!nd.moved)return;
   DB.people[nd.id].x=nd.ox+dx; DB.people[nd.id].y=nd.oy+dy;
   reposCard(nd.id); redrawLines();
 }
-function ndEnd() {
-  if (!nd.on) return;
-  const moved=nd.moved, id=nd.id; nd.on=false;
-  if (moved && id) {
-    peopleNode().get(id).get('x').put(DB.people[id].x);
-    peopleNode().get(id).get('y').put(DB.people[id].y);
+async function ndEnd(){
+  if(!nd.on)return;
+  const moved=nd.moved,id=nd.id; nd.on=false;
+  if(moved&&id){
+    await set(ref(db,`families/${FAM}/people/${id}/x`),DB.people[id].x);
+    await set(ref(db,`families/${FAM}/people/${id}/y`),DB.people[id].y);
   }
-  if (!moved && id) selectPerson(id);
-}
-
-// ══ HELPERS ════════════════════════════════════════════════════════
-function el(id)         { return document.getElementById(id); }
-function escHtml(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function v(id)          { return (el(id)||{}).value||''; }
-function fullName(p)    { return [p.first,p.last].filter(Boolean).join(' ')||'Unnamed'; }
-function lifeSpan(p)    { if(!p.dob&&!p.dod)return ''; const b=p.dob?p.dob.slice(0,4):'?'; return p.dod?`${b}–${p.dod.slice(0,4)}`:`b. ${b}`; }
-function fmtDT(ts)      { return ts ? new Date(ts).toLocaleString() : ''; }
-function fmtD(ts)       { return ts ? new Date(ts).toLocaleDateString() : ''; }
-
-function getParents(id)  { return DB.rels.filter(r=>r.to===id&&r.type==='Parent'&&!r.deleted).map(r=>r.from); }
-function getChildren(id) { return DB.rels.filter(r=>r.from===id&&r.type==='Parent'&&!r.deleted).map(r=>r.to); }
-function getPartners(id) { return DB.rels.filter(r=>(r.from===id||r.to===id)&&r.type==='Partner'&&!r.deleted).map(r=>r.from===id?r.to:r.from); }
-function getSiblings(id) {
-  const ex = [...DB.rels.filter(r=>r.from===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.to),
-               ...DB.rels.filter(r=>r.to===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.from)];
-  return [...new Set([...ex, ...getParents(id).flatMap(pid=>getChildren(pid)).filter(c=>c!==id)])];
-}
-function getGen(id,memo={}) {
-  if (memo[id]!==undefined) return memo[id];
-  const par = getParents(id);
-  if (!par.length) { memo[id]=0; return 0; }
-  memo[id] = 1 + Math.max(...par.map(p=>getGen(p,memo)));
-  return memo[id];
+  if(!moved&&id) selectPerson(id);
 }
 
 // ══ RENDER ═════════════════════════════════════════════════════════
-function render() {
-  const ids = Object.keys(DB.people);
-  el('empty').classList.toggle('hide', ids.length>0);
-  nodesL.querySelectorAll('.card').forEach(c => { if (!DB.people[c.dataset.id]) c.remove(); });
-  const memo = {};
-  ids.forEach(id => getGen(id,memo));
-  ids.forEach(id => renderCard(id, memo[id]%6));
+function getGen(id,memo={}){
+  if(memo[id]!==undefined)return memo[id];
+  const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
+  if(!pars.length){memo[id]=0;return 0;}
+  memo[id]=1+Math.max(...pars.map(p=>getGen(p,memo)));
+  return memo[id];
+}
+function render(){
+  const ids=Object.keys(DB.people);
+  el('empty').classList.toggle('hide',ids.length>0);
+  nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
+  const memo={};
+  ids.forEach(id=>getGen(id,memo));
+  ids.forEach(id=>renderCard(id,memo[id]%6));
   redrawLines();
 }
-function renderCard(id, gen) {
-  const p = DB.people[id];
-  let card = nodesL.querySelector(`.card[data-id="${id}"]`);
-  if (!card) {
-    card = document.createElement('div');
-    card.dataset.id = id;
+function renderCard(id,gen){
+  const p=DB.people[id];
+  let card=nodesL.querySelector(`.card[data-id="${id}"]`);
+  if(!card){
+    card=document.createElement('div');
+    card.dataset.id=id;
     nodesL.appendChild(card);
-    card.addEventListener('mousedown', e => { if(e.button===0) ndStart(e,id,e.clientX,e.clientY); });
-    card.addEventListener('touchstart', e => {
+    card.addEventListener('mousedown',e=>{ if(e.button===0)ndStart(e,id,e.clientX,e.clientY); });
+    card.addEventListener('touchstart',e=>{
       const t=e.touches[0]; ndStart(e,id,t.clientX,t.clientY);
-      const mv=ev=>{const t2=ev.touches[0];ndMove(t2.clientX,t2.clientY)};
-      const up=()=>{ndEnd();card.removeEventListener('touchmove',mv);card.removeEventListener('touchend',up)};
+      const mv=ev=>{const t2=ev.touches[0];ndMove(t2.clientX,t2.clientY);};
+      const up=()=>{ndEnd();card.removeEventListener('touchmove',mv);card.removeEventListener('touchend',up);};
       card.addEventListener('touchmove',mv,{passive:true});
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
-  card.className = `card g${gen}${selId===id?' sel':''}`;
-  card.style.left = (p.x||0)+'px'; card.style.top = (p.y||0)+'px';
-  const avc = p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
-  const av  = p.photo ? `<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">` : ((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
-  card.innerHTML = `<div class="card-stripe"></div>
-    <div class="card-av ${avc}">${av}</div>
+  card.className=`card g${gen}${selId===id?' sel':''}`;
+  card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
+  const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
+  const av=p.photo?`<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">`
+    :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
+  const isMe = fbUser && p.addedBy === fbUser.uid;
+  card.innerHTML=`
+    <div class="card-stripe"></div>
+    <div class="card-av ${avCls}">${av}</div>
     <div class="card-name">${escHtml(fullName(p))}</div>
-    <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>`;
+    <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
+    ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
 }
-function reposCard(id) { const c=nodesL.querySelector(`.card[data-id="${id}"]`); if(c){c.style.left=(DB.people[id].x||0)+'px';c.style.top=(DB.people[id].y||0)+'px';} }
+function reposCard(id){
+  const card=nodesL.querySelector(`.card[data-id="${id}"]`);
+  if(!card)return;
+  card.style.left=(DB.people[id].x||0)+'px';
+  card.style.top=(DB.people[id].y||0)+'px';
+}
 
-// ══ LINES ══════════════════════════════════════════════════════════
-const cBot = p => ({x:(p.x||0)+CW/2, y:(p.y||0)+CH});
-const cTop = p => ({x:(p.x||0)+CW/2, y:(p.y||0)});
-const cCtr = p => ({x:(p.x||0)+CW/2, y:(p.y||0)+CH/2});
-function redrawLines() {
-  wsvg.innerHTML = '';
-  const ids = Object.keys(DB.people);
-  if (!ids.length) { wsvg.setAttribute('width',1); wsvg.setAttribute('height',1); return; }
-  const xs=ids.map(id=>DB.people[id].x||0), ys=ids.map(id=>DB.people[id].y||0);
-  wsvg.setAttribute('width', Math.max(2000, Math.max(...xs)+CW+200));
-  wsvg.setAttribute('height',Math.max(2000, Math.max(...ys)+CH+200));
-  const drawn = new Set();
-  DB.rels.filter(r=>!r.deleted).forEach(r => {
-    const a=DB.people[r.from], b=DB.people[r.to];
-    if (!a||!b) return;
-    const key = [r.from,r.to].sort().join('-')+r.type;
-    if (r.type==='Partner' && drawn.has(key)) return;
-    drawn.add(key);
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    if (r.type==='Parent') {
+// ══ SVG LINES ══════════════════════════════════════════════════════
+function cBot(p){return{x:(p.x||0)+CW/2,y:(p.y||0)+CH};}
+function cTop(p){return{x:(p.x||0)+CW/2,y:(p.y||0)};}
+function cCtr(p){return{x:(p.x||0)+CW/2,y:(p.y||0)+CH/2};}
+function redrawLines(){
+  wsvg.innerHTML='';
+  const ids=Object.keys(DB.people);
+  if(!ids.length){wsvg.setAttribute('width',1);wsvg.setAttribute('height',1);return;}
+  const xs=ids.map(id=>DB.people[id].x||0),ys=ids.map(id=>DB.people[id].y||0);
+  wsvg.setAttribute('width',Math.max(2000,Math.max(...xs)+CW+200));
+  wsvg.setAttribute('height',Math.max(2000,Math.max(...ys)+CH+200));
+  const drawn=new Set();
+  Object.values(DB.rels).forEach(r=>{
+    const a=DB.people[r.from],b=DB.people[r.to]; if(!a||!b)return;
+    const key=[r.from,r.to].sort().join('-')+r.type;
+    if(r.type==='Partner'&&drawn.has(key))return; drawn.add(key);
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    if(r.type==='Parent'){
       const s=cBot(a),e=cTop(b),my=(s.y+e.y)/2;
       path.setAttribute('d',`M${s.x},${s.y} C${s.x},${my} ${e.x},${my} ${e.x},${e.y}`);
       path.setAttribute('class','e-parent');
-    } else if (r.type==='Partner') {
+    } else if(r.type==='Partner'){
       const la=cCtr(a),lb=cCtr(b),mx=(la.x+lb.x)/2,my=Math.min(la.y,lb.y)-36;
       path.setAttribute('d',`M${la.x},${la.y} Q${mx},${my} ${lb.x},${lb.y}`);
       path.setAttribute('class','e-partner');
@@ -1242,49 +1236,73 @@ function redrawLines() {
 }
 
 // ══ AUTO LAYOUT ════════════════════════════════════════════════════
-function autoLayout() {
-  const ids = Object.keys(DB.people); if (!ids.length) return;
-  const memo={}, byGen={};
+async function autoLayout(){
+  const ids=Object.keys(DB.people); if(!ids.length)return;
+  const memo={};
   ids.forEach(id=>getGen(id,memo));
-  ids.forEach(id => { const g=memo[id]||0; if(!byGen[g])byGen[g]=[]; byGen[g].push(id); });
+  const byGen={};
+  ids.forEach(id=>{const g=memo[id]||0;if(!byGen[g])byGen[g]=[];byGen[g].push(id);});
   const GH=170,GW=190,PAD=60;
-  const gens = Object.keys(byGen).map(Number).sort((a,b)=>a-b);
-  const maxCols = Math.max(...gens.map(g=>byGen[g].length));
-  gens.forEach(g => {
-    const row=byGen[g], startX=(maxCols-row.length)*GW/2+PAD;
-    row.forEach((id,i)=>{
-      DB.people[id].x=startX+i*GW; DB.people[id].y=PAD+g*GH;
-      peopleNode().get(id).get('x').put(DB.people[id].x);
-      peopleNode().get(id).get('y').put(DB.people[id].y);
+  const gens=Object.keys(byGen).map(Number).sort((a,b)=>a-b);
+  const maxCols=Math.max(...gens.map(g=>byGen[g].length));
+  const updates={};
+  gens.forEach(g=>{
+    byGen[g].forEach((id,i)=>{
+      const x=((maxCols-byGen[g].length)*GW/2)+PAD+i*GW;
+      const y=PAD+g*GH;
+      DB.people[id].x=x; DB.people[id].y=y;
+      updates[`families/${FAM}/people/${id}/x`]=x;
+      updates[`families/${FAM}/people/${id}/y`]=y;
     });
   });
+  await update(ref(db),updates);
   render(); setTimeout(fitScreen,50); toast('Layout applied');
 }
 
-// ══ PANEL ══════════════════════════════════════════════════════════
-let selId = null;
-function selectPerson(id) { selId=id; nodesL.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.id===id)); showPanel(id); }
-function showPanel(id) {
-  const p=DB.people[id]; if (!p) return;
-  el('pan-title').textContent = fullName(p);
-  el('pan-sub').textContent   = (p.dod?'✦ Deceased':'◉ Living') + (p.gender?` · ${p.gender}`:'');
-  const av = p.photo ? `<div class="pf-av"><img src="${escHtml(p.photo)}" alt=""></div>`
-    : `<div class="pf-av" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
-  const rows = [['📅','Date of Birth',p.dob],['✝','Date of Death',p.dod],['📍','Birthplace',p.birthplace],['🏠','Location',p.location],['💼','Occupation',p.occupation],['🎓','Education',p.education],['🌍','Nationality',p.nationality]].filter(([,,val])=>val);
-  const infoHtml = rows.length ? rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(val)}</span></div>`).join('') : `<div class="no-rel">No details recorded</div>`;
+// ══ SELECT + PANEL ═════════════════════════════════════════════════
+let selId=null;
+function selectPerson(id){ selId=id; nodesL.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.id===id)); showPanel(id); }
+function showPanel(id){
+  const p=DB.people[id]; if(!p)return;
+  el('pan-title').textContent=fullName(p);
+  el('pan-sub').textContent=(p.dod?'✦ Deceased':'◉ Living')+(p.gender?` · ${p.gender}`:'');
+  const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
+  const av=p.photo?`<div class="pf-av"><img src="${escHtml(p.photo)}" alt=""></div>`
+    :`<div class="pf-av ${avCls}" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
 
-  const parents  = getParents(id).map(pid=>({id:pid,role:'Parent'}));
-  const children = getChildren(id).map(cid=>({id:cid,role:'Child'}));
-  const partners = getPartners(id).map(pid=>({id:pid,role:'Partner'}));
-  const siblings = getSiblings(id).map(sid=>({id:sid,role:'Sibling'}));
-  const chipG = (title, items) => `<div class="sec"><div class="sec-t">${title} (${items.length})</div><div class="chips">${
-    items.length ? items.map(it=>`<div class="chip" onclick="selectPerson('${it.id}')"><span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role}</small></div>`).join('') : `<div class="no-rel">None recorded</div>`
-  }</div></div>`;
+  const rows=[
+    ['📅','Date of Birth',p.dob],['✝','Date of Death',p.dod],
+    ['📍','Birthplace',p.birthplace],['🏠','Location',p.location],
+    ['💼','Occupation',p.occupation],['🎓','Education',p.education],
+    ['🌍','Nationality',p.nationality],
+  ].filter(([,,val])=>val);
+  const infoHtml=rows.length
+    ?rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(val)}</span></div>`).join('')
+    :`<div class="no-rel">No details recorded</div>`;
 
-  const audit = `<div class="audit-row"><span class="audit-who">➕ ${escHtml(p.addedBy||'?')}</span><span class="audit-what">added</span><span class="audit-when">${fmtD(p.addedAt)}</span></div>
-    ${p.editedAt?`<div class="audit-row"><span class="audit-who">✎ ${escHtml(p.editedBy||'?')}</span><span class="audit-what">last edited</span><span class="audit-when">${fmtDT(p.editedAt)}</span></div>`:''}`;
+  const rels=Object.values(DB.rels);
+  const parents  =rels.filter(r=>r.to===id&&r.type==='Parent').map(r=>({id:r.from,role:'Parent'}));
+  const children =rels.filter(r=>r.from===id&&r.type==='Parent').map(r=>({id:r.to,role:'Child'}));
+  const partners =rels.filter(r=>(r.from===id||r.to===id)&&r.type==='Partner').map(r=>({id:r.from===id?r.to:r.from,role:'Partner'}));
+  const sibIds   =[...new Set([
+    ...rels.filter(r=>r.from===id&&r.type==='Sibling').map(r=>r.to),
+    ...rels.filter(r=>r.to===id&&r.type==='Sibling').map(r=>r.from),
+    ...parents.flatMap(({id:pid})=>rels.filter(r=>r.from===pid&&r.type==='Parent'&&r.to!==id).map(r=>r.to))
+  ])];
+  const siblings=sibIds.map(sid=>({id:sid,role:'Sibling'}));
 
-  el('pan-bd').innerHTML = `${av}
+  function chipG(title,items){
+    return `<div class="sec"><div class="sec-t">${title} (${items.length})</div><div class="chips">${
+      items.length
+        ?items.filter(it=>DB.people[it.id]).map(it=>`<div class="chip" onclick="selectPerson('${it.id}')"><span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role}</small></div>`).join('')
+        :`<div class="no-rel">None recorded</div>`
+    }</div></div>`;
+  }
+
+  const audit=`<div class="audit-row"><span class="audit-who">➕ ${escHtml(p.addedByName||'?')}</span><span class="audit-what">added</span><span class="audit-when">${fmtD(p.addedAt)}</span></div>
+    ${p.editedAt?`<div class="audit-row"><span class="audit-who">✎ ${escHtml(p.editedByName||'?')}</span><span class="audit-what">last edited</span><span class="audit-when">${fmtDT(p.editedAt)}</span></div>`:''}`;
+
+  el('pan-bd').innerHTML=`${av}
     <div class="pf-name">${escHtml(fullName(p))}</div>
     <div class="pf-dates">${lifeSpan(p)||'&nbsp;'}</div>
     <div class="sec"><div class="sec-t">Personal Information</div>${infoHtml}</div>
@@ -1292,19 +1310,19 @@ function showPanel(id) {
     ${chipG('Parents',parents)}${chipG('Partners / Spouse',partners)}${chipG('Children',children)}${chipG('Siblings',siblings)}
     <div class="sec"><div class="sec-t">Audit Trail</div>${audit}</div>`;
 
-  const canEd=canEditPerson(p), canDel=can('delete'), canLink=can('add');
-  el('pan-ft').innerHTML = `
-    ${canEd  ? `<button class="pan-btn" onclick="openEditMo('${id}')">✎ Edit</button>` : ''}
-    ${canLink ? `<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ Link</button>` : ''}
+  const canEd=canEditPerson(p),canDel=can('delete'),canLink=can('add');
+  el('pan-ft').innerHTML=`
+    ${canEd  ?`<button class="pan-btn"     onclick="openEditMo('${id}')">✎ Edit</button>`:''}
+    ${canLink ?`<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ Link</button>`:''}
     <button class="pan-btn" onclick="openHistMo('${id}')">📜 History</button>
-    ${canDel  ? `<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>` : ''}`;
+    ${canDel  ?`<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>`:''}`;
   el('panel').classList.add('open');
 }
-function closePanel() { el('panel').classList.remove('open'); selId=null; nodesL.querySelectorAll('.card').forEach(c=>c.classList.remove('sel')); }
-wrap.addEventListener('click', e => { if(e.target.closest('.card')||pan.moved) return; closePanel(); });
+function closePanel(){ el('panel').classList.remove('open'); selId=null; nodesL.querySelectorAll('.card').forEach(c=>c.classList.remove('sel')); }
+wrap.addEventListener('click',e=>{ if(e.target.closest('.card')||pan.moved)return; closePanel(); });
 
 // ══ PERSON FORM ════════════════════════════════════════════════════
-function personForm(p={}) { return `
+function personForm(p={}){ return `
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">First Name *</label><input class="pfi" id="pf-first" value="${escHtml(p.first||'')}"></div>
     <div class="pfg"><label class="pfl">Last Name</label><input class="pfi" id="pf-last" value="${escHtml(p.last||'')}"></div>
@@ -1319,7 +1337,7 @@ function personForm(p={}) { return `
   </div>
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">Birthplace</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
-    <div class="pfg"><label class="pfl">Current Location</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
+    <div class="pfg"><label class="pfl">Location</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
   </div>
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">Occupation</label><input class="pfi" id="pf-occ" value="${escHtml(p.occupation||'')}"></div>
@@ -1328,248 +1346,208 @@ function personForm(p={}) { return `
   <div class="pfg"><label class="pfl">Photo URL</label><input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}"></div>
   <div class="pfg"><label class="pfl">Biography / Notes</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
 
-let editId = null;
-function openAddMo()  { if(!can('add')){toast('No permission');return} editId=null; el('pmo-title').textContent='Add Family Member'; el('pmo-bd').innerHTML=personForm(); el('person-mo').classList.add('on'); }
-function openEditMo(id) { if(!canEditPerson(DB.people[id])){toast('No permission');return} editId=id; el('pmo-title').textContent='Edit — '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
-function closePMo()   { el('person-mo').classList.remove('on'); }
-function pv(id)       { return (el(id)||{}).value||''; }
+let editId=null;
+function openAddMo(){  if(!can('add')){toast('No permission');return;} editId=null; el('pmo-title').textContent='Add Family Member'; el('pmo-bd').innerHTML=personForm(); el('person-mo').classList.add('on'); }
+function openEditMo(id){ if(!canEditPerson(DB.people[id])){toast('No permission');return;} editId=id; el('pmo-title').textContent='Edit — '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
+function closePMo(){ el('person-mo').classList.remove('on'); }
+function pv(id){ return (el(id)||{}).value||''; }
 
-function savePerson() {
-  const first = pv('pf-first').trim();
-  if (!first) { toast('First name is required'); return; }
-  const now=Date.now(), who=CU?CU.displayAlias:'?';
-  if (editId) {
-    const prev = DB.people[editId];
-    const changes = {};
-    [['first','pf-first'],['last','pf-last'],['gender','pf-gender'],['nationality','pf-nat'],['dob','pf-dob'],['dod','pf-dod'],['birthplace','pf-bp'],['location','pf-loc'],['occupation','pf-occ'],['education','pf-edu'],['photo','pf-photo'],['notes','pf-notes']]
-      .forEach(([k,fid])=>{ const nv=pv(fid).trim(); if(nv!==(prev[k]||'')) changes[k]={from:prev[k]||'',to:nv}; });
-    const data = {...prev,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),notes:pv('pf-notes').trim(),editedBy:who,editedAt:now};
-    DB.people[editId]=data; putPerson(editId,data); logHistory(editId,'edited',changes);
-    toast('Updated'); closePMo(); render(); showPanel(editId);
+async function savePerson(){
+  const first=pv('pf-first').trim();
+  if(!first){toast('First name is required');return;}
+  const now=Date.now();
+  const who=fbUser.uid;
+  const whoName=CU?`${CU.first} ${CU.last}`.trim()||CU.email:'?';
+  if(editId){
+    const prev=DB.people[editId];
+    const changes={};
+    [['first','pf-first'],['last','pf-last'],['gender','pf-gender'],['nationality','pf-nat'],
+     ['dob','pf-dob'],['dod','pf-dod'],['birthplace','pf-bp'],['location','pf-loc'],
+     ['occupation','pf-occ'],['education','pf-edu'],['photo','pf-photo'],['notes','pf-notes']]
+      .forEach(([k,fid])=>{const nv=pv(fid).trim();if(nv!==(prev[k]||''))changes[k]={from:prev[k]||'',to:nv};});
+    const data={...prev,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
+      dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),
+      notes:pv('pf-notes').trim(),editedBy:who,editedByName:whoName,editedAt:now};
+    await putPerson(editId,data);
+    await logHistory(editId,'edited',changes);
+    toast('Updated'); closePMo(); showPanel(editId);
   } else {
     const id=gid(), count=Object.keys(DB.people).length;
-    const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),notes:pv('pf-notes').trim(),x:60+(count%5)*190,y:60+Math.floor(count/5)*170,addedBy:who,addedAt:now};
-    DB.people[id]=data; putPerson(id,data); logHistory(id,'added',{name:first});
-    toast('Person added'); closePMo(); render(); selectPerson(id);
+    const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
+      dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),
+      notes:pv('pf-notes').trim(),x:60+(count%5)*190,y:60+Math.floor(count/5)*170,
+      addedBy:who,addedByName:whoName,addedAt:now};
+    await putPerson(id,data);
+    await logHistory(id,'added',{name:first});
+    toast('Person added'); closePMo(); selectPerson(id);
   }
 }
-function delPerson(id) {
-  if (!can('delete')) { toast('Only admin can delete'); return; }
-  if (!confirm(`Remove "${fullName(DB.people[id])}"?`)) return;
-  logHistory(id,'deleted',{name:fullName(DB.people[id])});
-  peopleNode().get(id).put({...DB.people[id],deleted:true});
+async function delPerson(id){
+  if(!can('delete')){toast('Only admin can delete');return;}
+  if(!confirm(`Remove "${fullName(DB.people[id])}"?`))return;
+  await logHistory(id,'deleted',{name:fullName(DB.people[id])});
+  await set(ref(db,`families/${FAM}/people/${id}`),{...DB.people[id],deleted:true});
   delete DB.people[id];
-  DB.rels.filter(r=>r.from===id||r.to===id).forEach(r=>deleteRel(r.id));
+  Object.values(DB.rels).filter(r=>r.from===id||r.to===id).forEach(r=>deleteRelFb(r.id));
   closePanel(); render(); toast('Removed');
 }
 
 // ══ RELATIONS ══════════════════════════════════════════════════════
-function openRelMo(preId) {
-  const people=Object.entries(DB.people); if(people.length<2){toast('Add at least 2 people first');return}
+function openRelMo(preId){
+  const people=Object.entries(DB.people); if(people.length<2){toast('Add at least 2 people first');return;}
   const opts=people.map(([id,p])=>`<option value="${id}"${id===preId?' selected':''}>${escHtml(fullName(p))}</option>`).join('');
-  const relList=DB.rels.filter(r=>!r.deleted).map(r=>{const a=DB.people[r.from],b=DB.people[r.to];if(!a||!b)return '';
-    return `<div class="member-row" style="padding:8px"><div class="member-info"><div class="member-name">${escHtml(fullName(a))} → ${escHtml(fullName(b))}</div><div class="member-meta">${r.type}</div></div><button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button></div>`;}).filter(Boolean).join('');
+  const relList=Object.values(DB.rels).map(r=>{
+    const a=DB.people[r.from],b=DB.people[r.to]; if(!a||!b)return '';
+    return `<div class="member-row" style="padding:8px"><div class="member-info"><div class="member-name">${escHtml(fullName(a))} → ${escHtml(fullName(b))}</div><div class="member-meta">${r.type}</div></div>
+      <button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button></div>`;
+  }).filter(Boolean).join('');
   el('rmo-bd').innerHTML=`
     <div class="pfi-row">
       <div class="pfg"><label class="pfl">Person A</label><select class="pfs" id="r-from">${opts}</select></div>
       <div class="pfg"><label class="pfl">Person B</label><select class="pfs" id="r-to">${opts}</select></div>
     </div>
     <div class="pfg"><label class="pfl">Relationship (A → B)</label>
-      <select class="pfs" id="r-type"><option value="Parent">Parent — A is parent of B</option><option value="Partner">Partner / Spouse</option><option value="Sibling">Sibling of B</option></select>
+      <select class="pfs" id="r-type">
+        <option value="Parent">Parent — A is parent of B</option>
+        <option value="Partner">Partner / Spouse</option>
+        <option value="Sibling">Sibling of B</option>
+      </select>
     </div>
-    <p style="font-size:11px;color:var(--ink3);margin-bottom:10px">For a child with 2 parents, add two separate Parent links.</p>
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:10px">For a child with 2 parents add two Parent links.</p>
     ${relList?`<div class="sec-t">Existing Links</div><div style="display:grid;gap:5px">${relList}</div>`:''}`;
   el('rel-mo').classList.add('on');
 }
-function closeRMo() { el('rel-mo').classList.remove('on'); }
-function addRel() {
-  const from=v('r-from'),to=v('r-to'),type=v('r-type');
-  if (from===to) { toast('Choose two different people'); return; }
-  if (DB.rels.find(r=>r.from===from&&r.to===to&&r.type===type&&!r.deleted)) { toast('Link already exists'); return; }
+function closeRMo(){ el('rel-mo').classList.remove('on'); }
+async function addRel(){
+  const from=pv('r-from'),to=pv('r-to'),type=pv('r-type');
+  if(from===to){toast('Choose two different people');return;}
+  if(Object.values(DB.rels).find(r=>r.from===from&&r.to===to&&r.type===type)){toast('Link already exists');return;}
   const id='r'+Date.now();
-  const rel={id,from,to,type,addedBy:CU?CU.displayAlias:'',addedAt:Date.now()};
-  DB.rels.push(rel); putRel(rel); render(); toast('Link added'); if(selId) showPanel(selId);
+  const rel={id,from,to,type,addedBy:fbUser.uid,addedAt:Date.now()};
+  await putRel(id,rel);
+  toast('Link added');
+  if(selId) showPanel(selId);
 }
-function removeRel(id,el_) { deleteRel(id); if(el_) el_.remove(); render(); if(selId) showPanel(selId); toast('Link removed'); }
+async function removeRel(id,elRef){
+  await deleteRelFb(id);
+  if(elRef)elRef.remove();
+  render();
+  if(selId)showPanel(selId);
+  toast('Link removed');
+}
 
 // ══ HISTORY ════════════════════════════════════════════════════════
-function openHistMo(id) {
+async function openHistMo(id){
   el('hmo-bd').innerHTML='<div style="color:var(--ink3);font-size:12px">Loading…</div>';
   el('hist-mo').classList.add('on');
-  getHistory(id, entries => {
-    if (!entries.length) { el('hmo-bd').innerHTML='<div class="no-rel">No history recorded yet</div>'; return; }
-    el('hmo-bd').innerHTML = entries.map(e => {
-      const ch=JSON.parse(e.changes||'{}');
-      const cHtml=Object.entries(ch).map(([k,{from:f,to:t}])=>`<div class="hc"><b>${k}:</b> ${escHtml(f||'—')} → ${escHtml(t||'—')}</div>`).join('');
-      return `<div class="hist-item"><div><span class="hw">${escHtml(e.who)}</span> <span class="hd">${e.action} · ${fmtDT(e.at)}</span></div>${cHtml}</div>`;
-    }).join('');
-  });
+  const entries=await getHistory(id);
+  if(!entries.length){el('hmo-bd').innerHTML='<div class="no-rel">No history recorded yet</div>';return;}
+  el('hmo-bd').innerHTML=entries.map(e=>{
+    const ch=JSON.parse(e.changes||'{}');
+    const cHtml=Object.entries(ch).map(([k,{from:f,to:t}])=>`<div style="font-size:11px;color:var(--ink3);margin-top:3px"><b>${k}:</b> ${escHtml(f||'—')} → ${escHtml(t||'—')}</div>`).join('');
+    return `<div class="hist-item"><div><span class="hw">${escHtml(e.who)}</span> <span class="hd">${e.action} · ${fmtDT(e.at)}</span></div>${cHtml}</div>`;
+  }).join('');
 }
-function closeHMo() { el('hist-mo').classList.remove('on'); }
+function closeHMo(){ el('hist-mo').classList.remove('on'); }
 
 // ══ SEARCH ═════════════════════════════════════════════════════════
-function setupSearch(inputId, dropId) {
-  const si=el(inputId), sd=el(dropId); if(!si||!sd) return;
-  // Prevent canvas click-close and document click-close from triggering
-  // when interacting with the search input or its dropdown.
-  si.addEventListener('click',     e => e.stopPropagation());
-  si.addEventListener('mousedown', e => e.stopPropagation());
-  si.addEventListener('touchstart',e => e.stopPropagation(), {passive:true});
-  sd.addEventListener('click',     e => e.stopPropagation());
-  sd.addEventListener('mousedown', e => e.stopPropagation());
-  sd.addEventListener('touchstart',e => e.stopPropagation(), {passive:true});
-
-  si.addEventListener('input', () => {
-    const q = si.value.toLowerCase().trim();
-    if (!q) { sd.classList.remove('on'); return; }
-    const hits = Object.entries(DB.people)
-      .filter(([,p]) => fullName(p).toLowerCase().includes(q) || (p.occupation||'').toLowerCase().includes(q))
-      .slice(0, 8);
-    if (!hits.length) { sd.classList.remove('on'); return; }
-    sd.innerHTML = hits.map(([id,p]) =>
-      `<div class="sd-row" data-id="${id}"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`
-    ).join('');
-    // Attach click handlers directly (avoids inline onclick closure issues)
-    sd.querySelectorAll('.sd-row').forEach(row => {
-      row.addEventListener('click', e => {
-        e.stopPropagation();
-        jumpTo(row.dataset.id);
-        si.value = '';
-        sd.classList.remove('on');
-      });
-      row.addEventListener('touchend', e => {
-        e.stopPropagation();
-        e.preventDefault();
-        jumpTo(row.dataset.id);
-        si.value = '';
-        sd.classList.remove('on');
-      });
+function setupSearch(inputId,dropId){
+  const si=el(inputId),sd=el(dropId); if(!si||!sd)return;
+  si.addEventListener('click',    e=>e.stopPropagation());
+  si.addEventListener('mousedown',e=>e.stopPropagation());
+  si.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  sd.addEventListener('click',    e=>e.stopPropagation());
+  sd.addEventListener('mousedown',e=>e.stopPropagation());
+  sd.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  si.addEventListener('input',()=>{
+    const q=si.value.toLowerCase().trim();
+    if(!q){sd.classList.remove('on');return;}
+    const hits=Object.entries(DB.people)
+      .filter(([,p])=>fullName(p).toLowerCase().includes(q)||(p.occupation||'').toLowerCase().includes(q))
+      .slice(0,8);
+    if(!hits.length){sd.classList.remove('on');return;}
+    sd.innerHTML=hits.map(([id,p])=>`<div class="sd-row" data-id="${id}"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`).join('');
+    sd.querySelectorAll('.sd-row').forEach(row=>{
+      const jump=e=>{e.stopPropagation();e.preventDefault();jumpTo(row.dataset.id);si.value='';sd.classList.remove('on');};
+      row.addEventListener('click',jump);
+      row.addEventListener('touchend',jump);
     });
     sd.classList.add('on');
   });
-
-  // Close dropdown when clicking elsewhere, but not when interacting with input/dropdown
-  document.addEventListener('click', () => sd.classList.remove('on'));
+  document.addEventListener('click',()=>sd.classList.remove('on'));
 }
-function jumpTo(id) {
-  const p=DB.people[id]; if(!p) return;
+function jumpTo(id){
+  const p=DB.people[id]; if(!p)return;
   const r=wrap.getBoundingClientRect();
   vp.x=r.width/2-(p.x+CW/2)*vp.s; vp.y=r.height/2-(p.y+CH/2)*vp.s;
   applyVP(); selectPerson(id);
 }
 
-// ══ HEADER / MENU ══════════════════════════════════════════════════
-function applyHeaderH(h) {
-  document.documentElement.style.setProperty('--hh', h+'px');
-  el('panel').style.top = h+'px';
+// ══ HEADER / MOBILE MENU ═══════════════════════════════════════════
+function applyHeaderH(h){
+  document.documentElement.style.setProperty('--hh',h+'px');
+  el('panel').style.top=h+'px';
 }
-function toggleMenu() { const d=el('menu-drawer'); const o=!d.classList.contains('open'); d.classList.toggle('open'); applyHeaderH(o?192:52); }
-function closeMenu()  { el('menu-drawer').classList.remove('open'); applyHeaderH(52); }
-
-// Only close menu on genuine orientation/layout resize, NOT on mobile keyboard
-// open (which also fires resize but only changes window.innerHeight, not width).
-// We track the last known width; only act if width changed or it's desktop.
-let _lastW = window.innerWidth;
-window.addEventListener('resize', () => {
-  const newW = window.innerWidth;
-  const widthChanged = Math.abs(newW - _lastW) > 10;
-  _lastW = newW;
-  // On desktop, always close menu. On mobile, only if width changed (orientation flip).
-  // Height-only resize = software keyboard appearing — ignore it.
-  if (widthChanged || newW > 720) closeMenu();
+function toggleMenu(){ const d=el('menu-drawer'); const o=!d.classList.contains('open'); d.classList.toggle('open'); applyHeaderH(o?192:52); }
+function closeMenu(){ el('menu-drawer').classList.remove('open'); applyHeaderH(52); }
+let _lastW=window.innerWidth;
+window.addEventListener('resize',()=>{
+  const nw=window.innerWidth;
+  if(Math.abs(nw-_lastW)>10||nw>720)closeMenu();
+  _lastW=nw;
   applyVP();
 });
 
-// ══ PWA INSTALL PROMPT ═════════════════════════════════════════════
-// Shows an in-app banner when Chrome fires beforeinstallprompt
-// On iOS: shows manual instructions (no native prompt available)
-let deferredInstall = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstall = e;
-  el('install-bar').classList.add('show');
+// ══ PWA INSTALL ════════════════════════════════════════════════════
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e; el('install-bar').classList.add('show');
 });
-function triggerInstall() {
-  if (deferredInstall) {
-    deferredInstall.prompt();
-    deferredInstall.userChoice.then(() => { deferredInstall=null; dismissInstall(); });
-  } else {
-    // iOS Safari — show step-by-step modal
-    showIOSInstall();
-  }
+function triggerInstall(){
+  if(deferredInstall){ deferredInstall.prompt(); deferredInstall.userChoice.then(()=>{deferredInstall=null;dismissInstall();}); }
+  else showIOSInstall();
 }
-function dismissInstall() { el('install-bar').classList.remove('show'); }
-window.addEventListener('appinstalled', () => { dismissInstall(); toast('Parampara installed ✓'); });
-
-function showIOSInstall() {
-  const mo = document.createElement('div');
-  mo.className = 'mo-ov on'; mo.id = 'ios-install-mo';
-  mo.innerHTML = `<div class="mo" style="max-width:360px">
+function dismissInstall(){ el('install-bar').classList.remove('show'); }
+window.addEventListener('appinstalled',()=>{dismissInstall();toast('Parampara installed ✓');});
+function showIOSInstall(){
+  const mo=document.createElement('div');
+  mo.className='mo-ov on'; mo.id='ios-install-mo';
+  mo.innerHTML=`<div class="mo" style="max-width:360px">
     <div class="mo-hd"><div class="mo-title">Install on iPhone / iPad</div><button class="pan-x" onclick="document.getElementById('ios-install-mo').remove()">✕</button></div>
-    <div class="mo-bd">
-      <div style="font-size:14px;color:var(--ink);line-height:1.9">
-        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <b>1.</b> Tap the <b style="color:var(--copper)">Share</b> button at the bottom of Safari
-          <span style="font-size:22px;vertical-align:middle;margin-left:4px">⎙</span>
-        </div>
-        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <b>2.</b> Scroll down and tap <b style="color:var(--copper)">"Add to Home Screen"</b>
-          <span style="font-size:18px;vertical-align:middle;margin-left:4px">＋</span>
-        </div>
-        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <b>3.</b> Tap <b style="color:var(--copper)">"Add"</b> in the top right corner
-        </div>
-        <div style="padding:10px 0;font-size:12px;color:var(--ink3)">
-          ⚠ Must be opened in <b>Safari</b> (not Chrome/Firefox) for this to work on iOS.
-        </div>
-      </div>
-    </div>
+    <div class="mo-bd"><div style="font-size:14px;color:var(--ink);line-height:1.9">
+      <div style="padding:10px 0;border-bottom:1px solid var(--border)"><b>1.</b> Tap the <b style="color:var(--copper)">Share</b> button ⎙ at the bottom of Safari</div>
+      <div style="padding:10px 0;border-bottom:1px solid var(--border)"><b>2.</b> Tap <b style="color:var(--copper)">"Add to Home Screen"</b> ＋</div>
+      <div style="padding:10px 0;border-bottom:1px solid var(--border)"><b>3.</b> Tap <b style="color:var(--copper)">"Add"</b> in the top right</div>
+      <div style="padding:10px 0;font-size:12px;color:var(--ink3)">⚠ Must be opened in <b>Safari</b> on iOS.</div>
+    </div></div>
     <div class="mo-ft"><button class="hbtn primary" onclick="document.getElementById('ios-install-mo').remove()">Got it</button></div>
   </div>`;
   document.body.appendChild(mo);
 }
-
-// Show install hint for iOS users automatically (Safari doesn't fire beforeinstallprompt)
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
-const isAndroidChrome = /android/i.test(navigator.userAgent) && /chrome/i.test(navigator.userAgent);
-if (isIOS) {
-  // Show after 5s if not already installed
-  setTimeout(() => {
-    if (!window.navigator.standalone) {
-      el('install-bar').querySelector('span').innerHTML = '📱 Install on iPhone: tap Share ⎙ → Add to Home Screen';
-      el('install-bar').classList.add('show');
-    }
-  }, 5000);
-}
-if (isAndroidChrome) {
-  // Android Chrome shows the banner automatically via beforeinstallprompt
-  // but if it hasn't fired after 3s, nudge the user
-  setTimeout(() => {
-    if (!deferredInstall && !window.matchMedia('(display-mode: standalone)').matches) {
-      el('install-bar').querySelector('span').innerHTML = '📱 Install Parampara: tap ⋮ → Add to Home Screen';
-      el('install-bar').classList.add('show');
-    }
-  }, 3000);
-}
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.standalone;
+if(isIOS) setTimeout(()=>{if(!window.navigator.standalone){el('install-bar').querySelector('span').innerHTML='📱 Install: tap Share ⎙ → Add to Home Screen';el('install-bar').classList.add('show');}},5000);
 
 // ══ MODAL BACKDROP CLOSE ═══════════════════════════════════════════
-['person-mo','rel-mo','admin-mo','hist-mo'].forEach(id => {
-  el(id).addEventListener('click', function(e) { if(e.target===this) this.classList.remove('on'); });
+['person-mo','rel-mo','admin-mo','hist-mo'].forEach(id=>{
+  el(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
 });
 
 // ══ TOAST ══════════════════════════════════════════════════════════
 let _tt;
-function toast(msg) { const t=el('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),3000); }
+function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),3000); }
 
 // ══ SERVICE WORKER ═════════════════════════════════════════════════
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-// ══ BOOT ═══════════════════════════════════════════════════════════
+// ══ INIT ═══════════════════════════════════════════════════════════
 setupSearch('srch','srch-drop');
 setupSearch('srch-m','srch-drop-m');
 applyHeaderH(52);
 applyVP();
 boot();
+
 </script>
 </body>
 </html>

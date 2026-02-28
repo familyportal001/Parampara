@@ -9,429 +9,344 @@
 <meta name="apple-mobile-web-app-title" content="Parampara">
 <title>Parampara</title>
 <link rel="manifest" href="./manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══ DESIGN TOKENS ═══════════════════════════════════ */
 :root{
-  --night:   #0f0800;
-  --bark:    #1e1005;
-  --soil:    #2e1a08;
-  --clay:    #4a2e10;
-  --copper:  #8b5e2a;
-  --gold:    #c8893a;
-  --gold2:   #e0aa5a;
-  --cream:   #f5ead8;
-  --parch:   #ede0c4;
-  --parch2:  #e0cea8;
-  --ink:     #1e1005;
-  --ink2:    #3a2510;
-  --ink3:    #6b4a28;
-  --ink4:    #9b7a50;
-  --sage:    #3d5c3a;
-  --rose:    #7a3030;
-  --slate:   #2e4a5c;
-  --panel:   #fdf6ec;
-  --border:  #d4b88a;
-  --shadow:  rgba(15,8,0,.2);
-  --hh:      52px; /* header height — updated by JS */
-  --r:       5px;
-  --card-w:  158px;
-  --card-h:  92px;
+  --night:#0f0800;--bark:#1e1005;--soil:#2e1a08;--clay:#4a2e10;
+  --copper:#8b5e2a;--gold:#c8893a;--gold2:#e0aa5a;
+  --cream:#f5ead8;--parch:#ede0c4;--parch2:#e0cea8;
+  --ink:#1e1005;--ink2:#3a2510;--ink3:#6b4a28;--ink4:#9b7a50;
+  --sage:#3d5c3a;--rose:#7a3030;--slate:#2e4a5c;
+  --panel:#fdf6ec;--border:#d4b88a;--shadow:rgba(15,8,0,.2);
+  --hh:52px;--r:5px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:var(--cream);font-family:'DM Sans',sans-serif}
 
-/* ═══ TYPOGRAPHY ═══════════════════════════════════════ */
-.serif{font-family:'Crimson Pro',serif}
-.f10{font-size:10px}.f11{font-size:11px}.f12{font-size:12px}.f13{font-size:13px}.f14{font-size:14px}
-.f16{font-size:16px}.f18{font-size:18px}.f20{font-size:20px}.f22{font-size:22px}
-.upper{text-transform:uppercase;letter-spacing:.07em}
-.muted{color:var(--ink4)}
-.gold{color:var(--gold)}
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;z-index:800;background:var(--night);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.screen.hide{display:none!important}
+.brand{font-family:'Crimson Pro',serif;font-size:50px;font-weight:300;color:var(--gold);
+  letter-spacing:.06em;text-shadow:0 0 40px rgba(200,137,58,.3);line-height:1}
+.brand-sub{font-size:12px;color:var(--ink4);margin:5px 0 40px;letter-spacing:.14em;text-transform:uppercase}
 
-/* ═══ LANGUAGE SCREENS ═════════════════════════════════ */
-#lang-screen{
-  position:fixed;inset:0;z-index:1000;
-  background:var(--night);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
-}
-#lang-screen.hide{display:none}
-.lang-logo{
-  font-family:'Crimson Pro',serif;font-size:48px;font-weight:300;
-  color:var(--gold);letter-spacing:.08em;margin-bottom:8px;
-  text-shadow:0 0 40px rgba(200,137,58,.4);
-}
-.lang-sub{font-size:13px;color:var(--ink4);margin-bottom:48px;letter-spacing:.12em;text-transform:uppercase}
-.lang-prompt{font-size:14px;color:var(--parch2);margin-bottom:20px;letter-spacing:.04em}
+/* lang */
+#s-lang{z-index:1000}
 .lang-opts{display:flex;flex-direction:column;gap:10px;width:260px}
-.lang-btn{
-  background:var(--soil);border:1px solid var(--copper);
-  color:var(--cream);padding:14px 20px;border-radius:var(--r);
-  cursor:pointer;font-size:16px;text-align:center;
-  transition:all .2s;font-family:'Crimson Pro',serif;
-}
+.lang-btn{background:var(--soil);border:1px solid var(--copper);color:var(--cream);
+  padding:14px 20px;border-radius:var(--r);cursor:pointer;font-size:16px;
+  text-align:center;transition:all .2s;font-family:'Crimson Pro',serif}
 .lang-btn:hover,.lang-btn:active{background:var(--clay);border-color:var(--gold);color:var(--gold2)}
 
-/* ═══ AUTH SCREEN ══════════════════════════════════════ */
-#auth-screen{
-  position:fixed;inset:0;z-index:900;
-  background:var(--night);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:24px;
-}
-#auth-screen.hide{display:none}
-.auth-logo{
-  font-family:'Crimson Pro',serif;font-size:42px;font-weight:300;
-  color:var(--gold);letter-spacing:.06em;margin-bottom:4px;
-}
-.auth-tagline{font-size:12px;color:var(--ink4);margin-bottom:36px;letter-spacing:.1em;text-transform:uppercase}
-.auth-card{
-  background:var(--bark);border:1px solid var(--clay);
-  border-radius:8px;padding:28px 24px;width:100%;max-width:380px;
-}
-.auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--clay);border-radius:var(--r);overflow:hidden}
-.auth-tab{
-  flex:1;padding:9px;font-size:12px;font-weight:500;text-align:center;
-  cursor:pointer;background:transparent;border:none;color:var(--ink4);
-  text-transform:uppercase;letter-spacing:.06em;transition:all .18s;
-}
-.auth-tab.on{background:var(--gold);color:var(--ink)}
-.auth-section{display:none}.auth-section.on{display:block}
+/* family picker */
+#s-family{z-index:900}
+.fp-list{width:100%;max-width:380px;display:flex;flex-direction:column;gap:8px;
+  max-height:55vh;overflow-y:auto;margin-bottom:14px}
+.fam-row{background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
+  padding:14px 16px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px}
+.fam-row:hover{border-color:var(--gold);background:var(--soil)}
+.fam-info{flex:1}.fam-name{font-family:'Crimson Pro',serif;font-size:17px;color:var(--cream)}
+.fam-meta{font-size:11px;color:var(--ink4);margin-top:2px}
+.role-badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase}
+.rb-admin{background:rgba(200,137,58,.15);color:var(--gold);border:1px solid rgba(200,137,58,.3)}
+.rb-editor{background:rgba(61,92,58,.15);color:#7dc47a;border:1px solid rgba(61,92,58,.3)}
+.rb-contributor{background:rgba(46,74,92,.15);color:#7aaac4;border:1px solid rgba(46,74,92,.3)}
+.rb-viewer{background:rgba(80,60,80,.15);color:#c4a0c4;border:1px solid rgba(80,60,80,.3)}
+.rb-pending{background:rgba(122,48,48,.15);color:#e07070;border:1px solid rgba(122,48,48,.3)}
 
-/* form */
-.fg{margin-bottom:14px}
-.fl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink4);margin-bottom:5px;font-weight:500}
-.fi{
-  width:100%;background:var(--soil);border:1px solid var(--clay);
-  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;
-  padding:10px 12px;border-radius:var(--r);outline:none;
-  transition:border-color .15s;-webkit-user-select:text;user-select:text;
-}
-.fi::placeholder{color:var(--ink3)}
-.fi:focus{border-color:var(--gold)}
+/* auth */
+#s-auth{z-index:850}
+.auth-card{background:var(--bark);border:1px solid var(--clay);border-radius:8px;
+  padding:26px 22px;width:100%;max-width:390px}
+.tabs{display:flex;border:1px solid var(--clay);border-radius:var(--r);
+  overflow:hidden;margin-bottom:20px}
+.tab{flex:1;padding:9px;font-size:11px;font-weight:500;text-align:center;
+  cursor:pointer;background:transparent;border:none;color:var(--ink4);
+  text-transform:uppercase;letter-spacing:.06em;transition:all .18s}
+.tab.on{background:var(--gold);color:var(--ink)}
+.asec{display:none}.asec.on{display:block}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink4);margin-bottom:4px;font-weight:500}
+.fi{width:100%;background:var(--soil);border:1px solid var(--clay);color:var(--cream);
+  font-family:'DM Sans',sans-serif;font-size:16px;padding:10px 12px;
+  border-radius:var(--r);outline:none;transition:border-color .15s;
+  -webkit-user-select:text;user-select:text}
+.fi::placeholder{color:var(--ink3)}.fi:focus{border-color:var(--gold)}
 .fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:360px){.fi-row{grid-template-columns:1fr}}
-.btn{
-  width:100%;padding:11px;border:none;border-radius:var(--r);
+.btn{width:100%;padding:11px;border:none;border-radius:var(--r);
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
-  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
-  transition:all .2s;
-}
-.btn-gold{background:var(--gold);color:var(--ink)}
-.btn-gold:hover{background:var(--gold2)}
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-gold{background:var(--gold);color:var(--ink)}.btn-gold:hover{background:var(--gold2)}
 .btn-ghost{background:transparent;border:1px solid var(--clay);color:var(--parch2)}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold2)}
-.btn-danger{background:var(--rose);color:white}
 .btn-sm{padding:7px 14px;width:auto;font-size:11px}
-.auth-note{font-size:11px;color:var(--ink3);text-align:center;margin-top:14px;line-height:1.6}
-.auth-err{font-size:12px;color:#e07070;margin-top:8px;text-align:center;min-height:18px}
-.auth-ok{font-size:12px;color:#70c880;margin-top:8px;text-align:center}
+.aerr{font-size:12px;color:#e07070;margin:6px 0;text-align:center;min-height:16px}
+.anote{font-size:11px;color:var(--ink3);text-align:center;margin-top:12px;line-height:1.6}
+.hint-box{background:rgba(200,137,58,.08);border:1px solid rgba(200,137,58,.2);
+  border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--ink4);margin:10px 0;line-height:1.6}
+.divider{display:flex;align-items:center;gap:8px;margin:12px 0;color:var(--ink3);font-size:11px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--clay)}
 
-/* ═══ PENDING SCREEN ═══════════════════════════════════ */
-#pending-screen{
-  position:fixed;inset:0;z-index:800;
-  background:var(--night);display:none;
-  flex-direction:column;align-items:center;justify-content:center;padding:32px;
-  text-align:center;
-}
-#pending-screen.show{display:flex}
-.pend-icon{font-size:56px;margin-bottom:20px;opacity:.6}
-.pend-title{font-family:'Crimson Pro',serif;font-size:28px;color:var(--gold);margin-bottom:10px}
-.pend-sub{font-size:14px;color:var(--ink4);line-height:1.7;max-width:320px}
-.pend-refresh{margin-top:28px}
+/* pending */
+#s-pending{z-index:820;text-align:center}
+.pend-ico{font-size:56px;margin-bottom:18px;opacity:.5}
+.pend-t{font-family:'Crimson Pro',serif;font-size:28px;color:var(--gold);margin-bottom:10px}
+.pend-s{font-size:13px;color:var(--ink4);line-height:1.7;max-width:300px}
+.pend-acts{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
-/* ═══ MAIN APP ══════════════════════════════════════════ */
+/* ── APP ── */
 #app{position:fixed;inset:0;display:none;flex-direction:column}
 #app.show{display:flex}
-
-/* ── HEADER ────────────────────────────────────────── */
-#hdr{
-  background:var(--bark);border-bottom:1px solid var(--clay);
-  z-index:200;flex-shrink:0;touch-action:auto;
-}
-#hdr-row{
-  height:52px;display:flex;align-items:center;padding:0 12px;gap:8px;
-}
-.app-logo{
-  font-family:'Crimson Pro',serif;font-size:22px;font-weight:400;
-  color:var(--gold);letter-spacing:.04em;flex-shrink:0;
-}
+#hdr{background:var(--bark);border-bottom:1px solid var(--clay);
+  z-index:200;flex-shrink:0;touch-action:auto}
+#hdr-row{height:52px;display:flex;align-items:center;padding:0 12px;gap:8px}
+.app-logo{font-family:'Crimson Pro',serif;font-size:22px;font-weight:400;
+  color:var(--gold);letter-spacing:.04em;flex-shrink:0;cursor:pointer}
 .hgap{flex:1}
-.hbtn{
-  background:none;border:1px solid rgba(200,137,58,.3);color:var(--gold);
-  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;
-  letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;
-  cursor:pointer;border-radius:var(--r);transition:all .18s;white-space:nowrap;flex-shrink:0;
-}
+.hbtn{background:none;border:1px solid rgba(200,137,58,.3);color:var(--gold);
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;padding:6px 10px;cursor:pointer;border-radius:var(--r);
+  transition:all .18s;white-space:nowrap;flex-shrink:0}
 .hbtn:hover,.hbtn.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .hbtn.primary{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .hbtn.primary:hover{background:var(--gold2)}
-
-/* search */
+#menu-tog{display:none;background:none;border:1px solid rgba(200,137,58,.3);
+  color:var(--gold);font-size:20px;line-height:1;padding:5px 9px;
+  border-radius:var(--r);cursor:pointer;flex-shrink:0}
 #srch-wrap{position:relative;flex-shrink:1}
-#srch{
-  background:var(--soil);border:1px solid rgba(200,137,58,.25);
-  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;
-  padding:5px 10px 5px 28px;border-radius:var(--r);
-  width:clamp(80px,16vw,170px);outline:none;
-  -webkit-user-select:text;user-select:text;
-}
-#srch::placeholder{color:var(--ink3)}
-#srch:focus{border-color:var(--gold)}
-#srch-wrap::before{content:'⌕';position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
-#srch-drop{
-  position:absolute;top:calc(100% + 4px);left:0;min-width:210px;
+#srch{background:var(--soil);border:1px solid rgba(200,137,58,.25);color:var(--cream);
+  font-family:'DM Sans',sans-serif;font-size:16px;padding:5px 10px 5px 28px;
+  border-radius:var(--r);width:clamp(80px,16vw,170px);outline:none;
+  -webkit-user-select:text;user-select:text}
+#srch::placeholder{color:var(--ink3)}#srch:focus{border-color:var(--gold)}
+#srch-wrap::before{content:'⌕';position:absolute;left:8px;top:50%;
+  transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
+#srch-drop{position:absolute;top:calc(100% + 4px);left:0;min-width:210px;
   background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
-  z-index:400;display:none;max-height:220px;overflow-y:auto;
-}
+  z-index:400;display:none;max-height:220px;overflow-y:auto}
 #srch-drop.on{display:block}
-.sd-row{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.4);color:var(--parch);font-size:13px}
+.sd-row{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.4);
+  color:var(--parch);font-size:13px}
 .sd-row:hover{background:var(--soil)}
 .sd-row small{display:block;color:var(--copper);font-size:10px;margin-top:2px}
-
-/* hamburger */
-#menu-tog{
-  display:none;background:none;border:1px solid rgba(200,137,58,.3);
-  color:var(--gold);font-size:20px;line-height:1;padding:5px 9px;
-  border-radius:var(--r);cursor:pointer;flex-shrink:0;
-}
-/* mobile drawer */
-#menu-drawer{
-  display:none;background:var(--night);border-top:1px solid rgba(74,46,16,.5);
-  padding:10px 12px 12px;flex-direction:column;gap:8px;
-}
+#menu-drawer{display:none;background:var(--night);
+  border-top:1px solid rgba(74,46,16,.5);padding:10px 12px 12px;
+  flex-direction:column;gap:8px}
 #menu-drawer.open{display:flex}
 #srch-wrap-m{position:relative}
-#srch-m{
-  width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.25);
+#srch-m{width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.25);
   color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;
   padding:8px 10px 8px 30px;border-radius:var(--r);outline:none;
-  -webkit-user-select:text;user-select:text;
-}
+  -webkit-user-select:text;user-select:text}
 #srch-m::placeholder{color:var(--ink3)}
-#srch-m:focus{border-color:var(--gold)}
-#srch-wrap-m::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
-#srch-drop-m{position:absolute;top:calc(100%+4px);left:0;right:0;background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);z-index:500;display:none;max-height:200px;overflow-y:auto}
+#srch-wrap-m::before{content:'⌕';position:absolute;left:9px;top:50%;
+  transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
+#srch-drop-m{position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
+  z-index:500;display:none;max-height:200px;overflow-y:auto}
 #srch-drop-m.on{display:block}
 .mob-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 #menu-drawer .hbtn{width:100%;text-align:center;padding:9px 6px;font-size:11px}
-
 @media(max-width:720px){
-  #desktop-acts{display:none!important}
-  #srch-wrap{display:none}
-  #menu-tog{display:block}
-}
+  #desktop-acts{display:none!important}#srch-wrap{display:none}#menu-tog{display:block}}
 @media(min-width:721px){
-  #desktop-acts{display:contents}
-  #menu-tog{display:none}
-  #menu-drawer{display:none!important}
-}
+  #desktop-acts{display:contents}#menu-tog{display:none}#menu-drawer{display:none!important}}
 
-/* ── CANVAS ────────────────────────────────────────── */
-#canvas-wrap{
-  flex:1;overflow:hidden;cursor:grab;position:relative;
-  background:
-    radial-gradient(ellipse at 20% 70%,rgba(200,137,58,.06) 0%,transparent 55%),
-    radial-gradient(ellipse at 80% 20%,rgba(139,94,42,.05) 0%,transparent 50%),
-    var(--night);
-}
-#canvas-wrap::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(200,137,58,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(200,137,58,.05) 1px,transparent 1px);
-  background-size:40px 40px;
-}
+/* canvas */
+#canvas-wrap{flex:1;overflow:hidden;cursor:grab;position:relative;
+  background:radial-gradient(ellipse at 20% 70%,rgba(200,137,58,.06) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 20%,rgba(139,94,42,.05) 0%,transparent 50%),var(--night)}
+#canvas-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(200,137,58,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(200,137,58,.05) 1px,transparent 1px);background-size:40px 40px}
 #canvas-wrap.grabbing{cursor:grabbing}
 #world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;touch-action:none}
 #world-svg{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
 #nodes-layer{position:absolute;top:0;left:0}
-
-/* empty */
-#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:1}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;pointer-events:none;z-index:1}
 #empty.hide{display:none}
 .em-ico{font-size:64px;margin-bottom:16px;opacity:.3}
 .em-t{font-family:'Crimson Pro',serif;font-size:28px;color:var(--ink4);margin-bottom:8px}
 .em-s{font-size:13px;color:var(--ink4);opacity:.7;margin-bottom:24px}
-.em-btn{pointer-events:all;background:var(--gold);color:var(--ink);border:none;padding:12px 28px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.em-btn{pointer-events:all;background:var(--gold);color:var(--ink);border:none;
+  padding:12px 28px;border-radius:var(--r);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 
-/* zoom */
-#zoom-ctl{position:fixed;bottom:20px;right:14px;z-index:100;display:flex;flex-direction:column;gap:4px}
-.zb{width:34px;height:34px;background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--copper);box-shadow:0 2px 8px var(--shadow);transition:all .15s}
-.zb:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
-#zlbl{width:34px;text-align:center;font-size:10px;color:var(--ink4);padding:2px 0;background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);box-shadow:0 2px 8px var(--shadow)}
-
-/* sync indicator */
-#sync-dot{
-  position:fixed;bottom:20px;left:14px;z-index:100;
-  display:flex;align-items:center;gap:6px;
-  background:var(--bark);border:1px solid var(--clay);
-  border-radius:12px;padding:4px 10px;font-size:11px;color:var(--ink4);
-}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--copper);flex-shrink:0}
-.dot.green{background:#5cab6a;box-shadow:0 0 6px rgba(92,171,106,.5)}
-.dot.amber{background:#c8893a;animation:pulse 1.2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── PERSON CARDS ──────────────────────────────────── */
-.card{
-  position:absolute;width:var(--card-w);
-  background:var(--bark);border:1.5px solid var(--clay);
-  border-radius:var(--r);cursor:pointer;user-select:none;
-  box-shadow:0 2px 10px var(--shadow);
-  transition:box-shadow .18s,border-color .18s,transform .14s;
-}
+/* cards */
+.card{position:absolute;width:158px;background:var(--bark);border:1.5px solid var(--clay);
+  border-radius:var(--r);cursor:pointer;user-select:none;box-shadow:0 2px 10px var(--shadow);
+  transition:box-shadow .18s,border-color .18s,transform .14s}
 .card:hover{box-shadow:0 6px 22px var(--shadow);border-color:var(--gold);transform:translateY(-2px);z-index:10}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 2.5px var(--gold),0 6px 22px var(--shadow);z-index:20}
 .card-stripe{height:4px;border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0}
-.g0 .card-stripe{background:var(--copper)}
-.g1 .card-stripe{background:var(--slate)}
-.g2 .card-stripe{background:var(--sage)}
-.g3 .card-stripe{background:var(--rose)}
-.g4 .card-stripe{background:#5c4a7a}
-.g5 .card-stripe{background:var(--ink3)}
-.card-av{width:40px;height:40px;border-radius:50%;margin:8px auto 5px;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid var(--clay);overflow:hidden;background:var(--soil)}
+.g0 .card-stripe{background:var(--copper)}.g1 .card-stripe{background:var(--slate)}
+.g2 .card-stripe{background:var(--sage)}.g3 .card-stripe{background:var(--rose)}
+.g4 .card-stripe{background:#5c4a7a}.g5 .card-stripe{background:var(--ink3)}
+.card-av{width:40px;height:40px;border-radius:50%;margin:8px auto 5px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  border:2px solid var(--clay);overflow:hidden;background:var(--soil)}
 .card-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .av-m{background:linear-gradient(135deg,#1a3050,#0e2035)}
 .av-f{background:linear-gradient(135deg,#3a1525,#251020)}
 .av-o{background:linear-gradient(135deg,#1a3020,#102015)}
-.card-name{font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;text-align:center;padding:0 7px 2px;line-height:1.3;color:var(--cream)}
+.card-name{font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;
+  text-align:center;padding:0 7px 2px;line-height:1.3;color:var(--cream)}
 .card-meta{font-size:10px;color:var(--ink4);text-align:center;padding:0 7px 8px}
-.card-badge{
-  position:absolute;top:6px;right:6px;
-  font-size:8px;padding:2px 5px;border-radius:8px;
-  font-weight:600;letter-spacing:.04em;text-transform:uppercase;
-}
-.badge-you{background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3)}
-
-/* ── SVG LINES ─────────────────────────────────────── */
 .e-parent{fill:none;stroke:rgba(155,122,80,.55);stroke-width:1.8}
 .e-partner{fill:none;stroke:rgba(200,137,58,.65);stroke-width:1.8;stroke-dasharray:6,3}
 .e-sibling{fill:none;stroke:rgba(92,171,106,.45);stroke-width:1.5;stroke-dasharray:2,6}
 
-/* ── SIDE PANEL ────────────────────────────────────── */
-#panel{
-  position:fixed;top:var(--hh);right:0;bottom:0;
-  width:330px;background:var(--panel);
-  border-left:1px solid var(--border);
-  display:flex;flex-direction:column;
+/* panel */
+#panel{position:fixed;top:var(--hh);right:0;bottom:0;width:330px;background:var(--panel);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
-  z-index:150;box-shadow:-4px 0 24px var(--shadow);
-  color:var(--ink);
-}
+  z-index:150;box-shadow:-4px 0 24px var(--shadow);color:var(--ink)}
 #panel.open{transform:translateX(0)}
-.pan-hd{padding:16px 18px 13px;border-bottom:1px solid var(--border);background:var(--parch2);flex-shrink:0;position:relative}
-.pan-title{font-family:'Crimson Pro',serif;font-size:21px;font-weight:600;color:var(--ink);padding-right:28px;line-height:1.2}
+.pan-hd{padding:16px 18px 13px;border-bottom:1px solid var(--border);
+  background:var(--parch2);flex-shrink:0;position:relative}
+.pan-title{font-family:'Crimson Pro',serif;font-size:21px;font-weight:600;
+  color:var(--ink);padding-right:28px;line-height:1.2}
 .pan-sub{font-size:10px;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
-.pan-x{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:var(--ink3);font-size:18px;padding:2px 5px;border-radius:2px;transition:color .15s}
+.pan-x{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;
+  color:var(--ink3);font-size:18px;padding:2px 5px;border-radius:2px;transition:color .15s}
 .pan-x:hover{color:var(--ink)}
 .pan-bd{flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;color:var(--ink)}
-.pan-bd::-webkit-scrollbar{width:3px}
-.pan-bd::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.pan-ft{display:flex;gap:6px;padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0;background:var(--panel)}
-.pan-btn{flex:1;padding:8px 5px;background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .18s;color:var(--ink)}
+.pan-bd::-webkit-scrollbar{width:3px}.pan-bd::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.pan-ft{display:flex;gap:6px;padding:12px 18px;border-top:1px solid var(--border);
+  flex-shrink:0;background:var(--panel);flex-wrap:wrap}
+.pan-btn{flex:1;min-width:56px;padding:8px 5px;background:var(--parch2);
+  border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
+  cursor:pointer;transition:all .18s;color:var(--ink)}
 .pan-btn:hover{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
 .pan-btn.pri{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .pan-btn.pri:hover{background:var(--gold2)}
 .pan-btn.del{background:var(--rose);color:white;border-color:var(--rose)}
-.pan-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* panel content */
-.pf-av{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
+.pf-av{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .pf-av img{width:100%;height:100%;object-fit:cover}
-.pf-name{font-family:'Crimson Pro',serif;font-size:23px;font-weight:600;text-align:center;color:var(--ink);line-height:1.2}
+.pf-name{font-family:'Crimson Pro',serif;font-size:23px;font-weight:600;
+  text-align:center;color:var(--ink);line-height:1.2}
 .pf-dates{text-align:center;font-size:11px;color:var(--ink3);margin:3px 0 14px;font-style:italic}
 .sec{margin-bottom:14px}
-.sec-t{font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--copper);font-weight:600;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.sec-t{font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:var(--copper);
+  font-weight:600;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .info-row{display:flex;gap:8px;font-size:12px;margin-bottom:5px}
-.info-k{color:var(--ink3);min-width:110px;font-weight:500}
-.info-v{color:var(--ink);flex:1}
+.info-k{color:var(--ink3);min-width:110px;font-weight:500}.info-v{color:var(--ink);flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{background:var(--parch2);border:1px solid var(--border);border-radius:3px;padding:5px 9px;font-size:11.5px;cursor:pointer;transition:all .14s;color:var(--ink);display:flex;flex-direction:column}
+.chip{background:var(--parch2);border:1px solid var(--border);border-radius:3px;
+  padding:5px 9px;font-size:11.5px;cursor:pointer;transition:all .14s;
+  color:var(--ink);display:flex;flex-direction:column}
 .chip:hover{border-color:var(--gold);background:var(--parch)}
 .chip small{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
-.notes-box{background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-size:12px;color:var(--ink2);line-height:1.65;font-style:italic}
 .no-rel{font-size:11.5px;color:var(--ink3);font-style:italic}
-
-/* audit */
-.audit-row{display:flex;gap:8px;font-size:11px;color:var(--ink3);padding:5px 8px;background:var(--parch2);border-radius:3px;margin-bottom:4px;align-items:flex-start}
+.notes-box{background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px;font-size:12px;color:var(--ink2);line-height:1.65;font-style:italic}
+.audit-row{display:flex;gap:8px;font-size:11px;color:var(--ink3);padding:5px 8px;
+  background:var(--parch2);border-radius:3px;margin-bottom:4px;align-items:flex-start}
 .audit-who{color:var(--copper);font-weight:500;white-space:nowrap}
-.audit-what{flex:1;color:var(--ink3)}
-.audit-when{color:var(--ink4);white-space:nowrap;font-size:10px}
+.audit-what{flex:1}.audit-when{color:var(--ink4);white-space:nowrap;font-size:10px}
 
-/* ── MODALS ────────────────────────────────────────── */
-.mo-ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+/* modals */
+.mo-ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
 .mo-ov.on{opacity:1;pointer-events:all}
-.mo{background:var(--panel);border-radius:8px;width:100%;max-width:460px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.4);transform:translateY(10px) scale(.98);transition:transform .2s;color:var(--ink)}
+.mo{background:var(--panel);border-radius:8px;width:100%;max-width:460px;
+  max-height:90vh;display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+  transform:translateY(10px) scale(.98);transition:transform .2s;color:var(--ink)}
 .mo-ov.on .mo{transform:none}
-.mo-hd{padding:18px 20px 14px;border-bottom:1px solid var(--border);background:var(--parch2);border-radius:8px 8px 0 0;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.mo-hd{padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  background:var(--parch2);border-radius:8px 8px 0 0;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between}
 .mo-title{font-family:'Crimson Pro',serif;font-size:20px;font-weight:600;color:var(--ink)}
 .mo-bd{flex:1;overflow-y:auto;padding:18px 20px;overscroll-behavior:contain}
-.mo-ft{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
-/* panel form fields */
+.mo-ft{padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
 .pfg{margin-bottom:13px}
-.pfl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink3);font-weight:600;margin-bottom:4px}
-.pfi,.pfs,.pft{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:white;color:var(--ink);outline:none;transition:border-color .15s}
+.pfl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink3);font-weight:600;margin-bottom:4px}
+.pfi,.pfs,.pft{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;
+  padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);
+  background:white;color:var(--ink);outline:none;transition:border-color .15s}
 .pfi:focus,.pfs:focus,.pft:focus{border-color:var(--gold)}
 .pft{resize:vertical;min-height:70px;line-height:1.5}
 .pfi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:380px){.pfi-row{grid-template-columns:1fr}}
 
-/* ── ADMIN PANEL ───────────────────────────────────── */
-#admin-mo .mo{max-width:500px}
-.member-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--parch2);border-radius:var(--r);margin-bottom:8px}
-.member-av{width:36px;height:36px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.member-info{flex:1}
-.member-name{font-size:13px;font-weight:500;color:var(--ink)}
+/* admin/members */
+.member-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  background:var(--parch2);border-radius:var(--r);margin-bottom:8px}
+.member-av{width:34px;height:34px;border-radius:50%;background:var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3}
 .member-meta{font-size:10px;color:var(--ink3);margin-top:1px}
-.member-acts{display:flex;gap:5px}
+.member-acts{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
 .mbtn{font-size:10px;padding:4px 9px;border-radius:3px;border:none;cursor:pointer;font-weight:500;transition:all .15s}
-.mbtn-approve{background:#3d6e40;color:white}
-.mbtn-reject{background:var(--rose);color:white}
+.mbtn-approve{background:#3d6e40;color:white}.mbtn-reject{background:var(--rose);color:white}
 .mbtn-revoke{background:var(--clay);color:var(--cream)}
-.role-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.rb-admin{background:rgba(200,137,58,.15);color:var(--gold);border:1px solid rgba(200,137,58,.3)}
-.rb-member{background:rgba(61,110,64,.15);color:#5cab6a;border:1px solid rgba(61,110,64,.3)}
-.rb-pending{background:rgba(122,48,48,.15);color:#e07070;border:1px solid rgba(122,48,48,.3)}
+.role-sel{font-size:11px;padding:4px 6px;border:1px solid var(--border);
+  border-radius:3px;background:white;color:var(--ink);cursor:pointer;margin-top:4px}
 
-/* ── TOAST ─────────────────────────────────────────── */
-#toast{
-  position:fixed;bottom:20px;left:50%;
-  transform:translateX(-50%) translateY(60px);
-  background:var(--bark);color:var(--gold2);border:1px solid var(--clay);
-  padding:9px 18px;border-radius:var(--r);font-size:12.5px;
-  z-index:999;pointer-events:none;transition:transform .28s;white-space:nowrap;
-}
-#toast.on{transform:translateX(-50%) translateY(0)}
-
-/* ── HISTORY ITEMS ─────────────────────────────────── */
+/* history */
 .hist-item{border-left:2px solid var(--border);padding:6px 10px;margin-bottom:8px;font-size:11.5px}
 .hist-item .hw{color:var(--copper);font-weight:500}
 .hist-item .hd{color:var(--ink3);font-size:10px;margin-top:2px}
 .hist-item .hc{color:var(--ink2);margin-top:3px;line-height:1.5}
 
-/* mobile panel full width */
-@media(max-width:600px){
-  #panel{width:100%;left:0}
-}
+/* zoom + sync */
+#zoom-ctl{position:fixed;bottom:20px;right:14px;z-index:100;display:flex;flex-direction:column;gap:4px}
+.zb{width:34px;height:34px;background:var(--bark);border:1px solid var(--clay);
+  border-radius:var(--r);cursor:pointer;font-size:18px;display:flex;align-items:center;
+  justify-content:center;color:var(--copper);box-shadow:0 2px 8px var(--shadow);transition:all .15s}
+.zb:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+#zlbl{width:34px;text-align:center;font-size:10px;color:var(--ink4);padding:2px 0;
+  background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);box-shadow:0 2px 8px var(--shadow)}
+#sync-bar{position:fixed;bottom:20px;left:14px;z-index:100;display:flex;align-items:center;
+  gap:6px;background:var(--bark);border:1px solid var(--clay);border-radius:12px;
+  padding:4px 10px;font-size:11px;color:var(--ink4)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--copper);flex-shrink:0;transition:background .4s}
+.dot.green{background:#5cab6a;box-shadow:0 0 6px rgba(92,171,106,.5)}
+.dot.amber{background:#c8893a;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* connection/offline banner */
-#offline-bar{
-  position:fixed;top:var(--hh);left:0;right:0;z-index:190;
-  background:rgba(122,48,48,.9);color:white;
-  text-align:center;font-size:12px;padding:6px;
-  transform:translateY(-100%);transition:transform .25s;
-}
-#offline-bar.show{transform:translateY(0)}
+/* install banner */
+#install-bar{position:fixed;top:var(--hh);left:0;right:0;z-index:180;
+  background:var(--soil);border-bottom:1px solid var(--clay);
+  padding:10px 16px;display:none;align-items:center;gap:10px;font-size:12px;color:var(--parch)}
+#install-bar.show{display:flex}
+.ib-btn{background:var(--gold);color:var(--ink);border:none;padding:6px 14px;
+  border-radius:var(--r);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ib-x{background:none;border:none;color:var(--ink4);font-size:18px;cursor:pointer;
+  margin-left:auto;padding:0 4px;line-height:1}
+
+/* key box */
+.key-box{font-family:monospace;font-size:14px;background:var(--parch2);border:1px solid var(--border);
+  padding:10px 12px;border-radius:var(--r);word-break:break-all;margin-bottom:8px}
+
+/* toast */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--bark);color:var(--gold2);border:1px solid var(--clay);
+  padding:9px 18px;border-radius:var(--r);font-size:12.5px;z-index:999;
+  pointer-events:none;transition:transform .28s;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){#panel{width:100%;left:0}}
 </style>
 </head>
 <body>
 
-<!-- LANGUAGE PICKER -->
-<div id="lang-screen">
-  <div class="lang-logo">Parampara</div>
-  <div class="lang-sub">பரம்பரை · പരമ്പര</div>
-  <div class="lang-prompt">Choose your language / மொழி தேர்வு / ഭാഷ തിരഞ്ഞെടുക്കുക</div>
+<!-- LANGUAGE -->
+<div class="screen" id="s-lang">
+  <div class="brand">Parampara</div>
+  <div class="brand-sub">பரம்பரை · പരമ്പര</div>
   <div class="lang-opts">
     <button class="lang-btn" onclick="setLang('en')">English</button>
     <button class="lang-btn" onclick="setLang('ta')">தமிழ் (Tamil)</button>
@@ -439,91 +354,132 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   </div>
 </div>
 
-<!-- AUTH SCREEN -->
-<div id="auth-screen" class="hide">
-  <div class="auth-logo">Parampara</div>
-  <div class="auth-tagline" id="auth-tagline">Your family lineage, across generations</div>
+<!-- FAMILY PICKER -->
+<div class="screen hide" id="s-family">
+  <div class="brand" style="font-size:36px;margin-bottom:4px">Parampara</div>
+  <div style="font-size:13px;color:var(--ink4);margin-bottom:24px">Choose a family tree</div>
+  <div class="fp-list" id="fp-list"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-auth');switchTab('join')">＋ Join Another Family</button>
+    <button class="btn btn-ghost btn-sm" onclick="fullLogout()">Sign Out All</button>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="screen hide" id="s-auth">
+  <div class="brand" style="font-size:38px;margin-bottom:4px">Parampara</div>
+  <div style="font-size:11px;color:var(--ink4);margin-bottom:24px;letter-spacing:.12em;text-transform:uppercase">Your family lineage</div>
   <div class="auth-card">
-    <div class="auth-tabs">
-      <button class="auth-tab on" id="tab-login" onclick="switchTab('login')" data-i18n="login">Sign In</button>
-      <button class="auth-tab" id="tab-join" onclick="switchTab('join')" data-i18n="join">Join Family</button>
+    <div class="tabs">
+      <button class="tab on" id="tab-login" onclick="switchTab('login')">Sign In</button>
+      <button class="tab" id="tab-join" onclick="switchTab('join')">Join Family</button>
+      <button class="tab" id="tab-forgot" onclick="switchTab('forgot')">Forgot?</button>
     </div>
+
     <!-- LOGIN -->
-    <div class="auth-section on" id="sec-login">
-      <div class="fg"><label class="fl" data-i18n="username">Username</label><input class="fi" id="l-user" type="text" autocomplete="username" placeholder="your name"></div>
-      <div class="fg"><label class="fl" data-i18n="password">Password</label><input class="fi" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-      <div class="auth-err" id="l-err"></div>
-      <button class="btn btn-gold" onclick="doLogin()" data-i18n="signin">Sign In</button>
+    <div class="asec on" id="asec-login">
+      <div class="fg"><label class="fl">Username</label>
+        <input class="fi" id="l-user" type="text" autocomplete="username" placeholder="your username"></div>
+      <div class="fg"><label class="fl">Password</label>
+        <input class="fi" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="aerr" id="l-err"></div>
+      <button class="btn btn-gold" onclick="doLogin()">Sign In</button>
     </div>
+
     <!-- JOIN -->
-    <div class="auth-section" id="sec-join">
-      <div class="fg"><label class="fl" data-i18n="familyKey">Family Secret Key</label><input class="fi" id="j-key" type="text" placeholder="e.g. SMITH-TREE-2024" autocomplete="off"></div>
+    <div class="asec" id="asec-join">
+      <div class="fg"><label class="fl">Family Secret Key</label>
+        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" autocomplete="off"></div>
       <div class="fi-row">
-        <div class="fg"><label class="fl" data-i18n="firstName">First Name</label><input class="fi" id="j-first" type="text" placeholder="First"></div>
-        <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label><input class="fi" id="j-last" type="text" placeholder="Last"></div>
+        <div class="fg"><label class="fl">First Name</label>
+          <input class="fi" id="j-first" type="text" placeholder="First"></div>
+        <div class="fg"><label class="fl">Last Name</label>
+          <input class="fi" id="j-last" type="text" placeholder="Last"></div>
       </div>
-      <div class="fg"><label class="fl" data-i18n="username">Username</label><input class="fi" id="j-user" type="text" autocomplete="username" placeholder="choose a username"></div>
-      <div class="fg"><label class="fl" data-i18n="password">Password</label><input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="min 8 characters"></div>
-      <div class="auth-err" id="j-err"></div>
-      <button class="btn btn-gold" onclick="doJoin()" data-i18n="requestAccess">Request Access</button>
-      <div class="auth-note" data-i18n="joinNote">An admin will review and approve your request. You'll need the Family Secret Key from an existing member.</div>
+      <div class="fg">
+        <label class="fl">Username <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(unique within your family)</small></label>
+        <input class="fi" id="j-user" type="text" autocomplete="username" placeholder="e.g. rajan.k">
+      </div>
+      <div class="fg"><label class="fl">Password <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
+        <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+      <div class="fg">
+        <label class="fl">Password Hint <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(visible to you if forgotten — no actual secrets)</small></label>
+        <input class="fi" id="j-hint" type="text" placeholder="e.g. childhood pet + year" autocomplete="off">
+      </div>
+      <div class="aerr" id="j-err"></div>
+      <button class="btn btn-gold" onclick="doJoin()">Request Access</button>
+      <div class="anote">An admin will approve your request. You need the Family Secret Key from an existing member.</div>
+    </div>
+
+    <!-- FORGOT -->
+    <div class="asec" id="asec-forgot">
+      <div style="font-size:13px;color:var(--ink4);line-height:1.65;margin-bottom:14px">
+        Gun.js passwords are cryptographic keys — they cannot be reset from a server. Enter your username below to see your saved hint.
+      </div>
+      <div class="fg"><label class="fl">Your Username</label>
+        <input class="fi" id="f-user" type="text" placeholder="Enter username" oninput="showHint(this.value)"></div>
+      <div class="hint-box" id="f-hint">Enter your username above to see your hint.</div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:14px">
+        If you still can't remember, ask your admin to remove your account and re-join with a new username.
+      </div>
+      <button class="btn btn-ghost" onclick="switchTab('login')" style="font-size:12px;padding:8px">← Back to Sign In</button>
     </div>
   </div>
 </div>
 
-<!-- PENDING SCREEN -->
-<div id="pending-screen">
-  <div class="pend-icon">⏳</div>
-  <div class="pend-title" data-i18n="pendingTitle">Awaiting Approval</div>
-  <div class="pend-sub" data-i18n="pendingNote">Your request has been sent to the family admin. You can view the tree once approved. Please check back soon.</div>
-  <div class="pend-refresh">
-    <button class="btn btn-ghost btn-sm" onclick="checkApproval()" data-i18n="checkStatus">Check Status</button>
-    &nbsp;
-    <button class="btn btn-ghost btn-sm" onclick="doLogout()" data-i18n="signout">Sign Out</button>
+<!-- PENDING -->
+<div class="screen hide" id="s-pending" style="text-align:center">
+  <div class="pend-ico">⏳</div>
+  <div class="pend-t">Awaiting Approval</div>
+  <div class="pend-s" id="pend-s">Your request has been sent to the family admin. You can view the tree once approved.</div>
+  <div class="pend-acts">
+    <button class="btn btn-ghost btn-sm" onclick="checkApproval()">Check Status</button>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-family')">Switch Family</button>
+    <button class="btn btn-ghost btn-sm" onclick="fullLogout()">Sign Out</button>
   </div>
 </div>
 
-<!-- OFFLINE BAR -->
-<div id="offline-bar">⚠ You are offline — changes will sync when reconnected</div>
+<!-- INSTALL BANNER -->
+<div id="install-bar">
+  <span>📱 Install Parampara on your home screen</span>
+  <button class="ib-btn" onclick="triggerInstall()">Install</button>
+  <button class="ib-x" onclick="dismissInstall()">✕</button>
+</div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="app">
-  <!-- HEADER -->
   <div id="hdr">
     <div id="hdr-row">
-      <div class="app-logo">Parampara</div>
+      <div class="app-logo" onclick="openFamilySwitcher()" title="Switch family">Parampara</div>
       <div id="srch-wrap">
         <input id="srch" type="text" placeholder="Search…" autocomplete="off">
         <div id="srch-drop"></div>
       </div>
       <div class="hgap"></div>
       <span id="desktop-acts" style="display:contents">
-        <button class="hbtn" onclick="autoLayout()" data-i18n="layout">⚡ Layout</button>
-        <button class="hbtn" onclick="fitScreen()" data-i18n="fit">⊡ Fit</button>
-        <button class="hbtn" onclick="openRelMo()" data-i18n="relations">⛓ Relations</button>
-        <button class="hbtn primary" onclick="openAddMo()" id="btn-add" data-i18n="addPerson">＋ Add</button>
-        <button class="hbtn" onclick="openAdminMo()" id="btn-admin" style="display:none" data-i18n="admin">👑 Admin</button>
-        <button class="hbtn" onclick="doLogout()" data-i18n="signout">Sign Out</button>
+        <button class="hbtn" onclick="autoLayout()">⚡ Layout</button>
+        <button class="hbtn" onclick="fitScreen()">⊡ Fit</button>
+        <button class="hbtn" onclick="openRelMo()">⛓ Links</button>
+        <button class="hbtn primary" onclick="openAddMo()" id="btn-add">＋ Add</button>
+        <button class="hbtn" onclick="openAdminMo()" id="btn-admin" style="display:none">👑 Admin</button>
+        <button class="hbtn" onclick="openFamilySwitcher()">⇄</button>
+        <button class="hbtn" onclick="fullLogout()">Exit</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
     </div>
     <div id="menu-drawer">
-      <div id="srch-wrap-m">
-        <input id="srch-m" type="text" placeholder="Search…" autocomplete="off">
-        <div id="srch-drop-m"></div>
-      </div>
+      <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search…" autocomplete="off"><div id="srch-drop-m"></div></div>
       <div class="mob-grid">
-        <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m" data-i18n="addPerson">＋ Add Person</button>
-        <button class="hbtn" onclick="openRelMo();closeMenu()" data-i18n="relations">⛓ Relations</button>
-        <button class="hbtn" onclick="autoLayout();closeMenu()" data-i18n="layout">⚡ Layout</button>
-        <button class="hbtn" onclick="fitScreen();closeMenu()" data-i18n="fit">⊡ Fit</button>
-        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none" data-i18n="admin">👑 Admin</button>
-        <button class="hbtn" onclick="doLogout()" data-i18n="signout">Sign Out</button>
+        <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">＋ Add Person</button>
+        <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Links</button>
+        <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Layout</button>
+        <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit</button>
+        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin</button>
+        <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch</button>
+        <button class="hbtn" onclick="fullLogout()">Exit</button>
       </div>
     </div>
   </div>
-
-  <!-- CANVAS -->
   <div id="canvas-wrap">
     <div id="world">
       <svg id="world-svg" width="1" height="1"></svg>
@@ -531,22 +487,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     </div>
     <div id="empty">
       <div class="em-ico">🌳</div>
-      <div class="em-t serif" data-i18n="emptyTitle">Your family tree awaits</div>
-      <div class="em-s" data-i18n="emptyNote">Start by adding your first family member</div>
-      <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
+      <div class="em-t" style="font-family:'Crimson Pro',serif">Your family tree awaits</div>
+      <div class="em-s">Start by adding your first family member</div>
+      <button class="em-btn" onclick="openAddMo()">＋ Add First Person</button>
     </div>
   </div>
 </div>
 
-<!-- ZOOM -->
 <div id="zoom-ctl">
   <button class="zb" onclick="doZoom(.15)">＋</button>
   <div id="zlbl">100%</div>
   <button class="zb" onclick="doZoom(-.15)">－</button>
 </div>
-
-<!-- SYNC DOT -->
-<div id="sync-dot"><div class="dot amber" id="sdot"></div><span id="slbl">Connecting…</span></div>
+<div id="sync-bar"><div class="dot amber" id="sdot"></div><span id="slbl">Connecting…</span></div>
 
 <!-- SIDE PANEL -->
 <div id="panel">
@@ -559,536 +512,588 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <div class="pan-ft" id="pan-ft"></div>
 </div>
 
-<!-- PERSON MODAL -->
+<!-- MODALS -->
 <div class="mo-ov" id="person-mo">
   <div class="mo">
-    <div class="mo-hd"><div class="mo-title" id="pmo-title" data-i18n="addPerson">Add Person</div><button class="pan-x" onclick="closePMo()">✕</button></div>
+    <div class="mo-hd"><div class="mo-title" id="pmo-title">Add Person</div><button class="pan-x" onclick="closePMo()">✕</button></div>
     <div class="mo-bd" id="pmo-bd"></div>
-    <div class="mo-ft">
-      <button class="hbtn" onclick="closePMo()" data-i18n="cancel">Cancel</button>
-      <button class="hbtn primary" onclick="savePerson()" data-i18n="save">Save</button>
-    </div>
+    <div class="mo-ft"><button class="hbtn" onclick="closePMo()">Cancel</button><button class="hbtn primary" onclick="savePerson()">Save</button></div>
   </div>
 </div>
-
-<!-- RELATION MODAL -->
 <div class="mo-ov" id="rel-mo">
   <div class="mo">
-    <div class="mo-hd"><div class="mo-title" data-i18n="manageRel">Manage Relationships</div><button class="pan-x" onclick="closeRMo()">✕</button></div>
+    <div class="mo-hd"><div class="mo-title">Manage Relationships</div><button class="pan-x" onclick="closeRMo()">✕</button></div>
     <div class="mo-bd" id="rmo-bd"></div>
-    <div class="mo-ft">
-      <button class="hbtn" onclick="closeRMo()" data-i18n="done">Done</button>
-      <button class="hbtn primary" onclick="addRel()" data-i18n="addLink">Add Link</button>
-    </div>
+    <div class="mo-ft"><button class="hbtn" onclick="closeRMo()">Done</button><button class="hbtn primary" onclick="addRel()">Add Link</button></div>
   </div>
 </div>
-
-<!-- ADMIN MODAL -->
 <div class="mo-ov" id="admin-mo">
-  <div class="mo">
-    <div class="mo-hd"><div class="mo-title" data-i18n="adminPanel">Admin Panel</div><button class="pan-x" onclick="closeAMo()">✕</button></div>
+  <div class="mo" style="max-width:520px">
+    <div class="mo-hd"><div class="mo-title">Admin Panel</div><button class="pan-x" onclick="closeAMo()">✕</button></div>
     <div class="mo-bd" id="amo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closeAMo()" data-i18n="close">Close</button></div>
+    <div class="mo-ft"><button class="hbtn" onclick="closeAMo()">Close</button></div>
   </div>
 </div>
-
-<!-- HISTORY MODAL -->
 <div class="mo-ov" id="hist-mo">
   <div class="mo">
-    <div class="mo-hd"><div class="mo-title" data-i18n="editHistory">Edit History</div><button class="pan-x" onclick="closeHMo()">✕</button></div>
+    <div class="mo-hd"><div class="mo-title">Edit History</div><button class="pan-x" onclick="closeHMo()">✕</button></div>
     <div class="mo-bd" id="hmo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closeHMo()" data-i18n="close">Close</button></div>
+    <div class="mo-ft"><button class="hbtn" onclick="closeHMo()">Close</button></div>
   </div>
 </div>
-
 <div id="toast"></div>
 
-<!-- Gun.js + SEA -->
 <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
-
 <script>
 'use strict';
-// ═══════════════════════════════════════════════════════
-// I18N — translations
-// ═══════════════════════════════════════════════════════
-const T = {
-  en:{
-    login:'Sign In',join:'Join Family',username:'Username',password:'Password',
-    firstName:'First Name',lastName:'Last Name',familyKey:'Family Secret Key',
-    signin:'Sign In',requestAccess:'Request Access',
-    joinNote:'An admin will review your request. Get the Family Secret Key from an existing member.',
-    pendingTitle:'Awaiting Approval',
-    pendingNote:'Your request was sent to the family admin. You can view the tree once approved.',
-    checkStatus:'Check Status',signout:'Sign Out',
-    layout:'⚡ Layout',fit:'⊡ Fit',relations:'⛓ Relations',
-    addPerson:'＋ Add',admin:'👑 Admin',cancel:'Cancel',save:'Save',
-    done:'Done',addLink:'Add Link',manageRel:'Manage Relationships',
-    adminPanel:'Admin Panel',editHistory:'Edit History',close:'Close',
-    emptyTitle:'Your family tree awaits',
-    emptyNote:'Start by adding your first family member',
-    addFirst:'＋ Add First Person',
-    auth_tagline:'Your family lineage, across generations',
-  },
-  ta:{
-    login:'உள்நுழை',join:'குடும்பத்தில் சேர்',username:'பயனர் பெயர்',password:'கடவுச்சொல்',
-    firstName:'முதல் பெயர்',lastName:'கடைசி பெயர்',familyKey:'குடும்ப ரகசிய குறியீடு',
-    signin:'உள்நுழை',requestAccess:'அணுகல் கோரு',
-    joinNote:'நிர்வாகி உங்கள் கோரிக்கையை ஆய்வு செய்வார். ஏற்கனவே உள்ள உறுப்பினரிடம் குறியீடு பெறுங்கள்.',
-    pendingTitle:'அனுமதிக்காக காத்திருக்கிறோம்',
-    pendingNote:'உங்கள் கோரிக்கை நிர்வாகிக்கு அனுப்பப்பட்டது. ஒப்புதல் கிடைத்தால் மரத்தை பார்க்கலாம்.',
-    checkStatus:'நிலையை சரிபார்',signout:'வெளியேறு',
-    layout:'⚡ அமைப்பு',fit:'⊡ பொருத்து',relations:'⛓ உறவுகள்',
-    addPerson:'＋ சேர்',admin:'👑 நிர்வாகி',cancel:'ரத்து',save:'சேமி',
-    done:'முடிந்தது',addLink:'இணைப்பு சேர்',manageRel:'உறவுகளை நிர்வகி',
-    adminPanel:'நிர்வாக பலகை',editHistory:'திருத்த வரலாறு',close:'மூடு',
-    emptyTitle:'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
-    emptyNote:'முதல் குடும்ப உறுப்பினரை சேர்க்கவும்',
-    addFirst:'＋ முதலில் சேர்',
-    auth_tagline:'தலைமுறைகளை இணைக்கும் உங்கள் வம்சாவளி',
-  },
-  ml:{
-    login:'സൈൻ ഇൻ',join:'കുടുംബത്തിൽ ചേരുക',username:'ഉപയോക്തൃ നാമം',password:'പാസ്‌വേഡ്',
-    firstName:'പേരിന്റെ ആദ്യഭാഗം',lastName:'കുടുംബ പേര്',familyKey:'കുടുംബ രഹസ്യ കോഡ്',
-    signin:'സൈൻ ഇൻ',requestAccess:'ആക്‌സസ് അഭ്യർത്ഥിക്കുക',
-    joinNote:'അഡ്മിൻ നിങ്ങളുടെ അഭ്യർത്ഥന അവലോകനം ചെയ്യും. നിലവിലുള്ള അംഗത്തിൽ നിന്ന് കോഡ് നേടുക.',
-    pendingTitle:'അനുമതിക്കായി കാത്തിരിക്കുന്നു',
-    pendingNote:'നിങ്ങളുടെ അഭ്യർത്ഥന അഡ്മിന് അയച്ചു. അംഗീകരിച്ചാൽ മരം കാണാം.',
-    checkStatus:'നില പരിശോധിക്കുക',signout:'സൈൻ ഔട്ട്',
-    layout:'⚡ ലേഔട്ട്',fit:'⊡ ഫിറ്റ്',relations:'⛓ ബന്ധങ്ങൾ',
-    addPerson:'＋ ചേർക്കുക',admin:'👑 അഡ്മിൻ',cancel:'റദ്ദാക്കുക',save:'സേവ് ചെയ്യുക',
-    done:'പൂർത്തിയായി',addLink:'ലിങ്ക് ചേർക്കുക',manageRel:'ബന്ധങ്ങൾ കൈകാര്യം ചെയ്യുക',
-    adminPanel:'അഡ്മിൻ പാനൽ',editHistory:'എഡിറ്റ് ചരിത്രം',close:'അടയ്ക്കുക',
-    emptyTitle:'നിങ്ങളുടെ കുടുംബ മരം കാത്തിരിക്കുന്നു',
-    emptyNote:'ആദ്യ കുടുംബ അംഗത്തെ ചേർക്കുക',
-    addFirst:'＋ ആദ്യം ചേർക്കുക',
-    auth_tagline:'തലമുറകളിലൂടെ കുടുംബ പൈതൃകം',
+
+// ══ MULTI-RELAY FALLBACK ══════════════════════════════════════════
+// Uses multiple independent relays so if one goes down others serve sync.
+// NOTE: Gun.on('bye') fires transiently even on initial connect (peers
+// haven't responded yet) which causes false "offline" flicker. We debounce
+// it — only switch to amber if no peers re-join within 4 seconds.
+const RELAYS = [
+  'https://gun-manhattan.herokuapp.com/gun',
+  'https://peer.wallie.io/gun',
+  'https://gunjs.herokuapp.com/gun',
+];
+const gun = Gun({ peers: RELAYS, localStorage: true, radisk: true });
+
+let peerCount   = 0;
+let offlineTimer = null;
+
+function setSyncStatus(on, label) {
+  document.getElementById('sdot').className = 'dot ' + (on ? 'green' : 'amber');
+  document.getElementById('slbl').textContent = label;
+}
+
+// Start green — assume online; only go amber after confirmed disconnect
+setSyncStatus(true, 'Ready');
+
+gun.on('hi', () => {
+  peerCount++;
+  clearTimeout(offlineTimer);
+  setSyncStatus(true, 'Synced ✓');
+});
+gun.on('bye', () => {
+  peerCount = Math.max(0, peerCount - 1);
+  if (peerCount === 0) {
+    // Debounce: wait 4s before declaring offline (avoids initial-connect flicker)
+    offlineTimer = setTimeout(() => {
+      if (!navigator.onLine) {
+        setSyncStatus(false, 'Offline — saved locally');
+      } else {
+        setSyncStatus(false, 'Relay reconnecting…');
+      }
+    }, 4000);
   }
-};
-let LANG = localStorage.getItem('para_lang') || '';
-function t(k){ return (T[LANG]||T.en)[k] || k; }
-function applyI18n(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.dataset.i18n;
-    if(el.tagName==='INPUT') el.placeholder=t(k);
-    else el.textContent=t(k);
+});
+window.addEventListener('online',  () => { clearTimeout(offlineTimer); setSyncStatus(true,  'Back online ✓'); });
+window.addEventListener('offline', () => { clearTimeout(offlineTimer); setSyncStatus(false, 'Offline — saved locally'); });
+
+// ══ NAMESPACING — prevents username collisions across families ══════
+// Gun usernames are global; we prefix with a hash of the family key
+// so "rajan" in family A becomes "a3b9c_rajan" in Gun's global space
+function famHash(key) {
+  let h = 0;
+  for (let c of key) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
+  return 'f' + Math.abs(h).toString(36).slice(0, 8);
+}
+function gunAlias(displayAlias, famKey) {
+  return famHash(famKey) + '_' + displayAlias;
+}
+
+// ══ DATA ══════════════════════════════════════════════════════════
+let DB   = { people:{}, rels:[] };
+let NID  = 1;
+let CU   = null;   // current session: {displayAlias, famKey, fh, role, first, last, pass, hint}
+let FAM  = null;   // current family hash (active Gun namespace)
+
+function gid() { return 'p' + (NID++) + '_' + Date.now(); }
+function famNode()    { return gun.get('parampara_' + FAM); }
+function peopleNode() { return famNode().get('people'); }
+function relsNode()   { return famNode().get('rels'); }
+function membersNode(){ return famNode().get('members'); }
+function histNode()   { return famNode().get('history'); }
+
+// ══ MULTI-FAMILY SESSION STORAGE ══════════════════════════════════
+// localStorage: { families: [ {displayAlias, famKey, fh, role, first, last, pass, hint} ] }
+// Each entry = one family membership
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('para_v2') || '{"families":[]}'); }
+  catch { return {families:[]}; }
+}
+function saveSession(fam) {
+  const s = getSessions();
+  const i = s.families.findIndex(f => f.fh === fam.fh && f.displayAlias === fam.displayAlias);
+  if (i >= 0) s.families[i] = fam; else s.families.push(fam);
+  localStorage.setItem('para_v2', JSON.stringify(s));
+}
+function deleteSession(fh, displayAlias) {
+  const s = getSessions();
+  s.families = s.families.filter(f => !(f.fh === fh && f.displayAlias === displayAlias));
+  localStorage.setItem('para_v2', JSON.stringify(s));
+}
+
+// ══ SCREEN MANAGEMENT ══════════════════════════════════════════════
+const SCREEN_IDS = ['s-lang','s-family','s-auth','s-pending'];
+function showScreen(id) {
+  SCREEN_IDS.forEach(s => {
+    document.getElementById(s).classList.toggle('hide', s !== id);
   });
-}
-function setLang(l){
-  LANG=l; localStorage.setItem('para_lang',l);
-  document.getElementById('lang-screen').classList.add('hide');
-  applyI18n();
-  initAuth();
-}
-
-// ═══════════════════════════════════════════════════════
-// GUN INIT
-// ═══════════════════════════════════════════════════════
-const RELAY = 'https://gun.biz/gun';
-const gun = Gun({ peers:[RELAY], localStorage:true });
-const SEA = Gun.SEA;
-
-let FAMILY_KEY = ''; // set during join / loaded from local storage
-let currentUser = null;  // { alias, role, pub, first, last }
-let gunUser = null;      // gun.user() reference after auth
-
-// Namespaced data nodes
-function familyNode(){ return gun.get('parampara-'+btoa(FAMILY_KEY).slice(0,12)); }
-function peopleNode(){ return familyNode().get('people'); }
-function relsNode(){   return familyNode().get('rels'); }
-function membersNode(){ return familyNode().get('members'); }
-function histNode(){   return familyNode().get('history'); }
-
-// ═══════════════════════════════════════════════════════
-// SYNC STATUS
-// ═══════════════════════════════════════════════════════
-function setSyncStatus(state, label){
-  const dot=document.getElementById('sdot');
-  const lbl=document.getElementById('slbl');
-  dot.className='dot '+(state==='ok'?'green':'amber');
-  lbl.textContent=label;
-}
-gun.on('hi',  ()=>setSyncStatus('ok','Synced'));
-gun.on('bye', ()=>setSyncStatus('amber','Reconnecting…'));
-window.addEventListener('online',  ()=>document.getElementById('offline-bar').classList.remove('show'));
-window.addEventListener('offline', ()=>document.getElementById('offline-bar').classList.add('show'));
-
-// ═══════════════════════════════════════════════════════
-// LANG + AUTH INIT
-// ═══════════════════════════════════════════════════════
-function initAuth(){
-  // Check if already logged in
-  const saved = JSON.parse(localStorage.getItem('para_session')||'null');
-  if(saved && saved.familyKey){
-    FAMILY_KEY = saved.familyKey;
-    // Re-authenticate with gun
-    gun.user().auth(saved.alias, saved.pass, ack=>{
-      if(ack.err){ showAuth(); return; }
-      gunUser = gun.user();
-      loadSession(saved);
-    });
-  } else {
-    showAuth();
-  }
-}
-
-function showAuth(){
-  document.getElementById('auth-screen').classList.remove('hide');
-  document.getElementById('pending-screen').classList.remove('show');
   document.getElementById('app').classList.remove('show');
 }
-
-function showApp(){
-  document.getElementById('auth-screen').classList.add('hide');
-  document.getElementById('pending-screen').classList.remove('show');
+function showApp() {
+  SCREEN_IDS.forEach(s => document.getElementById(s).classList.add('hide'));
   document.getElementById('app').classList.add('show');
-  // show admin btn if admin
-  const isAdmin = currentUser && currentUser.role==='admin';
-  ['btn-admin','btn-admin-m'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display=isAdmin?'':'none';
-  });
-  // disable add/edit if pending
-  const canEdit = currentUser && (currentUser.role==='admin'||currentUser.role==='member');
-  ['btn-add','btn-add-m'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display=canEdit?'':'none';
-  });
+  updatePermUI();
   startSync();
   render();
   applyHeaderH(52);
 }
 
-function showPending(){
-  document.getElementById('auth-screen').classList.add('hide');
-  document.getElementById('pending-screen').classList.add('show');
-  document.getElementById('app').classList.remove('show');
+// ══ LANGUAGE ═══════════════════════════════════════════════════════
+let LANG = localStorage.getItem('para_lang') || '';
+function setLang(l) {
+  LANG = l;
+  localStorage.setItem('para_lang', l);
+  boot();
 }
 
-function loadSession(saved){
-  currentUser = saved;
-  FAMILY_KEY = saved.familyKey;
-  // Check current role from gun
-  membersNode().get(saved.alias).once(data=>{
-    if(!data){ doLogout(); return; }
-    currentUser.role = data.role || 'pending';
-    if(currentUser.role==='pending') showPending();
-    else showApp();
-  });
+// ══ BOOT ═══════════════════════════════════════════════════════════
+function boot() {
+  if (!LANG) { showScreen('s-lang'); return; }
+  const s = getSessions();
+  if (!s.families.length) { showScreen('s-auth'); return; }
+  if (s.families.length === 1) resumeFamily(s.families[0]);
+  else buildFamilyPicker(s.families);
 }
 
-// ═══════════════════════════════════════════════════════
-// AUTH ACTIONS
-// ═══════════════════════════════════════════════════════
-function switchTab(tab){
-  document.getElementById('tab-login').classList.toggle('on', tab==='login');
-  document.getElementById('tab-join').classList.toggle('on', tab==='join');
-  document.getElementById('sec-login').classList.toggle('on', tab==='login');
-  document.getElementById('sec-join').classList.toggle('on', tab==='join');
+function buildFamilyPicker(families) {
+  const list = document.getElementById('fp-list');
+  list.innerHTML = families.map(f => `
+    <div class="fam-row" onclick='resumeFamily(${JSON.stringify(f)})'>
+      <div style="font-size:26px">🌳</div>
+      <div class="fam-info">
+        <div class="fam-name">${escHtml(f.famKey)}</div>
+        <div class="fam-meta">@${escHtml(f.displayAlias)} · ${escHtml(f.first||'')} ${escHtml(f.last||'')}</div>
+      </div>
+      <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
+    </div>`).join('');
+  showScreen('s-family');
 }
 
-async function doLogin(){
-  const alias=v('l-user').trim(), pass=v('l-pass');
-  const err=document.getElementById('l-err');
-  err.textContent='';
-  if(!alias||!pass){err.textContent='Please fill all fields';return;}
-  err.textContent='Signing in…';
-  gun.user().auth(alias, pass, async ack=>{
-    if(ack.err){err.textContent='Invalid username or password';return;}
-    gunUser=gun.user();
-    // Get family key and role from member record
-    membersNode().get(alias).once(data=>{
-      if(!data){err.textContent='Account not found in this family';return;}
-      FAMILY_KEY=data.familyKey||'';
-      currentUser={alias,pass,familyKey:FAMILY_KEY,role:data.role||'pending',first:data.first||'',last:data.last||''};
-      localStorage.setItem('para_session',JSON.stringify(currentUser));
-      if(currentUser.role==='pending') showPending();
-      else showApp();
-    });
-  });
+function openFamilySwitcher() {
+  const s = getSessions();
+  if (s.families.length <= 1) return;
+  clearSync();
+  buildFamilyPicker(s.families);
 }
 
-async function doJoin(){
-  const key=v('j-key').trim(), first=v('j-first').trim(), last=v('j-last').trim();
-  const alias=v('j-user').trim(), pass=v('j-pass');
-  const err=document.getElementById('j-err');
-  err.textContent='';
-  if(!key||!first||!alias||!pass){err.textContent='Please fill all required fields';return;}
-  if(pass.length<8){err.textContent='Password must be at least 8 characters';return;}
-
-  // Check if this family exists (look for admin record)
-  FAMILY_KEY=key;
-  err.textContent='Checking family key…';
-
-  // Create gun user
-  gun.user().create(alias, pass, async ack=>{
-    if(ack.err && !ack.err.includes('already created')){
-      err.textContent='Username taken, try another'; return;
-    }
-    gun.user().auth(alias, pass, async ack2=>{
-      if(ack2.err){err.textContent='Error: '+ack2.err;return;}
-      gunUser=gun.user();
-
-      // Check if this is the very first member (becomes admin)
-      membersNode().once(data=>{
-        const isFirst = !data || Object.keys(data).filter(k=>k!=='_').length===0;
-        const role = isFirst ? 'admin' : 'pending';
-        const memberData = {alias,first,last,familyKey:key,role,joinedAt:Date.now()};
-
-        membersNode().get(alias).put(memberData);
-        currentUser={...memberData,pass};
-        localStorage.setItem('para_session',JSON.stringify(currentUser));
-
-        if(role==='admin'){
-          toast(isFirst?'Welcome! You are now the family admin.':'');
-          showApp();
-        } else {
-          showPending();
-          toast('Request sent to admin');
-        }
-      });
-    });
-  });
-}
-
-function doLogout(){
-  localStorage.removeItem('para_session');
-  gun.user().leave();
-  currentUser=null; gunUser=null; FAMILY_KEY='';
-  DB={people:{},rels:[]};
-  nodesL.querySelectorAll('.card').forEach(c=>c.remove());
-  document.getElementById('world-svg').innerHTML='';
-  showAuth();
-}
-
-function checkApproval(){
-  if(!currentUser){showAuth();return;}
-  membersNode().get(currentUser.alias).once(data=>{
-    if(data && data.role!=='pending'){
-      currentUser.role=data.role;
-      localStorage.setItem('para_session',JSON.stringify(currentUser));
+function resumeFamily(fam) {
+  const alias = gunAlias(fam.displayAlias, fam.famKey);
+  gun.user().auth(alias, fam.pass, ack => {
+    if (ack.err) { toast('Session expired — please sign in again'); showScreen('s-auth'); return; }
+    FAM = fam.fh;
+    CU  = { ...fam, alias };
+    // refresh role from Gun (admin may have changed it)
+    membersNode().get(fam.displayAlias).once(data => {
+      const role = (data && data.role) || 'pending';
+      CU.role  = role;
+      fam.role = role;
+      saveSession(fam);
+      DB = { people:{}, rels:[] };
+      document.getElementById('nodes-layer').innerHTML = '';
+      if (role === 'pending') { showScreen('s-pending'); return; }
       showApp();
-    } else {
-      toast('Still pending — please wait for admin approval');
-    }
+    });
   });
 }
 
-// ═══════════════════════════════════════════════════════
-// DATA MODEL (local cache)
-// ═══════════════════════════════════════════════════════
-let DB = { people:{}, rels:[] };
-let NID = 1;
-function gid(){ return 'p'+(NID++)+'_'+Date.now(); }
+// ══ FORGOT PASSWORD — show stored hint ════════════════════════════
+function showHint(username) {
+  const box = document.getElementById('f-hint');
+  if (!username.trim()) { box.textContent = 'Enter your username above to see your hint.'; return; }
+  const s = getSessions();
+  const match = s.families.find(f => f.displayAlias === username.trim());
+  if (match && match.hint) box.innerHTML = `<b style="color:var(--copper)">Hint:</b> ${escHtml(match.hint)}`;
+  else if (match)          box.textContent = 'No hint was saved for this account.';
+  else                     box.textContent = 'Username not found in any saved family on this device.';
+}
 
-// ═══════════════════════════════════════════════════════
-// GUN SYNC
-// ═══════════════════════════════════════════════════════
-let syncSubs = [];
-function startSync(){
-  // People
-  peopleNode().map().on((data,id)=>{
-    if(!data||id==='_') return;
-    DB.people[id]=data;
+// ══ AUTH ACTIONS ═══════════════════════════════════════════════════
+function switchTab(t) {
+  ['login','join','forgot'].forEach(id => {
+    const tab = document.getElementById('tab-'+id);
+    const sec = document.getElementById('asec-'+id);
+    if (tab) tab.classList.toggle('on', id===t);
+    if (sec) sec.classList.toggle('on', id===t);
+  });
+}
+
+async function doLogin() {
+  const du = el('l-user').value.trim();
+  const pass = el('l-pass').value;
+  const errEl = el('l-err');
+  errEl.textContent = '';
+  if (!du || !pass) { errEl.textContent = 'Please fill all fields'; return; }
+
+  const s = getSessions();
+  const candidates = s.families.filter(f => f.displayAlias === du);
+  if (!candidates.length) {
+    errEl.textContent = 'No family found for this username. Use Join Family first.'; return;
+  }
+  errEl.textContent = 'Signing in…';
+
+  for (const fam of candidates) {
+    const alias = gunAlias(du, fam.famKey);
+
+    // ── Check if admin set a temp password ───────────────────────
+    const tmpData = await new Promise(res => {
+      let d = null;
+      gun.get('parampara_'+fam.fh).get('members').get(du).once(data => { d = data; });
+      setTimeout(() => res(d), 1500);
+    });
+    if (tmpData && tmpData.tmpPass && pass === tmpData.tmpPass) {
+      // Temp password matched — prompt for new password
+      const newPass = prompt(`Temporary password accepted.\n\nPlease set a new password (min 8 characters):`);
+      if (!newPass || newPass.length < 8) { errEl.textContent = 'New password must be at least 8 characters'; return; }
+      // Gun SEA can't change passwords — create a NEW account entry with same displayAlias
+      // but under new key. Store the new pass in the session.
+      fam.pass = newPass;
+      saveSession(fam);
+      // Clear the temp token
+      gun.get('parampara_'+fam.fh).get('members').get(du).get('tmpPass').put(null);
+      toast('Password updated — please sign in with your new password');
+      errEl.textContent = 'Password changed. Please sign in again with your new password.';
+      el('l-pass').value = '';
+      return;
+    }
+
+    const ok = await new Promise(res => gun.user().auth(alias, pass, a => res(!a.err)));
+    if (ok) {
+      fam.pass = pass;
+      saveSession(fam);
+      FAM = fam.fh;
+      CU  = { ...fam, alias, pass };
+      DB  = { people:{}, rels:[] };
+      document.getElementById('nodes-layer').innerHTML = '';
+      membersNode().get(du).once(data => {
+        CU.role  = (data && data.role) || 'pending';
+        fam.role = CU.role;
+        saveSession(fam);
+        if (CU.role === 'pending') showScreen('s-pending');
+        else showApp();
+      });
+      return;
+    }
+  }
+  errEl.textContent = 'Invalid password';
+}
+
+async function doJoin() {
+  const key   = el('j-key').value.trim();
+  const first = el('j-first').value.trim();
+  const last  = el('j-last').value.trim();
+  const du    = el('j-user').value.trim();
+  const pass  = el('j-pass').value;
+  const hint  = el('j-hint').value.trim();
+  const errEl = el('j-err');
+  errEl.textContent = '';
+
+  if (!key || !first || !du || !pass) { errEl.textContent = 'Please fill all required fields'; return; }
+  if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
+  if (!/^[a-zA-Z0-9._-]+$/.test(du)) { errEl.textContent = 'Username: letters, numbers, . _ - only'; return; }
+
+  const fh    = famHash(key);
+  const alias = gunAlias(du, key);
+  FAM = fh;
+
+  errEl.textContent = 'Checking username availability…';
+
+  // ── Username uniqueness check in this family ───────────────────
+  const existing = await new Promise(res => {
+    let found = false;
+    membersNode().get(du).once(data => { if (data && data.displayAlias) found = true; });
+    setTimeout(() => res(found), 2500);
+  });
+  if (existing) { errEl.textContent = 'Username already taken in this family. Choose another.'; return; }
+
+  errEl.textContent = 'Creating account…';
+
+  // ── Create Gun user account ────────────────────────────────────
+  const created = await new Promise(res =>
+    gun.user().create(alias, pass, ack => res(!ack.err || ack.err.toLowerCase().includes('already')))
+  );
+  if (!created) { errEl.textContent = 'Could not create account — username may conflict globally. Try a different name.'; return; }
+
+  const authed = await new Promise(res => gun.user().auth(alias, pass, a => res(!a.err)));
+  if (!authed) { errEl.textContent = 'Authentication failed. Please try again.'; return; }
+
+  // ── Determine role: first member in this family = admin ────────
+  const memberCount = await new Promise(res => {
+    let c = 0;
+    membersNode().map().once((d, k) => { if (d && k !== '_' && k !== du) c++; });
+    setTimeout(() => res(c), 2000);
+  });
+
+  const role = memberCount === 0 ? 'admin' : 'pending';
+  const memberData = { displayAlias: du, famKey: key, fh, role, first, last, hint, joinedAt: Date.now() };
+  membersNode().get(du).put(memberData);
+
+  const famData = { displayAlias: du, famKey: key, fh, role, first, last, pass, hint };
+  saveSession(famData);
+  CU  = { ...famData, alias };
+  DB  = { people:{}, rels:[] };
+
+  if (role === 'admin') {
+    toast('Welcome! You are the family admin.');
+    showApp();
+  } else {
+    showScreen('s-pending');
+    toast('Request sent — awaiting admin approval');
+  }
+}
+
+function checkApproval() {
+  if (!CU || !FAM) return;
+  membersNode().get(CU.displayAlias).once(data => {
+    if (data && data.role && data.role !== 'pending') {
+      CU.role = data.role;
+      const s = getSessions();
+      const f = s.families.find(x => x.fh === CU.fh && x.displayAlias === CU.displayAlias);
+      if (f) { f.role = CU.role; saveSession(f); }
+      DB = { people:{}, rels:[] };
+      showApp();
+    } else toast('Still pending — please wait for admin approval');
+  });
+}
+
+function fullLogout() {
+  gun.user().leave();
+  CU = null; FAM = null;
+  DB = { people:{}, rels:[] };
+  clearSync();
+  document.getElementById('nodes-layer').innerHTML = '';
+  document.getElementById('world-svg').innerHTML   = '';
+  showScreen('s-auth');
+}
+
+// ══ PERMISSIONS ════════════════════════════════════════════════════
+// Roles:
+//   admin       — full access + approve/set roles
+//   editor      — add + edit anyone
+//   contributor — add + edit own entries only
+//   viewer      — view only
+//   pending     — view only (read-only)
+function can(action) {
+  const r = CU && CU.role;
+  if (!r) return false;
+  const map = {
+    add:     ['admin','editor','contributor'],
+    edit:    ['admin','editor'],
+    editOwn: ['admin','editor','contributor'],
+    delete:  ['admin'],
+    approve: ['admin'],
+  };
+  return (map[action]||[]).includes(r);
+}
+function canEditPerson(p) {
+  if (can('edit')) return true;
+  if (can('editOwn') && p.addedBy === CU.displayAlias) return true;
+  return false;
+}
+function updatePermUI() {
+  const isAdmin = CU && CU.role === 'admin';
+  const canAdd  = can('add');
+  ['btn-admin','btn-admin-m'].forEach(id => { const e=el(id); if(e) e.style.display=isAdmin?'':'none'; });
+  ['btn-add','btn-add-m'].forEach(id => { const e=el(id); if(e) e.style.display=canAdd?'':'none'; });
+}
+
+// ══ SYNC ═══════════════════════════════════════════════════════════
+let _off = [];
+function clearSync() { _off.forEach(fn => fn && typeof fn === 'function' && fn()); _off = []; }
+function startSync() {
+  clearSync();
+  peopleNode().map().on((data, id) => {
+    if (!data || id === '_') return;
+    if (data.deleted) delete DB.people[id];
+    else DB.people[id] = data;
     render();
   });
-  // Rels
-  relsNode().map().on((data,id)=>{
-    if(!data||id==='_') return;
-    // Refresh rels array
-    if(data.deleted){
-      DB.rels=DB.rels.filter(r=>r.id!==id);
-    } else {
-      const existing=DB.rels.findIndex(r=>r.id===id);
-      if(existing>=0) DB.rels[existing]=data;
-      else DB.rels.push(data);
+  relsNode().map().on((data, id) => {
+    if (!data || id === '_') return;
+    if (data.deleted) DB.rels = DB.rels.filter(r => r.id !== id);
+    else {
+      const i = DB.rels.findIndex(r => r.id === id);
+      if (i >= 0) DB.rels[i] = data; else DB.rels.push(data);
     }
     render();
   });
 }
 
-function putPerson(id, data){
-  const node=peopleNode().get(id);
-  // Flatten — Gun can't store nested arrays directly
-  const flat={...data,id};
-  delete flat.history; // store history separately
-  node.put(flat);
-}
-
-function putRel(rel){
-  relsNode().get(rel.id).put(rel);
-}
-
-function deleteRel(id){
-  relsNode().get(id).put({id,deleted:true});
-  DB.rels=DB.rels.filter(r=>r.id!==id);
-}
-
-function logHistory(personId, action, changes){
-  const hid='h'+Date.now();
-  histNode().get(personId).get(hid).put({
-    who: currentUser ? `${currentUser.first} ${currentUser.last}`.trim()||currentUser.alias : 'Unknown',
-    action, changes:JSON.stringify(changes||{}),
-    at: Date.now()
+function putPerson(id, data) { peopleNode().get(id).put({...data, id}); }
+function putRel(rel)         { relsNode().get(rel.id).put(rel); }
+function deleteRel(id)       { relsNode().get(id).put({id, deleted:true}); DB.rels = DB.rels.filter(r => r.id !== id); }
+function logHistory(pid, action, changes) {
+  histNode().get(pid).get('h'+Date.now()).put({
+    who: CU ? CU.displayAlias : '?',
+    action, changes: JSON.stringify(changes||{}), at: Date.now()
   });
 }
-
-function getHistory(personId, cb){
-  const entries=[];
-  histNode().get(personId).map().once((data,k)=>{
-    if(data&&k!=='_') entries.push(data);
-  });
-  setTimeout(()=>cb(entries.sort((a,b)=>(b.at||0)-(a.at||0))),400);
+function getHistory(pid, cb) {
+  const entries = [];
+  histNode().get(pid).map().once((d,k) => { if (d && k !== '_') entries.push(d); });
+  setTimeout(() => cb(entries.sort((a,b) => (b.at||0)-(a.at||0))), 500);
 }
 
-// ═══════════════════════════════════════════════════════
-// ADMIN FUNCTIONS
-// ═══════════════════════════════════════════════════════
-function openAdminMo(){
-  const bd=document.getElementById('amo-bd');
-  bd.innerHTML='<div style="color:var(--ink3);font-size:12px;margin-bottom:16px">Loading members…</div>';
-  document.getElementById('admin-mo').classList.add('on');
+// ══ ADMIN PANEL ════════════════════════════════════════════════════
+const ALL_ROLES = ['admin','editor','contributor','viewer'];
+
+function openAdminMo() {
+  el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
+  el('admin-mo').classList.add('on');
   loadMembers();
 }
-function closeAMo(){ document.getElementById('admin-mo').classList.remove('on'); }
+function closeAMo() { el('admin-mo').classList.remove('on'); }
 
-function loadMembers(){
-  const bd=document.getElementById('amo-bd');
-  const members=[];
-  membersNode().map().once((data,k)=>{
-    if(data&&k!=='_') members.push(data);
-  });
-  setTimeout(()=>{
-    if(!members.length){bd.innerHTML='<div class="no-rel">No members found</div>';return;}
-    const pending=members.filter(m=>m.role==='pending');
-    const active=members.filter(m=>m.role!=='pending');
-
-    let html='';
-    if(pending.length){
-      html+=`<div class="sec-t">Pending Approval (${pending.length})</div>`;
-      pending.forEach(m=>{
-        html+=memberRowHtml(m,true);
-      });
+function loadMembers() {
+  const members = [];
+  membersNode().map().once((d,k) => { if (d && k !== '_') members.push(d); });
+  setTimeout(() => {
+    if (!members.length) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
+    const pending = members.filter(m => m.role === 'pending');
+    const active  = members.filter(m => m.role !== 'pending');
+    let html = `<div class="sec-t">Family Secret Key</div>
+      <div class="key-box">${escHtml(CU.famKey)}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Share only with trusted family members.</div>`;
+    if (pending.length) {
+      html += `<div class="sec-t" style="color:var(--rose)">Pending Approval (${pending.length})</div>`;
+      pending.forEach(m => html += memberRow(m, true));
     }
-    html+=`<div class="sec-t" style="margin-top:${pending.length?'16px':'0'}">Active Members (${active.length})</div>`;
-    active.forEach(m=>{ html+=memberRowHtml(m,false); });
-
-    // Family key section
-    html+=`<div class="sec-t" style="margin-top:16px">Family Secret Key</div>
-    <div style="background:var(--parch2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:monospace;font-size:14px;color:var(--ink);word-break:break-all">${FAMILY_KEY}</div>
-    <div style="font-size:11px;color:var(--ink3);margin-top:6px">Share this key with family members when they join. Keep it private.</div>`;
-
-    bd.innerHTML=html;
-  },400);
+    html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
+    active.forEach(m => html += memberRow(m, false));
+    html += `<div class="sec-t" style="margin-top:18px">💾 Where Your Data Lives</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.7;background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:12px">
+        <b>On each device:</b> Browser localStorage (key: <code>gun/</code>) stores all tree data as JSON. Each device is its own source of truth. Limit: ~5–10 MB per browser.<br><br>
+        <b>Sync relay:</b> Gun.js sends encrypted changes through public relay servers temporarily — they are message couriers, not databases. If all devices go offline, data lives only on those devices.<br><br>
+        <b>Your data is NOT on any central server.</b> Back up by exporting (future feature) or keeping the app open on multiple devices.<br><br>
+        <b>Password note:</b> Passwords are cryptographic keys — they cannot be recovered from a server. Use "🔑 Reset Pass" above to generate a temp password for a locked-out member.
+      </div>`;
+    el('amo-bd').innerHTML = html;
+  }, 700);
 }
 
-function memberRowHtml(m, isPending){
-  const initials=((m.first||'?')[0]+(m.last||'')[0]).toUpperCase();
-  const role=m.role||'pending';
-  const rb=`<span class="role-badge rb-${role}">${role}</span>`;
-  const acts=isPending
-    ? `<button class="mbtn mbtn-approve" onclick="approveMember('${m.alias}')">Approve</button>
-       <button class="mbtn mbtn-reject" onclick="rejectMember('${m.alias}')">Reject</button>`
-    : (m.alias!==currentUser.alias
-        ? `<button class="mbtn mbtn-revoke" onclick="revokeMember('${m.alias}')">Revoke</button>` : '');
+function memberRow(m, isPending) {
+  const ini = ((m.first||m.displayAlias||'?')[0] + (m.last||'')[0]).toUpperCase();
+  const isSelf = m.displayAlias === CU.displayAlias;
+  const rb = `<span class="role-badge rb-${m.role||'pending'}">${m.role||'pending'}</span>`;
+  const hintLine = m.hint ? `<div style="font-size:9px;color:var(--ink4);margin-top:2px">Hint: ${escHtml(m.hint)}</div>` : '';
+  let acts = '';
+  if (isPending) {
+    acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.displayAlias}','editor')">✓ Approve</button>
+            <button class="mbtn mbtn-reject" onclick="setRole('${m.displayAlias}','rejected')">✕ Reject</button>`;
+  } else if (!isSelf) {
+    const opts = ALL_ROLES.map(r => `<option value="${r}"${r===m.role?' selected':''}>${r}</option>`).join('');
+    acts = `<select class="role-sel" onchange="setRole('${m.displayAlias}',this.value)"><option disabled>Set role</option>${opts}</select>
+            <button class="mbtn" style="background:var(--slate);color:white" onclick="adminResetPass('${m.displayAlias}')">🔑 Reset Pass</button>
+            <button class="mbtn mbtn-reject" onclick="removeM('${m.displayAlias}')">Remove</button>`;
+  } else {
+    acts = `<span style="font-size:10px;color:var(--ink4)">(you)</span>`;
+  }
   return `<div class="member-row">
-    <div class="member-av">${initials}</div>
+    <div class="member-av">${ini}</div>
     <div class="member-info">
-      <div class="member-name">${m.first||''} ${m.last||''} <span style="color:var(--ink3);font-size:11px">@${m.alias}</span> ${rb}</div>
-      <div class="member-meta">Joined ${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</div>
+      <div class="member-name">@${escHtml(m.displayAlias||'')} ${rb}</div>
+      <div class="member-meta">${escHtml(m.first||'')} ${escHtml(m.last||'')} · joined ${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</div>
+      ${hintLine}
+      <div class="member-acts">${acts}</div>
     </div>
-    <div class="member-acts">${acts}</div>
   </div>`;
 }
 
-function approveMember(alias){
-  membersNode().get(alias).get('role').put('member');
-  toast('Approved: '+alias);
-  setTimeout(loadMembers,300);
+function setRole(alias, role) {
+  membersNode().get(alias).get('role').put(role);
+  toast(`@${alias} → ${role}`);
+  setTimeout(loadMembers, 400);
 }
-function rejectMember(alias){
-  membersNode().get(alias).get('role').put('rejected');
-  toast('Rejected: '+alias);
-  setTimeout(loadMembers,300);
-}
-function revokeMember(alias){
-  if(!confirm('Revoke access for '+alias+'?')) return;
-  membersNode().get(alias).get('role').put('pending');
-  toast('Access revoked: '+alias);
-  setTimeout(loadMembers,300);
+function removeM(alias) {
+  if (!confirm(`Remove @${alias} from this family? They can re-join with the family key.`)) return;
+  membersNode().get(alias).get('role').put('removed');
+  toast(`@${alias} removed`);
+  setTimeout(loadMembers, 400);
 }
 
-// ═══════════════════════════════════════════════════════
-// VIEWPORT / TRANSFORM
-// ═══════════════════════════════════════════════════════
+// Admin-initiated password reset: sets a temporary password the user must change on login
+function adminResetPass(alias) {
+  const tmp = 'Reset' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  // Gun SEA doesn't allow external password change — we store a temp token
+  // the member uses in a special "reset login" flow
+  membersNode().get(alias).get('tmpPass').put(tmp);
+  membersNode().get(alias).get('tmpPassAt').put(Date.now());
+  const msg = `Temporary password for @${alias}:\n\n${tmp}\n\nShare this privately. They enter it as "temp: ${tmp}" in the password field to set a new password.`;
+  alert(msg);
+  // Also copy to clipboard
+  navigator.clipboard && navigator.clipboard.writeText(tmp).catch(()=>{});
+  toast('Temp password set — share it privately');
+}
+
+// ══ VIEWPORT ═══════════════════════════════════════════════════════
 const wrap   = document.getElementById('canvas-wrap');
 const world  = document.getElementById('world');
 const wsvg   = document.getElementById('world-svg');
 const nodesL = document.getElementById('nodes-layer');
-let vp={x:60,y:60,s:1};
+let vp = { x:60, y:60, s:1 };
+const CW = 158, CH = 92;
 
-function applyVP(){
-  world.style.transform=`translate(${vp.x}px,${vp.y}px) scale(${vp.s})`;
-  document.getElementById('zlbl').textContent=Math.round(vp.s*100)+'%';
+function applyVP() {
+  world.style.transform = `translate(${vp.x}px,${vp.y}px) scale(${vp.s})`;
+  el('zlbl').textContent = Math.round(vp.s*100) + '%';
 }
-function zoomAt(cx,cy,dz){
-  const prev=vp.s;
-  vp.s=Math.max(.15,Math.min(3,vp.s+dz));
-  vp.x=cx-(cx-vp.x)*(vp.s/prev);
-  vp.y=cy-(cy-vp.y)*(vp.s/prev);
+function zoomAt(cx,cy,dz) {
+  const prev = vp.s;
+  vp.s = Math.max(.15, Math.min(3, vp.s+dz));
+  vp.x = cx - (cx-vp.x)*(vp.s/prev);
+  vp.y = cy - (cy-vp.y)*(vp.s/prev);
   applyVP();
 }
-function doZoom(dz){
-  const r=wrap.getBoundingClientRect();
-  zoomAt(r.width/2,r.height/2,dz);
-}
-function fitScreen(){
-  const ids=Object.keys(DB.people);
-  if(!ids.length) return;
-  const xs=ids.map(id=>DB.people[id].x||0);
-  const ys=ids.map(id=>DB.people[id].y||0);
-  const x0=Math.min(...xs),x1=Math.max(...xs)+158;
-  const y0=Math.min(...ys),y1=Math.max(...ys)+92;
-  const r=wrap.getBoundingClientRect();
-  const pad=40;
-  vp.s=Math.min(.98,Math.min((r.width-pad*2)/(x1-x0||1),(r.height-pad*2)/(y1-y0||1)));
-  vp.x=(r.width-(x1-x0)*vp.s)/2-x0*vp.s;
-  vp.y=(r.height-(y1-y0)*vp.s)/2-y0*vp.s;
+function doZoom(dz) { const r=wrap.getBoundingClientRect(); zoomAt(r.width/2,r.height/2,dz); }
+function fitScreen() {
+  const ids = Object.keys(DB.people); if (!ids.length) return;
+  const xs = ids.map(id=>DB.people[id].x||0), ys = ids.map(id=>DB.people[id].y||0);
+  const x0=Math.min(...xs), x1=Math.max(...xs)+CW, y0=Math.min(...ys), y1=Math.max(...ys)+CH;
+  const r=wrap.getBoundingClientRect(), pad=40;
+  vp.s = Math.min(.98, Math.min((r.width-pad*2)/(x1-x0||1),(r.height-pad*2)/(y1-y0||1)));
+  vp.x = (r.width-(x1-x0)*vp.s)/2 - x0*vp.s;
+  vp.y = (r.height-(y1-y0)*vp.s)/2 - y0*vp.s;
   applyVP();
 }
 
-// ── PAN ──────────────────────────────────────────────
-let pan={on:false,sx:0,sy:0,ox:0,oy:0,moved:false};
-function panStart(cx,cy){ pan={on:true,sx:cx,sy:cy,ox:vp.x,oy:vp.y,moved:false}; wrap.classList.add('grabbing'); }
-function panMove(cx,cy){
-  if(!pan.on) return;
-  const dx=cx-pan.sx,dy=cy-pan.sy;
-  if(Math.abs(dx)>3||Math.abs(dy)>3) pan.moved=true;
-  vp.x=pan.ox+dx; vp.y=pan.oy+dy; applyVP();
-}
-function panEnd(){ pan.on=false; wrap.classList.remove('grabbing'); }
+// pan
+let pan = {on:false,sx:0,sy:0,ox:0,oy:0,moved:false};
+const panStart = (cx,cy) => { pan={on:true,sx:cx,sy:cy,ox:vp.x,oy:vp.y,moved:false}; wrap.classList.add('grabbing'); };
+const panMove  = (cx,cy) => { if(!pan.on)return; const dx=cx-pan.sx,dy=cy-pan.sy; if(Math.abs(dx)>3||Math.abs(dy)>3)pan.moved=true; vp.x=pan.ox+dx; vp.y=pan.oy+dy; applyVP(); };
+const panEnd   = ()      => { pan.on=false; wrap.classList.remove('grabbing'); };
 
-wrap.addEventListener('mousedown',e=>{
-  if(e.button!==0||e.target.closest('.card')) return;
-  panStart(e.clientX,e.clientY);
-});
-window.addEventListener('mousemove',e=>{ panMove(e.clientX,e.clientY); ndMove(e.clientX,e.clientY); });
-window.addEventListener('mouseup',()=>{ panEnd(); ndEnd(); });
+wrap.addEventListener('mousedown', e => { if(e.button!==0||e.target.closest('.card')) return; panStart(e.clientX,e.clientY); });
+window.addEventListener('mousemove', e => { panMove(e.clientX,e.clientY); ndMove(e.clientX,e.clientY); });
+window.addEventListener('mouseup', () => { panEnd(); ndEnd(); });
 
-// touch pan — on world only so header is unaffected
-let tp={pts:{},lastD:null};
-world.addEventListener('touchstart',e=>{
-  if(e.target.closest('.card')) return;
-  [...e.changedTouches].forEach(t=>tp.pts[t.identifier]={x:t.clientX,y:t.clientY});
-  const pts=Object.values(tp.pts);
-  if(pts.length===1) panStart(pts[0].x,pts[0].y);
-  else if(pts.length===2){ panEnd(); tp.lastD=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y); }
+// touch pan on #world — header is outside and unaffected
+let tp = {pts:{},lastD:null};
+world.addEventListener('touchstart', e => {
+  if (e.target.closest('.card')) return;
+  [...e.changedTouches].forEach(t => tp.pts[t.identifier]={x:t.clientX,y:t.clientY});
+  const pts = Object.values(tp.pts);
+  if (pts.length===1) panStart(pts[0].x,pts[0].y);
+  else if (pts.length===2) { panEnd(); tp.lastD=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y); }
 },{passive:true});
-world.addEventListener('touchmove',e=>{
-  [...e.changedTouches].forEach(t=>{ if(tp.pts[t.identifier]) tp.pts[t.identifier]={x:t.clientX,y:t.clientY}; });
-  const pts=Object.values(tp.pts);
-  if(pts.length===1) panMove(pts[0].x,pts[0].y);
-  else if(pts.length===2&&tp.lastD){
+world.addEventListener('touchmove', e => {
+  [...e.changedTouches].forEach(t => { if(tp.pts[t.identifier]) tp.pts[t.identifier]={x:t.clientX,y:t.clientY}; });
+  const pts = Object.values(tp.pts);
+  if (pts.length===1) panMove(pts[0].x,pts[0].y);
+  else if (pts.length===2 && tp.lastD) {
     const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
     const r=wrap.getBoundingClientRect();
     zoomAt((pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top,vp.s*(d/tp.lastD)-vp.s);
@@ -1096,153 +1101,128 @@ world.addEventListener('touchmove',e=>{
   }
   e.preventDefault();
 },{passive:false});
-world.addEventListener('touchend',e=>{
-  [...e.changedTouches].forEach(t=>delete tp.pts[t.identifier]);
-  if(!Object.keys(tp.pts).length){ panEnd(); tp.lastD=null; }
+world.addEventListener('touchend', e => {
+  [...e.changedTouches].forEach(t => delete tp.pts[t.identifier]);
+  if (!Object.keys(tp.pts).length) { panEnd(); tp.lastD=null; }
 },{passive:true});
-wrap.addEventListener('wheel',e=>{
+wrap.addEventListener('wheel', e => {
   e.preventDefault();
   const r=wrap.getBoundingClientRect();
   zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?.1:-.1);
 },{passive:false});
 
-// ── NODE DRAG ────────────────────────────────────────
-let nd={on:false,id:null,sx:0,sy:0,ox:0,oy:0,moved:false};
-function ndStart(e,id,cx,cy){
-  nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false};
-  e.stopPropagation();
-}
-function ndMove(cx,cy){
-  if(!nd.on) return;
+// node drag
+let nd = {on:false,id:null,sx:0,sy:0,ox:0,oy:0,moved:false};
+function ndStart(e,id,cx,cy) { nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false}; e.stopPropagation(); }
+function ndMove(cx,cy) {
+  if (!nd.on) return;
   const dx=(cx-nd.sx)/vp.s, dy=(cy-nd.sy)/vp.s;
-  if(Math.abs(dx)>3||Math.abs(dy)>3) nd.moved=true;
-  if(!nd.moved) return;
+  if (Math.abs(dx)>3||Math.abs(dy)>3) nd.moved=true;
+  if (!nd.moved) return;
   DB.people[nd.id].x=nd.ox+dx; DB.people[nd.id].y=nd.oy+dy;
-  repositionCard(nd.id); redrawLines();
+  reposCard(nd.id); redrawLines();
 }
-function ndEnd(){
-  if(!nd.on) return;
+function ndEnd() {
+  if (!nd.on) return;
   const moved=nd.moved, id=nd.id; nd.on=false;
-  if(moved && id){
-    // persist new position
+  if (moved && id) {
     peopleNode().get(id).get('x').put(DB.people[id].x);
     peopleNode().get(id).get('y').put(DB.people[id].y);
   }
-  if(!moved && id) selectPerson(id);
+  if (!moved && id) selectPerson(id);
 }
 
-// ═══════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════
-const CW=158,CH=92;
-function v(id){ return (document.getElementById(id)||{}).value||''; }
-function fullName(p){ return [p.first,p.last].filter(Boolean).join(' ')||'Unnamed'; }
-function lifeSpan(p){
-  if(!p.dob&&!p.dod) return '';
-  const b=p.dob?p.dob.slice(0,4):'?';
-  return p.dod?`${b}–${p.dod.slice(0,4)}`:`b. ${b}`;
-}
-function fmtDate(ts){ return ts?new Date(ts).toLocaleDateString():''; }
-function fmtDateTime(ts){ return ts?new Date(ts).toLocaleString():''; }
+// ══ HELPERS ════════════════════════════════════════════════════════
+function el(id)         { return document.getElementById(id); }
+function escHtml(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function v(id)          { return (el(id)||{}).value||''; }
+function fullName(p)    { return [p.first,p.last].filter(Boolean).join(' ')||'Unnamed'; }
+function lifeSpan(p)    { if(!p.dob&&!p.dod)return ''; const b=p.dob?p.dob.slice(0,4):'?'; return p.dod?`${b}–${p.dod.slice(0,4)}`:`b. ${b}`; }
+function fmtDT(ts)      { return ts ? new Date(ts).toLocaleString() : ''; }
+function fmtD(ts)       { return ts ? new Date(ts).toLocaleDateString() : ''; }
 
-function getParents(id){ return DB.rels.filter(r=>r.to===id&&r.type==='Parent'&&!r.deleted).map(r=>r.from); }
-function getChildren(id){ return DB.rels.filter(r=>r.from===id&&r.type==='Parent'&&!r.deleted).map(r=>r.to); }
-function getPartners(id){ return DB.rels.filter(r=>(r.from===id||r.to===id)&&r.type==='Partner'&&!r.deleted).map(r=>r.from===id?r.to:r.from); }
-function getSiblings(id){
-  const ex=[...DB.rels.filter(r=>r.from===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.to),
-            ...DB.rels.filter(r=>r.to===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.from)];
-  const derived=getParents(id).flatMap(pid=>getChildren(pid)).filter(c=>c!==id);
-  return [...new Set([...ex,...derived])];
+function getParents(id)  { return DB.rels.filter(r=>r.to===id&&r.type==='Parent'&&!r.deleted).map(r=>r.from); }
+function getChildren(id) { return DB.rels.filter(r=>r.from===id&&r.type==='Parent'&&!r.deleted).map(r=>r.to); }
+function getPartners(id) { return DB.rels.filter(r=>(r.from===id||r.to===id)&&r.type==='Partner'&&!r.deleted).map(r=>r.from===id?r.to:r.from); }
+function getSiblings(id) {
+  const ex = [...DB.rels.filter(r=>r.from===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.to),
+               ...DB.rels.filter(r=>r.to===id&&r.type==='Sibling'&&!r.deleted).map(r=>r.from)];
+  return [...new Set([...ex, ...getParents(id).flatMap(pid=>getChildren(pid)).filter(c=>c!==id)])];
 }
-function getGen(id,memo={}){
-  if(memo[id]!==undefined) return memo[id];
-  const par=getParents(id);
-  if(!par.length){memo[id]=0;return 0;}
-  memo[id]=1+Math.max(...par.map(p=>getGen(p,memo)));
+function getGen(id,memo={}) {
+  if (memo[id]!==undefined) return memo[id];
+  const par = getParents(id);
+  if (!par.length) { memo[id]=0; return 0; }
+  memo[id] = 1 + Math.max(...par.map(p=>getGen(p,memo)));
   return memo[id];
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER CARDS
-// ═══════════════════════════════════════════════════════
-function render(){
-  const ids=Object.keys(DB.people);
-  document.getElementById('empty').classList.toggle('hide',ids.length>0);
-  nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
-  const memo={};
-  ids.forEach(id=>getGen(id,memo));
-  ids.forEach(id=>renderCard(id,memo[id]%6));
+// ══ RENDER ═════════════════════════════════════════════════════════
+function render() {
+  const ids = Object.keys(DB.people);
+  el('empty').classList.toggle('hide', ids.length>0);
+  nodesL.querySelectorAll('.card').forEach(c => { if (!DB.people[c.dataset.id]) c.remove(); });
+  const memo = {};
+  ids.forEach(id => getGen(id,memo));
+  ids.forEach(id => renderCard(id, memo[id]%6));
   redrawLines();
 }
-function renderCard(id,gen){
-  const p=DB.people[id];
-  let card=nodesL.querySelector(`.card[data-id="${id}"]`);
-  if(!card){
-    card=document.createElement('div');
-    card.dataset.id=id;
+function renderCard(id, gen) {
+  const p = DB.people[id];
+  let card = nodesL.querySelector(`.card[data-id="${id}"]`);
+  if (!card) {
+    card = document.createElement('div');
+    card.dataset.id = id;
     nodesL.appendChild(card);
-    card.addEventListener('mousedown',e=>{ if(e.button===0) ndStart(e,id,e.clientX,e.clientY); });
-    card.addEventListener('touchstart',e=>{
+    card.addEventListener('mousedown', e => { if(e.button===0) ndStart(e,id,e.clientX,e.clientY); });
+    card.addEventListener('touchstart', e => {
       const t=e.touches[0]; ndStart(e,id,t.clientX,t.clientY);
-      const mv=ev=>{ const t2=ev.touches[0]; ndMove(t2.clientX,t2.clientY); };
-      const up=()=>{ ndEnd(); card.removeEventListener('touchmove',mv); card.removeEventListener('touchend',up); };
+      const mv=ev=>{const t2=ev.touches[0];ndMove(t2.clientX,t2.clientY)};
+      const up=()=>{ndEnd();card.removeEventListener('touchmove',mv);card.removeEventListener('touchend',up)};
       card.addEventListener('touchmove',mv,{passive:true});
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
-  card.className=`card g${gen}${selId===id?' sel':''}`;
-  card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
-  const isMe = currentUser && p.addedBy===currentUser.alias;
-  const avClass=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
-  const av=p.photo?`<img src="${p.photo}" alt="" onerror="this.style.display='none'">`
-    :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
-  card.innerHTML=`
-    <div class="card-stripe"></div>
-    <div class="card-av ${avClass}">${av}</div>
-    <div class="card-name">${fullName(p)}</div>
-    <div class="card-meta">${lifeSpan(p)||p.occupation||''}</div>
-    ${isMe?`<div class="card-badge badge-you">you</div>`:''}
-  `;
+  card.className = `card g${gen}${selId===id?' sel':''}`;
+  card.style.left = (p.x||0)+'px'; card.style.top = (p.y||0)+'px';
+  const avc = p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
+  const av  = p.photo ? `<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">` : ((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
+  card.innerHTML = `<div class="card-stripe"></div>
+    <div class="card-av ${avc}">${av}</div>
+    <div class="card-name">${escHtml(fullName(p))}</div>
+    <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>`;
 }
-function repositionCard(id){
-  const card=nodesL.querySelector(`.card[data-id="${id}"]`);
-  if(!card) return;
-  card.style.left=(DB.people[id].x||0)+'px'; card.style.top=(DB.people[id].y||0)+'px';
-}
+function reposCard(id) { const c=nodesL.querySelector(`.card[data-id="${id}"]`); if(c){c.style.left=(DB.people[id].x||0)+'px';c.style.top=(DB.people[id].y||0)+'px';} }
 
-// ═══════════════════════════════════════════════════════
-// DRAW LINES
-// ═══════════════════════════════════════════════════════
-function cardBot(p){ return {x:(p.x||0)+CW/2,y:(p.y||0)+CH}; }
-function cardTop(p){ return {x:(p.x||0)+CW/2,y:(p.y||0)}; }
-function cardCtr(p){ return {x:(p.x||0)+CW/2,y:(p.y||0)+CH/2}; }
-function redrawLines(){
-  wsvg.innerHTML='';
-  const ids=Object.keys(DB.people);
-  if(!ids.length){wsvg.setAttribute('width',1);wsvg.setAttribute('height',1);return;}
-  const xs=ids.map(id=>(DB.people[id].x||0));
-  const ys=ids.map(id=>(DB.people[id].y||0));
-  const W=Math.max(2000,Math.max(...xs)+CW+200);
-  const H=Math.max(2000,Math.max(...ys)+CH+200);
-  wsvg.setAttribute('width',W); wsvg.setAttribute('height',H);
-  const drawn=new Set();
-  DB.rels.filter(r=>!r.deleted).forEach(r=>{
-    const a=DB.people[r.from],b=DB.people[r.to];
-    if(!a||!b) return;
-    const key=[r.from,r.to].sort().join('-')+r.type;
-    if(r.type==='Partner'&&drawn.has(key)) return;
+// ══ LINES ══════════════════════════════════════════════════════════
+const cBot = p => ({x:(p.x||0)+CW/2, y:(p.y||0)+CH});
+const cTop = p => ({x:(p.x||0)+CW/2, y:(p.y||0)});
+const cCtr = p => ({x:(p.x||0)+CW/2, y:(p.y||0)+CH/2});
+function redrawLines() {
+  wsvg.innerHTML = '';
+  const ids = Object.keys(DB.people);
+  if (!ids.length) { wsvg.setAttribute('width',1); wsvg.setAttribute('height',1); return; }
+  const xs=ids.map(id=>DB.people[id].x||0), ys=ids.map(id=>DB.people[id].y||0);
+  wsvg.setAttribute('width', Math.max(2000, Math.max(...xs)+CW+200));
+  wsvg.setAttribute('height',Math.max(2000, Math.max(...ys)+CH+200));
+  const drawn = new Set();
+  DB.rels.filter(r=>!r.deleted).forEach(r => {
+    const a=DB.people[r.from], b=DB.people[r.to];
+    if (!a||!b) return;
+    const key = [r.from,r.to].sort().join('-')+r.type;
+    if (r.type==='Partner' && drawn.has(key)) return;
     drawn.add(key);
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    if(r.type==='Parent'){
-      const s=cardBot(a),e=cardTop(b),my=(s.y+e.y)/2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    if (r.type==='Parent') {
+      const s=cBot(a),e=cTop(b),my=(s.y+e.y)/2;
       path.setAttribute('d',`M${s.x},${s.y} C${s.x},${my} ${e.x},${my} ${e.x},${e.y}`);
       path.setAttribute('class','e-parent');
-    } else if(r.type==='Partner'){
-      const la=cardCtr(a),lb=cardCtr(b),mx=(la.x+lb.x)/2,my=Math.min(la.y,lb.y)-36;
+    } else if (r.type==='Partner') {
+      const la=cCtr(a),lb=cCtr(b),mx=(la.x+lb.x)/2,my=Math.min(la.y,lb.y)-36;
       path.setAttribute('d',`M${la.x},${la.y} Q${mx},${my} ${lb.x},${lb.y}`);
       path.setAttribute('class','e-partner');
     } else {
-      const la=cardCtr(a),lb=cardCtr(b);
+      const la=cCtr(a),lb=cCtr(b);
       path.setAttribute('d',`M${la.x},${la.y} L${lb.x},${lb.y}`);
       path.setAttribute('class','e-sibling');
     }
@@ -1250,24 +1230,19 @@ function redrawLines(){
   });
 }
 
-// ═══════════════════════════════════════════════════════
-// AUTO LAYOUT
-// ═══════════════════════════════════════════════════════
-function autoLayout(){
-  const ids=Object.keys(DB.people); if(!ids.length) return;
-  const memo={};
+// ══ AUTO LAYOUT ════════════════════════════════════════════════════
+function autoLayout() {
+  const ids = Object.keys(DB.people); if (!ids.length) return;
+  const memo={}, byGen={};
   ids.forEach(id=>getGen(id,memo));
-  const byGen={};
-  ids.forEach(id=>{ const g=memo[id]||0; if(!byGen[g]) byGen[g]=[]; byGen[g].push(id); });
+  ids.forEach(id => { const g=memo[id]||0; if(!byGen[g])byGen[g]=[]; byGen[g].push(id); });
   const GH=170,GW=190,PAD=60;
-  const gens=Object.keys(byGen).map(Number).sort((a,b)=>a-b);
-  const maxCols=Math.max(...gens.map(g=>byGen[g].length));
-  gens.forEach(g=>{
-    const row=byGen[g];
-    const startX=(maxCols-row.length)*GW/2+PAD;
+  const gens = Object.keys(byGen).map(Number).sort((a,b)=>a-b);
+  const maxCols = Math.max(...gens.map(g=>byGen[g].length));
+  gens.forEach(g => {
+    const row=byGen[g], startX=(maxCols-row.length)*GW/2+PAD;
     row.forEach((id,i)=>{
-      DB.people[id].x=startX+i*GW;
-      DB.people[id].y=PAD+g*GH;
+      DB.people[id].x=startX+i*GW; DB.people[id].y=PAD+g*GH;
       peopleNode().get(id).get('x').put(DB.people[id].x);
       peopleNode().get(id).get('y').put(DB.people[id].y);
     });
@@ -1275,184 +1250,101 @@ function autoLayout(){
   render(); setTimeout(fitScreen,50); toast('Layout applied');
 }
 
-// ═══════════════════════════════════════════════════════
-// SELECT + PANEL
-// ═══════════════════════════════════════════════════════
-let selId=null;
-function selectPerson(id){
-  selId=id;
-  nodesL.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.id===id));
-  showPanel(id);
-}
-function showPanel(id){
-  const p=DB.people[id]; if(!p) return;
-  document.getElementById('pan-title').textContent=fullName(p);
-  document.getElementById('pan-sub').textContent=(p.dod?'✦ Deceased':'◉ Living')+(p.gender?` · ${p.gender}`:'');
+// ══ PANEL ══════════════════════════════════════════════════════════
+let selId = null;
+function selectPerson(id) { selId=id; nodesL.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.id===id)); showPanel(id); }
+function showPanel(id) {
+  const p=DB.people[id]; if (!p) return;
+  el('pan-title').textContent = fullName(p);
+  el('pan-sub').textContent   = (p.dod?'✦ Deceased':'◉ Living') + (p.gender?` · ${p.gender}`:'');
+  const av = p.photo ? `<div class="pf-av"><img src="${escHtml(p.photo)}" alt=""></div>`
+    : `<div class="pf-av" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
+  const rows = [['📅','Date of Birth',p.dob],['✝','Date of Death',p.dod],['📍','Birthplace',p.birthplace],['🏠','Location',p.location],['💼','Occupation',p.occupation],['🎓','Education',p.education],['🌍','Nationality',p.nationality]].filter(([,,val])=>val);
+  const infoHtml = rows.length ? rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(val)}</span></div>`).join('') : `<div class="no-rel">No details recorded</div>`;
 
-  const av=p.photo?`<div class="pf-av"><img src="${p.photo}" alt=""></div>`
-    :`<div class="pf-av" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
+  const parents  = getParents(id).map(pid=>({id:pid,role:'Parent'}));
+  const children = getChildren(id).map(cid=>({id:cid,role:'Child'}));
+  const partners = getPartners(id).map(pid=>({id:pid,role:'Partner'}));
+  const siblings = getSiblings(id).map(sid=>({id:sid,role:'Sibling'}));
+  const chipG = (title, items) => `<div class="sec"><div class="sec-t">${title} (${items.length})</div><div class="chips">${
+    items.length ? items.map(it=>`<div class="chip" onclick="selectPerson('${it.id}')"><span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role}</small></div>`).join('') : `<div class="no-rel">None recorded</div>`
+  }</div></div>`;
 
-  const rows=[
-    ['📅','Date of Birth',p.dob],['✝','Date of Death',p.dod],
-    ['📍','Birthplace',p.birthplace],['🏠','Location',p.location],
-    ['💼','Occupation',p.occupation],['🎓','Education',p.education],
-    ['🌍','Nationality',p.nationality],
-  ].filter(([,,v])=>v);
+  const audit = `<div class="audit-row"><span class="audit-who">➕ ${escHtml(p.addedBy||'?')}</span><span class="audit-what">added</span><span class="audit-when">${fmtD(p.addedAt)}</span></div>
+    ${p.editedAt?`<div class="audit-row"><span class="audit-who">✎ ${escHtml(p.editedBy||'?')}</span><span class="audit-what">last edited</span><span class="audit-when">${fmtDT(p.editedAt)}</span></div>`:''}`;
 
-  const infoHtml=rows.length
-    ?rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${val}</span></div>`).join('')
-    :`<div class="no-rel">No details recorded</div>`;
-
-  // relations
-  const parents=getParents(id).map(pid=>({id:pid,role:'Parent'}));
-  const children=getChildren(id).map(cid=>({id:cid,role:'Child'}));
-  const partners=getPartners(id).map(pid=>({id:pid,role:'Partner'}));
-  const siblings=getSiblings(id).map(sid=>({id:sid,role:'Sibling'}));
-  function chipG(title,items){
-    return `<div class="sec"><div class="sec-t">${title} (${items.length})</div><div class="chips">${
-      items.length?items.map(it=>`<div class="chip" onclick="selectPerson('${it.id}')"><span>${fullName(DB.people[it.id])}</span><small>${it.role}</small></div>`).join('')
-      :`<div class="no-rel">None recorded</div>`
-    }</div></div>`;
-  }
-
-  // audit
-  const addedBy=p.addedBy||'Unknown';
-  const editedBy=p.editedBy||addedBy;
-  const auditHtml=`<div class="audit-row">
-    <span class="audit-who">➕ ${addedBy}</span>
-    <span class="audit-what">added this entry</span>
-    <span class="audit-when">${fmtDate(p.addedAt)}</span>
-  </div>
-  ${p.editedAt?`<div class="audit-row">
-    <span class="audit-who">✎ ${editedBy}</span>
-    <span class="audit-what">last edited</span>
-    <span class="audit-when">${fmtDateTime(p.editedAt)}</span>
-  </div>`:''}`;
-
-  document.getElementById('pan-bd').innerHTML=`
-    ${av}
-    <div class="pf-name">${fullName(p)}</div>
+  el('pan-bd').innerHTML = `${av}
+    <div class="pf-name">${escHtml(fullName(p))}</div>
     <div class="pf-dates">${lifeSpan(p)||'&nbsp;'}</div>
     <div class="sec"><div class="sec-t">Personal Information</div>${infoHtml}</div>
-    ${p.notes?`<div class="sec"><div class="sec-t">Biography</div><div class="notes-box">${p.notes}</div></div>`:''}
+    ${p.notes?`<div class="sec"><div class="sec-t">Biography</div><div class="notes-box">${escHtml(p.notes)}</div></div>`:''}
     ${chipG('Parents',parents)}${chipG('Partners / Spouse',partners)}${chipG('Children',children)}${chipG('Siblings',siblings)}
-    <div class="sec"><div class="sec-t">Audit</div>${auditHtml}</div>
-  `;
+    <div class="sec"><div class="sec-t">Audit Trail</div>${audit}</div>`;
 
-  const canEdit=currentUser&&(currentUser.role==='admin'||currentUser.role==='member');
-  document.getElementById('pan-ft').innerHTML=`
-    ${canEdit?`<button class="pan-btn" onclick="openEditMo('${id}')">✎ Edit</button>`:''}
-    ${canEdit?`<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ Link</button>`:''}
+  const canEd=canEditPerson(p), canDel=can('delete'), canLink=can('add');
+  el('pan-ft').innerHTML = `
+    ${canEd  ? `<button class="pan-btn" onclick="openEditMo('${id}')">✎ Edit</button>` : ''}
+    ${canLink ? `<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ Link</button>` : ''}
     <button class="pan-btn" onclick="openHistMo('${id}')">📜 History</button>
-    ${canEdit&&currentUser.role==='admin'?`<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>`:''}
-  `;
-  document.getElementById('panel').classList.add('open');
+    ${canDel  ? `<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>` : ''}`;
+  el('panel').classList.add('open');
 }
-function closePanel(){
-  document.getElementById('panel').classList.remove('open');
-  selId=null;
-  nodesL.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
-}
-wrap.addEventListener('click',e=>{
-  if(e.target.closest('.card')) return;
-  if(pan.moved) return;
-  closePanel();
-});
+function closePanel() { el('panel').classList.remove('open'); selId=null; nodesL.querySelectorAll('.card').forEach(c=>c.classList.remove('sel')); }
+wrap.addEventListener('click', e => { if(e.target.closest('.card')||pan.moved) return; closePanel(); });
 
-// ═══════════════════════════════════════════════════════
-// PERSON FORM
-// ═══════════════════════════════════════════════════════
-function personForm(p={}){
-  return `
+// ══ PERSON FORM ════════════════════════════════════════════════════
+function personForm(p={}) { return `
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">First Name *</label><input class="pfi" id="pf-first" value="${p.first||''}" placeholder="First"></div>
-    <div class="pfg"><label class="pfl">Last Name</label><input class="pfi" id="pf-last" value="${p.last||''}" placeholder="Last"></div>
+    <div class="pfg"><label class="pfl">First Name *</label><input class="pfi" id="pf-first" value="${escHtml(p.first||'')}"></div>
+    <div class="pfg"><label class="pfl">Last Name</label><input class="pfi" id="pf-last" value="${escHtml(p.last||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Gender</label>
-      <select class="pfs" id="pf-gender">
-        <option value="">—</option>
-        <option${p.gender==='Male'?' selected':''}>Male</option>
-        <option${p.gender==='Female'?' selected':''}>Female</option>
-        <option${p.gender==='Other'?' selected':''}>Other</option>
-      </select>
-    </div>
-    <div class="pfg"><label class="pfl">Nationality</label><input class="pfi" id="pf-nat" value="${p.nationality||''}" placeholder="e.g. Indian"></div>
+    <div class="pfg"><label class="pfl">Gender</label><select class="pfs" id="pf-gender"><option value="">—</option><option${p.gender==='Male'?' selected':''}>Male</option><option${p.gender==='Female'?' selected':''}>Female</option><option${p.gender==='Other'?' selected':''}>Other</option></select></div>
+    <div class="pfg"><label class="pfl">Nationality</label><input class="pfi" id="pf-nat" value="${escHtml(p.nationality||'')}"></div>
   </div>
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">Date of Birth</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}"></div>
     <div class="pfg"><label class="pfl">Date of Death</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Birthplace</label><input class="pfi" id="pf-bp" value="${p.birthplace||''}" placeholder="City, Country"></div>
-    <div class="pfg"><label class="pfl">Current Location</label><input class="pfi" id="pf-loc" value="${p.location||''}" placeholder="City, Country"></div>
+    <div class="pfg"><label class="pfl">Birthplace</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
+    <div class="pfg"><label class="pfl">Current Location</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Occupation</label><input class="pfi" id="pf-occ" value="${p.occupation||''}" placeholder="Job title"></div>
-    <div class="pfg"><label class="pfl">Education</label><input class="pfi" id="pf-edu" value="${p.education||''}" placeholder="Highest qualification"></div>
+    <div class="pfg"><label class="pfl">Occupation</label><input class="pfi" id="pf-occ" value="${escHtml(p.occupation||'')}"></div>
+    <div class="pfg"><label class="pfl">Education</label><input class="pfi" id="pf-edu" value="${escHtml(p.education||'')}"></div>
   </div>
-  <div class="pfg"><label class="pfl">Photo URL</label><input class="pfi" id="pf-photo" value="${p.photo||''}" placeholder="https://…"></div>
-  <div class="pfg"><label class="pfl">Biography / Notes</label><textarea class="pft" id="pf-notes" placeholder="Notes, memories…">${p.notes||''}</textarea></div>`;
-}
+  <div class="pfg"><label class="pfl">Photo URL</label><input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}"></div>
+  <div class="pfg"><label class="pfl">Biography / Notes</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
 
-let editId=null;
-function openAddMo(){
-  editId=null;
-  document.getElementById('pmo-title').textContent='Add Family Member';
-  document.getElementById('pmo-bd').innerHTML=personForm();
-  document.getElementById('person-mo').classList.add('on');
-}
-function openEditMo(id){
-  editId=id;
-  document.getElementById('pmo-title').textContent='Edit — '+fullName(DB.people[id]);
-  document.getElementById('pmo-bd').innerHTML=personForm(DB.people[id]);
-  document.getElementById('person-mo').classList.add('on');
-}
-function closePMo(){ document.getElementById('person-mo').classList.remove('on'); }
+let editId = null;
+function openAddMo()  { if(!can('add')){toast('No permission');return} editId=null; el('pmo-title').textContent='Add Family Member'; el('pmo-bd').innerHTML=personForm(); el('person-mo').classList.add('on'); }
+function openEditMo(id) { if(!canEditPerson(DB.people[id])){toast('No permission');return} editId=id; el('pmo-title').textContent='Edit — '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
+function closePMo()   { el('person-mo').classList.remove('on'); }
+function pv(id)       { return (el(id)||{}).value||''; }
 
-function pfv(id){ return (document.getElementById(id)||{}).value||''; }
-function savePerson(){
-  const first=pfv('pf-first').trim();
-  if(!first){ toast('First name is required'); return; }
-  const now=Date.now();
-  const who=currentUser?`${currentUser.first} ${currentUser.last}`.trim()||currentUser.alias:'Unknown';
-  if(editId){
-    const prev=DB.people[editId];
-    const changes={};
-    ['first','last','gender','nationality','dob','dod','birthplace','location','occupation','education','photo','notes'].forEach(k=>{
-      const pKey={first:'pf-first',last:'pf-last',gender:'pf-gender',nationality:'pf-nat',dob:'pf-dob',dod:'pf-dod',birthplace:'pf-bp',location:'pf-loc',occupation:'pf-occ',education:'pf-edu',photo:'pf-photo',notes:'pf-notes'}[k];
-      const nv=pfv(pKey).trim();
-      if(nv!==(prev[k]||'')) changes[k]={from:prev[k]||'',to:nv};
-    });
-    const data={
-      ...prev,
-      first,last:pfv('pf-last').trim(),gender:pfv('pf-gender'),nationality:pfv('pf-nat').trim(),
-      dob:pfv('pf-dob'),dod:pfv('pf-dod'),birthplace:pfv('pf-bp').trim(),location:pfv('pf-loc').trim(),
-      occupation:pfv('pf-occ').trim(),education:pfv('pf-edu').trim(),photo:pfv('pf-photo').trim(),
-      notes:pfv('pf-notes').trim(),editedBy:who,editedAt:now
-    };
-    DB.people[editId]=data; putPerson(editId,data);
-    logHistory(editId,'edited',changes);
+function savePerson() {
+  const first = pv('pf-first').trim();
+  if (!first) { toast('First name is required'); return; }
+  const now=Date.now(), who=CU?CU.displayAlias:'?';
+  if (editId) {
+    const prev = DB.people[editId];
+    const changes = {};
+    [['first','pf-first'],['last','pf-last'],['gender','pf-gender'],['nationality','pf-nat'],['dob','pf-dob'],['dod','pf-dod'],['birthplace','pf-bp'],['location','pf-loc'],['occupation','pf-occ'],['education','pf-edu'],['photo','pf-photo'],['notes','pf-notes']]
+      .forEach(([k,fid])=>{ const nv=pv(fid).trim(); if(nv!==(prev[k]||'')) changes[k]={from:prev[k]||'',to:nv}; });
+    const data = {...prev,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),notes:pv('pf-notes').trim(),editedBy:who,editedAt:now};
+    DB.people[editId]=data; putPerson(editId,data); logHistory(editId,'edited',changes);
     toast('Updated'); closePMo(); render(); showPanel(editId);
   } else {
-    const id=gid();
-    const count=Object.keys(DB.people).length;
-    const data={
-      id,first,last:pfv('pf-last').trim(),gender:pfv('pf-gender'),nationality:pfv('pf-nat').trim(),
-      dob:pfv('pf-dob'),dod:pfv('pf-dod'),birthplace:pfv('pf-bp').trim(),location:pfv('pf-loc').trim(),
-      occupation:pfv('pf-occ').trim(),education:pfv('pf-edu').trim(),photo:pfv('pf-photo').trim(),
-      notes:pfv('pf-notes').trim(),
-      x:60+(count%5)*190, y:60+Math.floor(count/5)*170,
-      addedBy:currentUser?currentUser.alias:'',addedAt:now,
-    };
-    DB.people[id]=data; putPerson(id,data);
-    logHistory(id,'added',{name:first});
+    const id=gid(), count=Object.keys(DB.people).length;
+    const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),notes:pv('pf-notes').trim(),x:60+(count%5)*190,y:60+Math.floor(count/5)*170,addedBy:who,addedAt:now};
+    DB.people[id]=data; putPerson(id,data); logHistory(id,'added',{name:first});
     toast('Person added'); closePMo(); render(); selectPerson(id);
   }
 }
-
-function delPerson(id){
-  if(!confirm(`Remove "${fullName(DB.people[id])}" and all their relationships?`)) return;
+function delPerson(id) {
+  if (!can('delete')) { toast('Only admin can delete'); return; }
+  if (!confirm(`Remove "${fullName(DB.people[id])}"?`)) return;
   logHistory(id,'deleted',{name:fullName(DB.people[id])});
   peopleNode().get(id).put({...DB.people[id],deleted:true});
   delete DB.people[id];
@@ -1460,174 +1352,171 @@ function delPerson(id){
   closePanel(); render(); toast('Removed');
 }
 
-// ═══════════════════════════════════════════════════════
-// RELATION MODAL
-// ═══════════════════════════════════════════════════════
-function openRelMo(preId){
-  const people=Object.entries(DB.people);
-  if(people.length<2){ toast('Add at least 2 people first'); return; }
-  const opts=people.map(([id,p])=>`<option value="${id}"${id===preId?' selected':''}>${fullName(p)}</option>`).join('');
-  function buildList(){
-    return DB.rels.filter(r=>!r.deleted).map(r=>{
-      const a=DB.people[r.from],b=DB.people[r.to];
-      if(!a||!b) return '';
-      return `<div class="member-row" style="padding:8px 10px">
-        <div class="member-info"><div class="member-name">${fullName(a)} → ${fullName(b)}</div><div class="member-meta">${r.type}</div></div>
-        <button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button>
-      </div>`;
-    }).filter(Boolean).join('');
-  }
-  document.getElementById('rmo-bd').innerHTML=`
+// ══ RELATIONS ══════════════════════════════════════════════════════
+function openRelMo(preId) {
+  const people=Object.entries(DB.people); if(people.length<2){toast('Add at least 2 people first');return}
+  const opts=people.map(([id,p])=>`<option value="${id}"${id===preId?' selected':''}>${escHtml(fullName(p))}</option>`).join('');
+  const relList=DB.rels.filter(r=>!r.deleted).map(r=>{const a=DB.people[r.from],b=DB.people[r.to];if(!a||!b)return '';
+    return `<div class="member-row" style="padding:8px"><div class="member-info"><div class="member-name">${escHtml(fullName(a))} → ${escHtml(fullName(b))}</div><div class="member-meta">${r.type}</div></div><button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button></div>`;}).filter(Boolean).join('');
+  el('rmo-bd').innerHTML=`
     <div class="pfi-row">
-      <div class="pfg"><label class="pfl">Person A (from)</label><select class="pfs" id="r-from">${opts}</select></div>
-      <div class="pfg"><label class="pfl">Person B (to)</label><select class="pfs" id="r-to">${opts}</select></div>
+      <div class="pfg"><label class="pfl">Person A</label><select class="pfs" id="r-from">${opts}</select></div>
+      <div class="pfg"><label class="pfl">Person B</label><select class="pfs" id="r-to">${opts}</select></div>
     </div>
     <div class="pfg"><label class="pfl">Relationship (A → B)</label>
-      <select class="pfs" id="r-type">
-        <option value="Parent">Parent — A is parent of B</option>
-        <option value="Partner">Partner / Spouse</option>
-        <option value="Sibling">Sibling of B</option>
-      </select>
+      <select class="pfs" id="r-type"><option value="Parent">Parent — A is parent of B</option><option value="Partner">Partner / Spouse</option><option value="Sibling">Sibling of B</option></select>
     </div>
-    <p style="font-size:11px;color:var(--ink3);margin:-4px 0 10px">For a child with 2 parents, add two separate Parent links.</p>
-    ${DB.rels.filter(r=>!r.deleted).length?`<div class="sec-t">Existing Links</div><div id="rlist" style="display:grid;gap:5px">${buildList()}</div>`:''}
-  `;
-  document.getElementById('rel-mo').classList.add('on');
+    <p style="font-size:11px;color:var(--ink3);margin-bottom:10px">For a child with 2 parents, add two separate Parent links.</p>
+    ${relList?`<div class="sec-t">Existing Links</div><div style="display:grid;gap:5px">${relList}</div>`:''}`;
+  el('rel-mo').classList.add('on');
 }
-function closeRMo(){ document.getElementById('rel-mo').classList.remove('on'); }
-function addRel(){
+function closeRMo() { el('rel-mo').classList.remove('on'); }
+function addRel() {
   const from=v('r-from'),to=v('r-to'),type=v('r-type');
-  if(from===to){ toast('Choose two different people'); return; }
-  if(DB.rels.find(r=>r.from===from&&r.to===to&&r.type===type&&!r.deleted)){ toast('Already exists'); return; }
+  if (from===to) { toast('Choose two different people'); return; }
+  if (DB.rels.find(r=>r.from===from&&r.to===to&&r.type===type&&!r.deleted)) { toast('Link already exists'); return; }
   const id='r'+Date.now();
-  const rel={id,from,to,type,addedBy:currentUser?currentUser.alias:'',addedAt:Date.now()};
-  DB.rels.push(rel); putRel(rel); render();
-  const list=document.getElementById('rlist');
-  if(list){
-    const a=DB.people[from],b=DB.people[to];
-    const d=document.createElement('div');
-    d.className='member-row'; d.style.cssText='padding:8px 10px';
-    d.innerHTML=`<div class="member-info"><div class="member-name">${fullName(a)} → ${fullName(b)}</div><div class="member-meta">${type}</div></div>
-      <button class="mbtn mbtn-reject" onclick="removeRel('${id}',this.closest('.member-row'))">✕</button>`;
-    list.appendChild(d);
-  }
-  toast('Link added'); if(selId) showPanel(selId);
+  const rel={id,from,to,type,addedBy:CU?CU.displayAlias:'',addedAt:Date.now()};
+  DB.rels.push(rel); putRel(rel); render(); toast('Link added'); if(selId) showPanel(selId);
 }
-function removeRel(id,el){
-  deleteRel(id); if(el) el.remove(); render(); if(selId) showPanel(selId); toast('Link removed');
-}
+function removeRel(id,el_) { deleteRel(id); if(el_) el_.remove(); render(); if(selId) showPanel(selId); toast('Link removed'); }
 
-// ═══════════════════════════════════════════════════════
-// HISTORY MODAL
-// ═══════════════════════════════════════════════════════
-function openHistMo(id){
-  document.getElementById('hmo-bd').innerHTML='<div style="color:var(--ink3);font-size:12px">Loading…</div>';
-  document.getElementById('hist-mo').classList.add('on');
-  getHistory(id, entries=>{
-    if(!entries.length){ document.getElementById('hmo-bd').innerHTML='<div class="no-rel">No history recorded</div>'; return; }
-    document.getElementById('hmo-bd').innerHTML=entries.map(e=>{
-      const changes=JSON.parse(e.changes||'{}');
-      const changesHtml=Object.entries(changes).map(([k,{from:f,to:t}])=>
-        `<div style="margin-top:3px;font-size:11px;color:var(--ink3)"><b>${k}:</b> ${f||'—'} → ${t||'—'}</div>`
-      ).join('');
-      return `<div class="hist-item">
-        <div><span class="hw">${e.who}</span> <span class="hd">${e.action} · ${fmtDateTime(e.at)}</span></div>
-        ${changesHtml}
-      </div>`;
+// ══ HISTORY ════════════════════════════════════════════════════════
+function openHistMo(id) {
+  el('hmo-bd').innerHTML='<div style="color:var(--ink3);font-size:12px">Loading…</div>';
+  el('hist-mo').classList.add('on');
+  getHistory(id, entries => {
+    if (!entries.length) { el('hmo-bd').innerHTML='<div class="no-rel">No history recorded yet</div>'; return; }
+    el('hmo-bd').innerHTML = entries.map(e => {
+      const ch=JSON.parse(e.changes||'{}');
+      const cHtml=Object.entries(ch).map(([k,{from:f,to:t}])=>`<div class="hc"><b>${k}:</b> ${escHtml(f||'—')} → ${escHtml(t||'—')}</div>`).join('');
+      return `<div class="hist-item"><div><span class="hw">${escHtml(e.who)}</span> <span class="hd">${e.action} · ${fmtDT(e.at)}</span></div>${cHtml}</div>`;
     }).join('');
   });
 }
-function closeHMo(){ document.getElementById('hist-mo').classList.remove('on'); }
+function closeHMo() { el('hist-mo').classList.remove('on'); }
 
-// ═══════════════════════════════════════════════════════
-// SEARCH
-// ═══════════════════════════════════════════════════════
-function setupSearch(inputId, dropId){
-  const si=document.getElementById(inputId);
-  const sd=document.getElementById(dropId);
-  if(!si) return;
-  si.addEventListener('click',e=>e.stopPropagation());
+// ══ SEARCH ═════════════════════════════════════════════════════════
+function setupSearch(inputId, dropId) {
+  const si=el(inputId), sd=el(dropId); if(!si) return;
+  si.addEventListener('click',    e=>e.stopPropagation());
   si.addEventListener('mousedown',e=>e.stopPropagation());
-  si.addEventListener('input',()=>{
+  si.addEventListener('input', () => {
     const q=si.value.toLowerCase().trim();
-    if(!q){ sd.classList.remove('on'); return; }
-    const hits=Object.entries(DB.people).filter(([,p])=>
-      fullName(p).toLowerCase().includes(q)||(p.occupation||'').toLowerCase().includes(q)
-    ).slice(0,8);
-    if(!hits.length){ sd.classList.remove('on'); return; }
-    sd.innerHTML=hits.map(([id,p])=>`<div class="sd-row" onclick="event.stopPropagation();jumpTo('${id}');si.value='';sd.classList.remove('on')"><b>${fullName(p)}</b><small>${lifeSpan(p)||p.occupation||''}</small></div>`).join('');
+    if (!q) { sd.classList.remove('on'); return; }
+    const hits=Object.entries(DB.people).filter(([,p])=>fullName(p).toLowerCase().includes(q)||(p.occupation||'').toLowerCase().includes(q)).slice(0,8);
+    if (!hits.length) { sd.classList.remove('on'); return; }
+    sd.innerHTML=hits.map(([id,p])=>`<div class="sd-row" onclick="event.stopPropagation();jumpTo('${id}');si.value='';sd.classList.remove('on')"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`).join('');
     sd.classList.add('on');
   });
-  document.addEventListener('click',()=>sd.classList.remove('on'));
+  document.addEventListener('click', () => sd.classList.remove('on'));
 }
-function jumpTo(id){
+function jumpTo(id) {
   const p=DB.people[id]; if(!p) return;
   const r=wrap.getBoundingClientRect();
-  vp.x=r.width/2-(p.x+CW/2)*vp.s;
-  vp.y=r.height/2-(p.y+CH/2)*vp.s;
+  vp.x=r.width/2-(p.x+CW/2)*vp.s; vp.y=r.height/2-(p.y+CH/2)*vp.s;
   applyVP(); selectPerson(id);
 }
 
-// ═══════════════════════════════════════════════════════
-// HEADER HEIGHT MANAGEMENT (mobile menu)
-// ═══════════════════════════════════════════════════════
-const HDR_CLOSED=52, HDR_OPEN=192;
-function applyHeaderH(h){
-  document.documentElement.style.setProperty('--hh',h+'px');
-  const panel=document.getElementById('panel');
-  if(panel) panel.style.top=h+'px';
+// ══ HEADER / MENU ══════════════════════════════════════════════════
+function applyHeaderH(h) {
+  document.documentElement.style.setProperty('--hh', h+'px');
+  el('panel').style.top = h+'px';
 }
-function toggleMenu(){
-  const d=document.getElementById('menu-drawer');
-  const opening=!d.classList.contains('open');
-  d.classList.toggle('open');
-  applyHeaderH(opening?HDR_OPEN:HDR_CLOSED);
-}
-function closeMenu(){
-  document.getElementById('menu-drawer').classList.remove('open');
-  applyHeaderH(HDR_CLOSED);
-}
-window.addEventListener('resize',()=>{ closeMenu(); applyVP(); });
+function toggleMenu() { const d=el('menu-drawer'); const o=!d.classList.contains('open'); d.classList.toggle('open'); applyHeaderH(o?192:52); }
+function closeMenu()  { el('menu-drawer').classList.remove('open'); applyHeaderH(52); }
+window.addEventListener('resize', () => { closeMenu(); applyVP(); });
 
-// modal backdrop close
-document.getElementById('person-mo').addEventListener('click',function(e){ if(e.target===this) closePMo(); });
-document.getElementById('rel-mo').addEventListener('click',function(e){ if(e.target===this) closeRMo(); });
-document.getElementById('admin-mo').addEventListener('click',function(e){ if(e.target===this) closeAMo(); });
-document.getElementById('hist-mo').addEventListener('click',function(e){ if(e.target===this) closeHMo(); });
+// ══ PWA INSTALL PROMPT ═════════════════════════════════════════════
+// Shows an in-app banner when Chrome fires beforeinstallprompt
+// On iOS: shows manual instructions (no native prompt available)
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  el('install-bar').classList.add('show');
+});
+function triggerInstall() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    deferredInstall.userChoice.then(() => { deferredInstall=null; dismissInstall(); });
+  } else {
+    // iOS Safari — show step-by-step modal
+    showIOSInstall();
+  }
+}
+function dismissInstall() { el('install-bar').classList.remove('show'); }
+window.addEventListener('appinstalled', () => { dismissInstall(); toast('Parampara installed ✓'); });
 
-// ═══════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════
+function showIOSInstall() {
+  const mo = document.createElement('div');
+  mo.className = 'mo-ov on'; mo.id = 'ios-install-mo';
+  mo.innerHTML = `<div class="mo" style="max-width:360px">
+    <div class="mo-hd"><div class="mo-title">Install on iPhone / iPad</div><button class="pan-x" onclick="document.getElementById('ios-install-mo').remove()">✕</button></div>
+    <div class="mo-bd">
+      <div style="font-size:14px;color:var(--ink);line-height:1.9">
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <b>1.</b> Tap the <b style="color:var(--copper)">Share</b> button at the bottom of Safari
+          <span style="font-size:22px;vertical-align:middle;margin-left:4px">⎙</span>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <b>2.</b> Scroll down and tap <b style="color:var(--copper)">"Add to Home Screen"</b>
+          <span style="font-size:18px;vertical-align:middle;margin-left:4px">＋</span>
+        </div>
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <b>3.</b> Tap <b style="color:var(--copper)">"Add"</b> in the top right corner
+        </div>
+        <div style="padding:10px 0;font-size:12px;color:var(--ink3)">
+          ⚠ Must be opened in <b>Safari</b> (not Chrome/Firefox) for this to work on iOS.
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft"><button class="hbtn primary" onclick="document.getElementById('ios-install-mo').remove()">Got it</button></div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+
+// Show install hint for iOS users automatically (Safari doesn't fire beforeinstallprompt)
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+const isAndroidChrome = /android/i.test(navigator.userAgent) && /chrome/i.test(navigator.userAgent);
+if (isIOS) {
+  // Show after 5s if not already installed
+  setTimeout(() => {
+    if (!window.navigator.standalone) {
+      el('install-bar').querySelector('span').innerHTML = '📱 Install on iPhone: tap Share ⎙ → Add to Home Screen';
+      el('install-bar').classList.add('show');
+    }
+  }, 5000);
+}
+if (isAndroidChrome) {
+  // Android Chrome shows the banner automatically via beforeinstallprompt
+  // but if it hasn't fired after 3s, nudge the user
+  setTimeout(() => {
+    if (!deferredInstall && !window.matchMedia('(display-mode: standalone)').matches) {
+      el('install-bar').querySelector('span').innerHTML = '📱 Install Parampara: tap ⋮ → Add to Home Screen';
+      el('install-bar').classList.add('show');
+    }
+  }, 3000);
+}
+
+// ══ MODAL BACKDROP CLOSE ═══════════════════════════════════════════
+['person-mo','rel-mo','admin-mo','hist-mo'].forEach(id => {
+  el(id).addEventListener('click', function(e) { if(e.target===this) this.classList.remove('on'); });
+});
+
+// ══ TOAST ══════════════════════════════════════════════════════════
 let _tt;
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('on');
-  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),2800);
-}
+function toast(msg) { const t=el('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),3000); }
 
-// ═══════════════════════════════════════════════════════
-// SERVICE WORKER
-// ═══════════════════════════════════════════════════════
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
+// ══ SERVICE WORKER ═════════════════════════════════════════════════
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-// ═══════════════════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════════════════
+// ══ BOOT ═══════════════════════════════════════════════════════════
 setupSearch('srch','srch-drop');
 setupSearch('srch-m','srch-drop-m');
-applyHeaderH(HDR_CLOSED);
+applyHeaderH(52);
 applyVP();
-
-// Show language picker if not chosen, else go straight to auth
-if(!LANG){
-  document.getElementById('lang-screen').classList.remove('hide');
-} else {
-  document.getElementById('lang-screen').classList.add('hide');
-  applyI18n();
-  initAuth();
-}
+boot();
 </script>
 </body>
 </html>

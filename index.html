@@ -831,16 +831,27 @@ async function doJoin() {
   const authed = await new Promise(res => gun.user().auth(alias, pass, a => res(!a.err)));
   if (!authed) { errEl.textContent = 'Authentication failed. Please try again.'; return; }
 
-  // ── Determine role: first member in this family = admin ────────
-  const memberCount = await new Promise(res => {
-    let c = 0;
-    membersNode().map().once((d, k) => { if (d && k !== '_' && k !== du) c++; });
-    setTimeout(() => res(c), 2000);
+  // ── Determine role using a dedicated adminSet flag ──────────────
+  // Counting members to detect first-join is unreliable: on slow/cold
+  // relay connections Gun may not sync existing member records within
+  // the timeout window, so new members incorrectly become admin.
+  // Instead we write a single tiny boolean 'adminSet' when the first
+  // admin is created. This key syncs far faster than enumerating members.
+  errEl.textContent = 'Checking family status…';
+  const adminAlreadySet = await new Promise(res => {
+    let found = false;
+    gun.get('parampara_' + fh).get('adminSet').once(val => { if (val === true) found = true; });
+    setTimeout(() => res(found), 3000);
   });
 
-  const role = memberCount === 0 ? 'admin' : 'pending';
+  const role = adminAlreadySet ? 'pending' : 'admin';
   const memberData = { displayAlias: du, famKey: key, fh, role, first, last, hint, joinedAt: Date.now() };
   membersNode().get(du).put(memberData);
+
+  // Write adminSet flag only when a new admin is being created
+  if (role === 'admin') {
+    gun.get('parampara_' + fh).get('adminSet').put(true);
+  }
 
   const famData = { displayAlias: du, famKey: key, fh, role, first, last, pass, hint };
   saveSession(famData);
@@ -1398,17 +1409,46 @@ function closeHMo() { el('hist-mo').classList.remove('on'); }
 
 // ══ SEARCH ═════════════════════════════════════════════════════════
 function setupSearch(inputId, dropId) {
-  const si=el(inputId), sd=el(dropId); if(!si) return;
-  si.addEventListener('click',    e=>e.stopPropagation());
-  si.addEventListener('mousedown',e=>e.stopPropagation());
+  const si=el(inputId), sd=el(dropId); if(!si||!sd) return;
+  // Prevent canvas click-close and document click-close from triggering
+  // when interacting with the search input or its dropdown.
+  si.addEventListener('click',     e => e.stopPropagation());
+  si.addEventListener('mousedown', e => e.stopPropagation());
+  si.addEventListener('touchstart',e => e.stopPropagation(), {passive:true});
+  sd.addEventListener('click',     e => e.stopPropagation());
+  sd.addEventListener('mousedown', e => e.stopPropagation());
+  sd.addEventListener('touchstart',e => e.stopPropagation(), {passive:true});
+
   si.addEventListener('input', () => {
-    const q=si.value.toLowerCase().trim();
+    const q = si.value.toLowerCase().trim();
     if (!q) { sd.classList.remove('on'); return; }
-    const hits=Object.entries(DB.people).filter(([,p])=>fullName(p).toLowerCase().includes(q)||(p.occupation||'').toLowerCase().includes(q)).slice(0,8);
+    const hits = Object.entries(DB.people)
+      .filter(([,p]) => fullName(p).toLowerCase().includes(q) || (p.occupation||'').toLowerCase().includes(q))
+      .slice(0, 8);
     if (!hits.length) { sd.classList.remove('on'); return; }
-    sd.innerHTML=hits.map(([id,p])=>`<div class="sd-row" onclick="event.stopPropagation();jumpTo('${id}');si.value='';sd.classList.remove('on')"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`).join('');
+    sd.innerHTML = hits.map(([id,p]) =>
+      `<div class="sd-row" data-id="${id}"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`
+    ).join('');
+    // Attach click handlers directly (avoids inline onclick closure issues)
+    sd.querySelectorAll('.sd-row').forEach(row => {
+      row.addEventListener('click', e => {
+        e.stopPropagation();
+        jumpTo(row.dataset.id);
+        si.value = '';
+        sd.classList.remove('on');
+      });
+      row.addEventListener('touchend', e => {
+        e.stopPropagation();
+        e.preventDefault();
+        jumpTo(row.dataset.id);
+        si.value = '';
+        sd.classList.remove('on');
+      });
+    });
     sd.classList.add('on');
   });
+
+  // Close dropdown when clicking elsewhere, but not when interacting with input/dropdown
   document.addEventListener('click', () => sd.classList.remove('on'));
 }
 function jumpTo(id) {
@@ -1425,7 +1465,20 @@ function applyHeaderH(h) {
 }
 function toggleMenu() { const d=el('menu-drawer'); const o=!d.classList.contains('open'); d.classList.toggle('open'); applyHeaderH(o?192:52); }
 function closeMenu()  { el('menu-drawer').classList.remove('open'); applyHeaderH(52); }
-window.addEventListener('resize', () => { closeMenu(); applyVP(); });
+
+// Only close menu on genuine orientation/layout resize, NOT on mobile keyboard
+// open (which also fires resize but only changes window.innerHeight, not width).
+// We track the last known width; only act if width changed or it's desktop.
+let _lastW = window.innerWidth;
+window.addEventListener('resize', () => {
+  const newW = window.innerWidth;
+  const widthChanged = Math.abs(newW - _lastW) > 10;
+  _lastW = newW;
+  // On desktop, always close menu. On mobile, only if width changed (orientation flip).
+  // Height-only resize = software keyboard appearing — ignore it.
+  if (widthChanged || newW > 720) closeMenu();
+  applyVP();
+});
 
 // ══ PWA INSTALL PROMPT ═════════════════════════════════════════════
 // Shows an in-app banner when Chrome fires beforeinstallprompt

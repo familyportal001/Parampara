@@ -577,8 +577,6 @@ function famHash(key) {
 }
 
 // ── Firebase path helpers ──────────────────────────────────────────
-function famRef(fh)     { return ref(db, `families/${fh}`); }
-function peopleRef(fh)  { return ref(db, `families/${fh}/people`); }
 function relsRef(fh)    { return ref(db, `families/${fh}/rels`); }
 function membersRef(fh) { return ref(db, `families/${fh}/members`); }
 function histRef(fh,pid){ return ref(db, `families/${fh}/history/${pid}`); }
@@ -963,9 +961,6 @@ async function getHistory(pid) {
   return entries.sort((a,b) => (b.at||0) - (a.at||0));
 }
 
-// ── Generate unique ID ─────────────────────────────────────────────
-function gid() { return 'p' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
-
 // ══ ADMIN PANEL ════════════════════════════════════════════════════
 const ALL_ROLES = ['admin','editor','contributor','viewer'];
 
@@ -1194,12 +1189,7 @@ function renderCard(id,gen){
     <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
     ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
 }
-function reposCard(id){
-  const card=nodesL.querySelector(`.card[data-id="${id}"]`);
-  if(!card)return;
-  card.style.left=(DB.people[id].x||0)+'px';
-  card.style.top=(DB.people[id].y||0)+'px';
-}
+
 
 // ══ SVG LINES ══════════════════════════════════════════════════════
 function cBot(p){return{x:(p.x||0)+CW/2,y:(p.y||0)+CH};}

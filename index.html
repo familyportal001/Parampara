@@ -101,7 +101,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #app{position:fixed;inset:0;display:none;flex-direction:column}
 #app.show{display:flex}
 #hdr{background:var(--bark);border-bottom:1px solid var(--clay);
-  z-index:200;flex-shrink:0;touch-action:auto}
+  position:relative;z-index:200;flex-shrink:0;touch-action:auto}
 #hdr-row{height:52px;display:flex;align-items:center;padding:0 12px;gap:8px}
 .app-logo{font-family:'Crimson Pro',serif;font-size:22px;font-weight:400;
   color:var(--gold);letter-spacing:.04em;flex-shrink:0;cursor:pointer}
@@ -157,6 +157,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 /* canvas */
 #canvas-wrap{flex:1;overflow:hidden;cursor:grab;position:relative;
+  isolation:isolate;
   background:radial-gradient(ellipse at 20% 70%,rgba(200,137,58,.06) 0%,transparent 55%),
     radial-gradient(ellipse at 80% 20%,rgba(139,94,42,.05) 0%,transparent 50%),var(--night)}
 #canvas-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;

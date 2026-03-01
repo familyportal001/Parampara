@@ -866,13 +866,13 @@ function showScreen(id) {
   SCREENS.forEach(s => el(s).classList.toggle('hide', s !== id));
   el('app').classList.remove('show');
 }
-function showApp() {
+function showApp(linkedProfileId) {
   SCREENS.forEach(s => el(s).classList.add('hide'));
   el('app').classList.add('show');
   updatePermUI();
   applyHeaderH(52);
-  // initEgoView decides whether to use ego-centric or full sync
-  initEgoView();
+  // Pass linkedProfileId so initEgoView doesn't need another Firebase read
+  initEgoView(linkedProfileId);
 }
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
@@ -958,38 +958,46 @@ async function recoverFamiliesFromFirebase(user) {
   try {
     const snap = await get(userFamsRef(user.uid));
     if (!snap.exists()) {
-      // Genuinely no families — first time, show join tab
+      // userFamilies index empty — user either never joined a family,
+      // or joined before the index was added. Ask for the family key once
+      // to re-establish the session; resumeFamily will backfill the index.
       showScreen('s-auth');
       switchTab('join');
+      const joinErr = el('j-err');
+      if (joinErr) {
+        joinErr.style.color = 'var(--gold)';
+        joinErr.textContent = 'Signed in ✓ — enter your Family Key to reconnect on this device.';
+      }
+      // Pre-fill email if available to speed things up
+      const emailField = el('j-email');
+      if (emailField && user.email) emailField.value = user.email;
       return;
     }
-    // snap.val() = { fh1: { famKey, first, last, role }, fh2: … }
     const recovered = [];
     snap.forEach(child => {
       const d = child.val();
       recovered.push({ fh: child.key, famKey: d.famKey||'', first: d.first||'', last: d.last||'', role: d.role||'viewer' });
     });
-    // Filter out removed/rejected
     const active = recovered.filter(f => f.role !== 'removed' && f.role !== 'rejected');
     if (!active.length) {
       showScreen('s-auth');
       switchTab('join');
       return;
     }
-    // Save recovered session locally
     active.forEach(f => saveSession(f));
     toast('Session restored ✓');
     if (active.length === 1) resumeFamily(active[0]);
     else buildFamilyPicker(active);
   } catch(e) {
-    // Firebase unavailable — fall back to join screen
     showScreen('s-auth');
     switchTab('join');
     const joinErr = el('j-err');
     if (joinErr) {
       joinErr.style.color = 'var(--gold)';
-      joinErr.textContent = 'Signed in — enter your Family Key to connect on this device.';
+      joinErr.textContent = 'Signed in ✓ — enter your Family Key to reconnect on this device.';
     }
+    const emailField = el('j-email');
+    if (emailField && user.email) emailField.value = user.email;
   }
 }
 
@@ -1027,11 +1035,9 @@ function openFamilySwitcher() {
 async function resumeFamily(fam) {
   FAM = fam.fh;
   setSyncStatus('off', 'Loading…');
-  // Fetch fresh role from Firebase
   try {
     const snap = await get(memberRef(FAM, fbUser.uid));
     if (!snap.exists()) {
-      // Member record missing — maybe removed by admin
       toast('You are not a member of this family anymore');
       const s = getSessions();
       s.families = s.families.filter(f => f.fh !== fam.fh);
@@ -1039,7 +1045,6 @@ async function resumeFamily(fam) {
       boot(); return;
     }
     const data = snap.val();
-    // Block removed/rejected members from accessing the tree
     if (data.role === 'removed' || data.role === 'rejected') {
       toast('Your access to this family has been revoked');
       const s = getSessions();
@@ -1050,10 +1055,24 @@ async function resumeFamily(fam) {
     CU = { ...fam, uid: fbUser.uid, email: fbUser.email, role: data.role };
     fam.role = data.role;
     saveSession(fam);
+
+    // Always backfill the userFamilies index — self-heals for existing members
+    // who joined before this index existed, and keeps role in sync.
+    try {
+      await set(ref(db, `userFamilies/${fbUser.uid}/${fam.fh}`), {
+        famKey: fam.famKey || '',
+        first:  data.first  || CU.first  || '',
+        last:   data.last   || CU.last   || '',
+        role:   data.role,
+        joinedAt: data.joinedAt || Date.now()
+      });
+    } catch(_) { /* non-critical — don't block login */ }
+
     DB = { people:{}, rels:{} };
     el('nodes-layer').innerHTML = '';
     if (data.role === 'pending') { showScreen('s-pending'); startApprovalWatch(); return; }
-    showApp();
+    // Pass linkedProfileId directly so showApp doesn't need another Firebase read
+    showApp(data.linkedProfileId || null);
   } catch(e) {
     setSyncStatus('off', 'Error loading family');
     toast('Error: ' + e.message);
@@ -1129,14 +1148,25 @@ async function doJoin() {
   errEl.textContent = 'Checking family…';
   const existingSnap = await get(memberRef(fh, user.uid));
   if (existingSnap.exists()) {
-    const existingRole = existingSnap.val().role;
+    const existingData = existingSnap.val();
+    const existingRole = existingData.role;
     if (existingRole === 'rejected' || existingRole === 'removed') {
       errEl.textContent = 'Your access to this family has been revoked. Contact the family admin.';
       await signOut(auth);
       return;
     }
-    errEl.textContent = 'You are already a member of this family. Use Sign In instead.';
-    await signOut(auth);
+    // Already a member — just restore the session and enter the family
+    // (this is the normal re-join flow on a new device)
+    const famData = { fh, famKey: key, first: existingData.first||first, last: existingData.last||last, role: existingRole };
+    saveSession(famData);
+    // Backfill userFamilies index in case it was missing
+    try {
+      await set(ref(db, `userFamilies/${user.uid}/${fh}`), {
+        famKey: key, first: existingData.first||first, last: existingData.last||last,
+        role: existingRole, joinedAt: existingData.joinedAt || Date.now()
+      });
+    } catch(_) {}
+    resumeFamily(famData);
     return;
   }
 
@@ -1165,7 +1195,7 @@ async function doJoin() {
 
   if (role === 'admin') {
     toast('Welcome! You are the family admin.');
-    showApp();
+    showApp(null);
   } else {
     showScreen('s-pending');
     startApprovalWatch();
@@ -1214,7 +1244,7 @@ async function checkApproval() {
       if (f) { f.role = CU.role; saveSession(f); }
       DB = { people:{}, rels:{} };
       stopApprovalWatch();
-      showApp();
+      showApp(snap.val().linkedProfileId || null);
     } else toast('Still pending — please wait for admin approval');
   } catch(e) { toast('Error checking status'); }
 }
@@ -1233,7 +1263,7 @@ function startApprovalWatch() {
       DB = { people:{}, rels:{} };
       stopApprovalWatch();
       toast('You have been approved! Welcome.');
-      showApp();
+      showApp(snap.val().linkedProfileId || null);
     }
   };
   onValue(r, fn);
@@ -1336,7 +1366,8 @@ async function startEgoSync(pivotId) {
     const egoSnap = await get(ref(db, `families/${FAM}/people/${pivotId}`));
     if (!egoSnap.exists() || egoSnap.val().deleted) {
       toast('Profile not found — loading full tree.');
-      setViewMode('full'); startSync(); return;
+      egoId = null; viewMode = 'full';
+      startSync(); return;
     }
     DB.people[pivotId] = egoSnap.val();
     loadedPids.add(pivotId);
@@ -1397,8 +1428,10 @@ async function startEgoSync(pivotId) {
 
   } catch(e) {
     console.error('startEgoSync', e);
-    toast('Error — falling back to full view.');
-    setViewMode('full'); startSync();
+    toast('Error loading tree — falling back to full view.');
+    egoId = null;
+    viewMode = 'full';
+    startSync(); // single call — do not call setViewMode which would call startSync again
   }
 }
 
@@ -1733,34 +1766,37 @@ let knownRels  = {};             // personRels cache { pid: Set<rid> }
 let egoNeighbourhood = new Set();// pids in current ego neighbourhood
 
 // ── Initialise ego view on login ──────────────────────────────────
-async function initEgoView() {
+// linkedProfileId is passed in from resumeFamily/doJoin so we don't
+// need an extra Firebase round-trip here.
+function initEgoView(linkedProfileId) {
   if (!CU || !FAM || !fbUser) { startSync(); return; }
 
-  const snap = await get(memberRef(FAM, fbUser.uid));
-  if (!snap.exists()) { startSync(); return; }
-
-  const linkedId = snap.val().linkedProfileId;
-  const hasLink  = !!linkedId;
+  const hasLink = !!linkedProfileId;
 
   // Show/hide view toggle + centre-me buttons
   ['btn-view-toggle','btn-view-toggle-m','btn-centre-me','btn-centre-me-m']
     .forEach(id => { const b = el(id); if (b) b.style.display = hasLink ? '' : 'none'; });
 
   if (!hasLink) {
-    // No linked profile — full tree for everyone
-    setViewMode('full');
+    // No linked profile — full tree stream for everyone
+    egoId = null;
+    viewMode = 'full';
+    ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
+      const b = el(id); if (b) b.textContent = '\uD83D\uDC64 My View';
+    });
     startSync();
     return;
   }
 
-  egoId = linkedId;
-  viewMode = 'ego'; // set before startEgoSync so render() applies ego styles
+  egoId = linkedProfileId;
+  viewMode = 'ego';
   ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
     const b = el(id); if (b) b.textContent = '\uD83C\uDF33 Full Tree';
   });
+  el('unlinked-prompt').classList.add('hide');
 
-  // Ego-centric fetch — much smaller initial payload
-  await startEgoSync(linkedId);
+  // Ego-centric fetch — avoids streaming the entire tree
+  startEgoSync(linkedProfileId);
 }
 
 // ── Ego layout: position neighbourhood around pivot ───────────────

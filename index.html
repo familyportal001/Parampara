@@ -339,6 +339,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .role-sel{font-size:11px;padding:4px 6px;border:1px solid var(--border);
   border-radius:3px;background:white;color:var(--ink);cursor:pointer;margin-top:4px}
 
+/* rel modal person search */
+.rps-wrap{position:relative;margin-bottom:4px}
+.rps-input{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;
+  padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);
+  background:white;color:var(--ink);outline:none;transition:border-color .15s;box-sizing:border-box}
+.rps-input:focus{border-color:var(--gold)}
+.rps-drop{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--bark);
+  border:1px solid var(--clay);border-radius:var(--r);z-index:600;
+  display:none;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px var(--shadow)}
+.rps-drop.on{display:block}
+.rps-row{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.3);
+  color:var(--parch);font-size:13px;transition:background .12s}
+.rps-row:hover{background:var(--soil)}
+.rps-row small{display:block;color:var(--copper);font-size:10px;margin-top:1px}
+.rps-sel{background:var(--parch2);border:1px solid var(--gold);border-radius:var(--r);
+  padding:7px 10px;font-size:13px;color:var(--ink);display:flex;align-items:center;
+  justify-content:space-between;min-height:38px}
+.rps-sel-name{font-weight:500}.rps-sel-clear{cursor:pointer;color:var(--ink3);
+  font-size:16px;line-height:1;padding:0 2px;transition:color .12s}
+.rps-sel-clear:hover{color:var(--rose)}
+.rel-direction{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:13px;color:var(--ink)}
+.rel-dir-sel{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;
+  border:1px solid var(--border);border-radius:var(--r);background:white;color:var(--ink);
+  outline:none;transition:border-color .15s}
+.rel-dir-sel:focus{border-color:var(--gold)}
+
 /* history */
 .hist-item{border-left:2px solid var(--border);padding:6px 10px;margin-bottom:8px;font-size:11.5px}
 .hist-item .hw{color:var(--copper);font-weight:500}
@@ -1024,7 +1050,7 @@ function openFamilySwitcher() {
   // Reset ego state
   egoId = null; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
-  knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear();
+  knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
   // Reset selection state so stale panel doesn't persist into next family
   selId = null;
   el('panel').classList.remove('open');
@@ -1281,7 +1307,8 @@ async function fullLogout() {
   if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
   egoId = null; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
-  knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear();
+  knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
+  _relA = null; _relB = null;
   CU = null; FAM = null;
   DB = { people:{}, rels:{} };
   el('nodes-layer').innerHTML = '';
@@ -1339,6 +1366,11 @@ function startSync() {
       if (!p.deleted) { DB.people[child.key] = p; loadedPids.add(child.key); }
     });
     _syncReady.people = true;
+    // In full tree mode DB.people IS the full set — sync cache from it directly
+    searchCache.clear();
+    Object.entries(DB.people).forEach(([pid, p]) => {
+      searchCache.set(pid, { first: p.first||'', last: p.last||'', dob: p.dob||'', gender: p.gender||'' });
+    });
     scheduleRender();
     if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
   });
@@ -1417,6 +1449,7 @@ async function startEgoSync(pivotId) {
     setupEgoListeners();
     setSyncStatus('ok', 'Synced ✓');
     render();
+    buildSearchCache(); // build full name index in background
 
     // 8. Ego layout + visuals after render
     setTimeout(() => {
@@ -1517,6 +1550,35 @@ function assertCan(action) {
   if (!can(action)) throw new Error(`Permission denied: cannot ${action}`);
 }
 
+// ── Load a single person into DB.people on demand (ego mode) ────────────
+// Used by search and rel modal when user picks an out-of-neighbourhood person.
+// Idempotent — safe to call even if person is already loaded.
+async function loadPersonIntoView(pid) {
+  if (DB.people[pid]) return DB.people[pid]; // already loaded
+  try {
+    const snap = await get(ref(db, `families/${FAM}/people/${pid}`));
+    if (!snap.exists()) return null;
+    const p = snap.val();
+    if (p.deleted) return null;
+    DB.people[pid] = p;
+    loadedPids.add(pid);
+    if (viewMode === 'ego') {
+      pendingPids.add(pid); // show undimmed until linked
+      // Register live watcher so edits from other devices sync back
+      const pRef = ref(db, `families/${FAM}/people/${pid}`);
+      listen(pRef, snap => {
+        if (!snap.exists()) return;
+        const pv = snap.val();
+        if (pv.deleted) { delete DB.people[pid]; loadedPids.delete(pid); pendingPids.delete(pid); }
+        else DB.people[pid] = pv;
+        scheduleRender();
+      });
+    }
+    render();
+    return p;
+  } catch(e) { toast('Error loading person'); return null; }
+}
+
 async function putPerson(id, data) {
   assertCan('add');
   await set(ref(db, `families/${FAM}/people/${id}`), data);
@@ -1543,7 +1605,11 @@ async function deleteRelFb(id) {
   if (rel) {
     await set(ref(db, `families/${FAM}/personRels/${rel.from}/${id}`), null);
     await set(ref(db, `families/${FAM}/personRels/${rel.to}/${id}`), null);
+    // Remove from knownRels so expand badge counts stay accurate
+    if (knownRels[rel.from]) knownRels[rel.from].delete(id);
+    if (knownRels[rel.to])   knownRels[rel.to].delete(id);
   }
+  loadedRids.delete(id);
   delete DB.rels[id];
 }
 async function logHistory(pid, action, changes) {
@@ -1774,6 +1840,38 @@ let knownRels  = {};             // personRels cache { pid: Set<rid> }
 let egoNeighbourhood = new Set();// pids in current ego neighbourhood
 let pendingPids = new Set();     // newly added pids with no rels yet — shown undimmed
 
+// ── Search cache ──────────────────────────────────────────────────
+// Lightweight index of ALL people in the family — just id+name+dob+gender.
+// Built once at sync time via a single get(), never streamed.
+// Lets search work across the whole tree even in ego mode where DB.people
+// only contains the neighbourhood.
+let searchCache = new Map(); // pid → { first, last, dob, gender }
+
+async function buildSearchCache() {
+  try {
+    const snap = await get(peopleRef(FAM));
+    searchCache.clear();
+    if (snap.exists()) snap.forEach(child => {
+      const p = child.val();
+      if (!p.deleted) searchCache.set(child.key, {
+        first: p.first || '', last: p.last || '',
+        dob:   p.dob   || '', gender: p.gender || ''
+      });
+    });
+  } catch(e) { console.warn('searchCache build failed', e); }
+}
+
+function searchCacheQuery(q) {
+  if (!q) return [];
+  const lq = q.toLowerCase();
+  const results = [];
+  searchCache.forEach((p, pid) => {
+    const name = (p.first + ' ' + p.last).toLowerCase();
+    if (name.includes(lq)) results.push({ pid, ...p });
+  });
+  return results.slice(0, 10);
+}
+
 // ── Initialise ego view on login ──────────────────────────────────
 // linkedProfileId is passed in from resumeFamily/doJoin so we don't
 // need an extra Firebase round-trip here.
@@ -1891,7 +1989,7 @@ function setViewMode(mode) {
   } else {
     // Switching to full tree — stream everything
     el('unlinked-prompt').classList.add('hide');
-    egoNeighbourhood.clear(); pendingPids.clear();
+    egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
     nodesL.querySelectorAll('.card').forEach(c => {
       c.classList.remove('dimmed','ego','new-node');
       const badge = c.querySelector('.card-expand');
@@ -2482,6 +2580,8 @@ async function savePerson(){
       notes:pv('pf-notes').trim(),editedBy:who,editedByName:whoName,editedAt:now};
     await putPerson(editId,data);
     await logHistory(editId,'edited',changes);
+    // Keep searchCache current when name changes
+    searchCache.set(editId, { first: data.first||'', last: data.last||'', dob: data.dob||'', gender: data.gender||'' });
     toast('Updated'); closePMo(); showPanel(editId);
   } else {
     const id=gid(), count=Object.keys(DB.people).length;
@@ -2499,6 +2599,8 @@ async function savePerson(){
     loadedPids.add(id);
     // Mark as pending so dimming logic leaves it visible until it gets a rel
     if (viewMode === 'ego') pendingPids.add(id);
+    // Keep search cache current so new person is findable immediately
+    searchCache.set(id, { first: data.first||'', last: data.last||'', dob: data.dob||'', gender: data.gender||'' });
 
     // Register a live watcher for this specific node so edits/deletes
     // from other devices sync back. In full tree mode the whole-tree
@@ -2528,6 +2630,7 @@ async function savePerson(){
       delete DB.people[id];
       loadedPids.delete(id);
       pendingPids.delete(id);
+      searchCache.delete(id);
       render();
       closePanel();
       toast('Error saving — please try again');
@@ -2540,46 +2643,126 @@ async function delPerson(id){
   await logHistory(id,'deleted',{name:fullName(DB.people[id])});
   await set(ref(db,`families/${FAM}/people/${id}`),{...DB.people[id],deleted:true});
   delete DB.people[id];
+  searchCache.delete(id); // keep search index clean
   Object.values(DB.rels).filter(r=>r.from===id||r.to===id).forEach(r=>deleteRelFb(r.id));
   closePanel(); render(); toast('Removed');
 }
 
 // ══ RELATIONS ══════════════════════════════════════════════════════
+// ── Rel modal state ──────────────────────────────────────────────
+let _relA = null; // { pid, name } selected person A
+let _relB = null; // { pid, name } selected person B
+
 function openRelMo(preId){
-  const people=Object.entries(DB.people); if(people.length<2){toast('Add at least 2 people first');return;}
-  const opts=people.map(([id,p])=>`<option value="${id}"${id===preId?' selected':''}>${escHtml(fullName(p))}</option>`).join('');
-  const relList=Object.values(DB.rels).map(r=>{
-    const a=DB.people[r.from],b=DB.people[r.to]; if(!a||!b)return '';
-    return `<div class="member-row" style="padding:8px"><div class="member-info"><div class="member-name">${escHtml(fullName(a))} → ${escHtml(fullName(b))}</div><div class="member-meta">${r.type}</div></div>
-      <button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button></div>`;
-  }).filter(Boolean).join('');
-  el('rmo-bd').innerHTML=`
-    <div class="pfi-row">
-      <div class="pfg"><label class="pfl">Person A</label><select class="pfs" id="r-from">${opts}</select></div>
-      <div class="pfg"><label class="pfl">Person B</label><select class="pfs" id="r-to">${opts}</select></div>
-    </div>
-    <div class="pfg"><label class="pfl">Relationship (A → B)</label>
-      <select class="pfs" id="r-type">
-        <option value="Parent">Parent — A is parent of B</option>
-        <option value="Partner">Partner / Spouse</option>
-        <option value="Sibling">Sibling of B</option>
-      </select>
-    </div>
-    <p style="font-size:11px;color:var(--ink3);margin-bottom:10px">For a child with 2 parents add two Parent links.</p>
-    ${relList?`<div class="sec-t">Existing Links</div><div style="display:grid;gap:5px">${relList}</div>`:''}`;
+  _relA = null; _relB = null;
+  // Pre-select person A if called from panel with a pid
+  if (preId && DB.people[preId]) {
+    _relA = { pid: preId, name: fullName(DB.people[preId]) };
+  }
+  renderRelMo();
   el('rel-mo').classList.add('on');
 }
-function closeRMo(){ el('rel-mo').classList.remove('on'); }
-async function addRel(){
-  const from=pv('r-from'),to=pv('r-to'),type=pv('r-type');
-  if(from===to){toast('Choose two different people');return;}
-  if(Object.values(DB.rels).find(r=>r.from===from&&r.to===to&&r.type===type)){toast('Link already exists');return;}
-  const id='r'+Date.now();
-  const rel={id,from,to,type,addedBy:fbUser.uid,addedAt:Date.now()};
+function closeRMo(){ el('rel-mo').classList.remove('on'); _relA=null; _relB=null; }
 
-  // Optimistic update: add to local DB immediately so lines/panel refresh
-  // without waiting for Firebase round-trip. Critical in ego mode where
-  // only pre-loaded nodes have listeners.
+function renderRelMo() {
+  // Existing rels list — show both loaded and any we know about
+  const relList = Object.values(DB.rels).map(r => {
+    const a = DB.people[r.from], b = DB.people[r.to]; if(!a||!b) return '';
+    const labelMap = { Parent: 'is parent of', Partner: 'is partner of', Sibling: 'is sibling of' };
+    return `<div class="member-row" style="padding:8px">
+      <div class="member-info">
+        <div class="member-name">${escHtml(fullName(a))} <span style="color:var(--ink3);font-size:11px">${labelMap[r.type]||r.type}</span> ${escHtml(fullName(b))}</div>
+      </div>
+      <button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  el('rmo-bd').innerHTML = `
+    <div class="pfg">
+      <label class="pfl">Person A</label>
+      ${_relA
+        ? `<div class="rps-sel"><span class="rps-sel-name">${escHtml(_relA.name)}</span><span class="rps-sel-clear" onclick="clearRelPerson('A')">✕</span></div>`
+        : `<div class="rps-wrap"><input class="rps-input" id="rps-a-in" placeholder="Search by name…" autocomplete="off" oninput="relPersonSearch('A',this.value)"><div class="rps-drop" id="rps-a-drop"></div></div>`
+      }
+    </div>
+    <div class="pfg" style="margin:4px 0">
+      <label class="pfl">Relationship</label>
+      <select class="rel-dir-sel" id="r-direction">
+        <option value="parent_of">is parent of</option>
+        <option value="child_of">is child of</option>
+        <option value="partner_of">is partner of</option>
+        <option value="sibling_of">is sibling of</option>
+      </select>
+    </div>
+    <div class="pfg">
+      <label class="pfl">Person B</label>
+      ${_relB
+        ? `<div class="rps-sel"><span class="rps-sel-name">${escHtml(_relB.name)}</span><span class="rps-sel-clear" onclick="clearRelPerson('B')">✕</span></div>`
+        : `<div class="rps-wrap"><input class="rps-input" id="rps-b-in" placeholder="Search by name…" autocomplete="off" oninput="relPersonSearch('B',this.value)"><div class="rps-drop" id="rps-b-drop"></div></div>`
+      }
+    </div>
+    <p style="font-size:11px;color:var(--ink3);margin:8px 0 12px">For a child with 2 parents, add two separate links.</p>
+    ${relList ? `<div class="sec-t">Existing Links</div><div style="display:grid;gap:5px">${relList}</div>` : ''}`;
+}
+
+function relPersonSearch(slot, q) {
+  const dropId = slot === 'A' ? 'rps-a-drop' : 'rps-b-drop';
+  const drop = el(dropId); if (!drop) return;
+  const trimmed = q.trim();
+  if (!trimmed) { drop.classList.remove('on'); return; }
+  const hits = searchCacheQuery(trimmed);
+  if (!hits.length) { drop.classList.remove('on'); return; }
+  drop.innerHTML = hits.map(h => {
+    const notLoaded = !DB.people[h.pid] && viewMode === 'ego';
+    return `<div class="rps-row" data-pid="${h.pid}" data-name="${escHtml((h.first+' '+h.last).trim())}">
+      ${escHtml((h.first+' '+h.last).trim())}
+      <small>${escHtml(h.dob||h.gender||'')}${notLoaded ? ' · will load' : ''}</small>
+    </div>`;
+  }).join('');
+  drop.querySelectorAll('.rps-row').forEach(row => {
+    row.addEventListener('mousedown', async e => {
+      e.preventDefault(); // prevent input blur before click registers
+      const pid = row.dataset.pid;
+      const name = row.dataset.name;
+      // Load if not already in DB.people
+      if (!DB.people[pid]) await loadPersonIntoView(pid);
+      if (slot === 'A') _relA = { pid, name };
+      else              _relB = { pid, name };
+      renderRelMo(); // re-render with selected chip
+    });
+  });
+  drop.classList.add('on');
+}
+
+function clearRelPerson(slot) {
+  if (slot === 'A') _relA = null;
+  else              _relB = null;
+  renderRelMo();
+}
+
+async function addRel(){
+  if (!_relA || !_relB) { toast('Select both people first'); return; }
+  if (_relA.pid === _relB.pid) { toast('Choose two different people'); return; }
+
+  const direction = el('r-direction') ? el('r-direction').value : 'parent_of';
+
+  // Derive from/to/type from the plain-English direction
+  let from, to, type;
+  if (direction === 'parent_of')  { from=_relA.pid; to=_relB.pid; type='Parent'; }
+  else if (direction === 'child_of')   { from=_relB.pid; to=_relA.pid; type='Parent'; }
+  else if (direction === 'partner_of') { from=_relA.pid; to=_relB.pid; type='Partner'; }
+  else if (direction === 'sibling_of') { from=_relA.pid; to=_relB.pid; type='Sibling'; }
+  else { toast('Unknown relationship type'); return; }
+
+  // Duplicate check
+  if (Object.values(DB.rels).find(r => r.from===from && r.to===to && r.type===type)) {
+    toast('This link already exists'); return;
+  }
+
+  const id = 'r' + Date.now();
+  const rel = { id, from, to, type, addedBy: fbUser.uid, addedAt: Date.now() };
+
+  // Optimistic update
   DB.rels[id] = rel;
   loadedRids.add(id);
 
@@ -2595,7 +2778,8 @@ async function addRel(){
   }
 
   render();
-  if(selId) showPanel(selId);
+  if (selId) showPanel(selId);
+  closeRMo();
 
   try {
     await putRel(id, rel);
@@ -2604,6 +2788,8 @@ async function addRel(){
     delete DB.rels[id];
     loadedRids.delete(id);
     render();
+    // Re-open modal so user can retry without losing their selections
+    openRelMo(_relA ? _relA.pid : undefined);
     toast('Error saving link — please try again');
   }
 }
@@ -2641,15 +2827,30 @@ function setupSearch(inputId,dropId){
   si.addEventListener('input',()=>{
     const q=si.value.toLowerCase().trim();
     if(!q){sd.classList.remove('on');return;}
-    const hits=Object.entries(DB.people)
-      .filter(([,p])=>fullName(p).toLowerCase().includes(q)||(p.occupation||'').toLowerCase().includes(q))
-      .slice(0,8);
+    // Search against full searchCache (all people) — not just DB.people (neighbourhood only)
+    const hits = searchCacheQuery(q);
     if(!hits.length){sd.classList.remove('on');return;}
-    sd.innerHTML=hits.map(([id,p])=>`<div class="sd-row" data-id="${id}"><b>${escHtml(fullName(p))}</b><small>${escHtml(lifeSpan(p)||p.occupation||'')}</small></div>`).join('');
+    sd.innerHTML=hits.map(h=>{
+      // Show extra detail from DB.people if already loaded
+      const loaded = DB.people[h.pid];
+      const detail = loaded ? escHtml(lifeSpan(loaded)||loaded.occupation||'') : escHtml(h.dob||h.gender||'');
+      const notLoaded = !DB.people[h.pid] && viewMode==='ego';
+      return `<div class="sd-row" data-id="${h.pid}">
+        <b>${escHtml((h.first+' '+h.last).trim())}</b>
+        <small>${detail}${notLoaded?' · tap to load':''}</small>
+      </div>`;
+    }).join('');
     sd.querySelectorAll('.sd-row').forEach(row=>{
-      const jump=e=>{e.stopPropagation();e.preventDefault();jumpTo(row.dataset.id);si.value='';sd.classList.remove('on');};
+      const jump=async e=>{
+        e.stopPropagation();e.preventDefault();
+        const pid=row.dataset.id;
+        si.value='';sd.classList.remove('on');
+        // If not yet loaded into DB.people, fetch from Firebase first
+        if(!DB.people[pid]) await loadPersonIntoView(pid);
+        jumpTo(pid);
+      };
       row.addEventListener('click',jump);
-      row.addEventListener('touchend',jump);
+      row.addEventListener('touchend',e=>{ e.preventDefault(); jump(e); });
     });
     sd.classList.add('on');
   });
@@ -2707,7 +2908,7 @@ const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.sta
 if(isIOS) setTimeout(()=>{if(!window.navigator.standalone){el('install-bar').querySelector('span').innerHTML='📱 Install: tap Share ⎙ → Add to Home Screen';el('install-bar').classList.add('show');}},5000);
 
 // ══ MODAL BACKDROP CLOSE ═══════════════════════════════════════════
-['person-mo','rel-mo','admin-mo','hist-mo'].forEach(id=>{
+['person-mo','rel-mo','admin-mo','hist-mo','link-mo'].forEach(id=>{
   el(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
 });
 
@@ -2748,7 +2949,7 @@ Object.assign(window, {
   // Person modal
   openEditMo, closePMo, savePerson, delPerson,
   // Relation modal
-  closeRMo, addRel, removeRel,
+  closeRMo, addRel, removeRel, relPersonSearch, clearRelPerson,
   // Admin modal
   closeAMo, setRole, removeM, adminSendReset,
   // Profile link modal

@@ -200,8 +200,51 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .e-partner{fill:none;stroke:rgba(200,137,58,.65);stroke-width:1.8;stroke-dasharray:6,3}
 .e-sibling{fill:none;stroke:rgba(92,171,106,.45);stroke-width:1.5;stroke-dasharray:2,6}
 
-/* panel */
-#panel{position:fixed;top:var(--hh);right:0;bottom:0;width:330px;background:var(--panel);
+/* ── EGO VIEW ── */
+/* View toggle button active state */
+.hbtn.ego-on{background:rgba(200,137,58,.15);border-color:var(--gold);color:var(--gold)}
+
+/* Ego card — the logged-in user's profile card */
+.card.ego{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 6px 24px rgba(200,137,58,.25)}
+.card.ego .card-stripe{background:var(--gold)}
+
+/* Expand badge — shown when a card has unloaded relatives */
+.card-expand{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--ink);font-size:9px;font-weight:700;
+  padding:2px 7px;border-radius:10px;cursor:pointer;white-space:nowrap;
+  box-shadow:0 2px 6px var(--shadow);border:1.5px solid var(--bark);
+  transition:transform .15s,background .15s;z-index:5;letter-spacing:.04em}
+.card-expand:hover{transform:translateX(-50%) scale(1.1);background:var(--gold2)}
+.card-expand.loading{background:var(--copper);pointer-events:none}
+
+/* New cards animate in */
+@keyframes cardIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.card.new-node{animation:cardIn .3s ease-out forwards}
+
+/* Dimmed cards — loaded but outside current neighbourhood */
+.card.dimmed{opacity:.45;filter:saturate(.4)}
+.card.dimmed:hover{opacity:1;filter:none}
+
+/* Unlinked user prompt */
+#unlinked-prompt{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;pointer-events:none;z-index:2;text-align:center;padding:20px}
+#unlinked-prompt.hide{display:none}
+.up-ico{font-size:56px;margin-bottom:14px;opacity:.4}
+.up-t{font-family:'Crimson Pro',serif;font-size:24px;color:var(--ink4);margin-bottom:8px}
+.up-s{font-size:13px;color:var(--ink4);opacity:.75;line-height:1.65;max-width:280px}
+
+/* Link picker modal */
+#link-mo .mo{max-width:420px}
+#link-picker-list{max-height:280px;overflow-y:auto}
+.link-row{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.3);
+  display:flex;align-items:center;gap:10px;transition:background .15s}
+.link-row:hover{background:var(--soil)}
+.link-row-av{width:32px;height:32px;border-radius:50%;background:var(--soil);
+  border:1px solid var(--clay);display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--cream);flex-shrink:0}
+.link-row-name{font-size:13px;color:var(--cream)}
+.link-row-meta{font-size:10px;color:var(--ink4);margin-top:1px}
+top:var(--hh);right:0;bottom:0;width:330px;background:var(--panel);
   border-left:1px solid var(--border);display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
   z-index:150;box-shadow:-4px 0 24px var(--shadow);color:var(--ink)}
@@ -451,6 +494,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <span id="desktop-acts" style="display:contents">
         <button class="hbtn" onclick="autoLayout()">⚡ Layout</button>
         <button class="hbtn" onclick="fitScreen()">⊡ Fit</button>
+        <button class="hbtn" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" title="Centre on my profile">◎ Me</button>
+        <button class="hbtn" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none">🌳 Full Tree</button>
         <button class="hbtn" onclick="openRelMo()">⛓ Links</button>
         <button class="hbtn primary" onclick="openAddMo()" id="btn-add">＋ Add</button>
         <button class="hbtn" onclick="openAdminMo()" id="btn-admin" style="display:none">👑 Admin</button>
@@ -466,6 +511,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Links</button>
         <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Layout</button>
         <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit</button>
+        <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Me</button>
+        <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">🌳 Full Tree</button>
         <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin</button>
         <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch</button>
         <button class="hbtn" onclick="fullLogout()">Exit</button>
@@ -482,6 +529,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <div class="em-t" style="font-family:'Crimson Pro',serif">Your family tree awaits</div>
       <div class="em-s">Start by adding your first family member</div>
       <button class="em-btn" onclick="openAddMo()">＋ Add First Person</button>
+    </div>
+    <!-- Shown in ego view when user has no linked profile -->
+    <div id="unlinked-prompt" class="hide">
+      <div class="up-ico">👤</div>
+      <div class="up-t">Profile not linked</div>
+      <div class="up-s" id="unlinked-msg">Ask your admin to link your account to a person in the tree. Then you'll see your personal family view here.</div>
     </div>
   </div>
 </div>
@@ -531,6 +584,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     <div class="mo-hd"><div class="mo-title">Edit History</div><button class="pan-x" onclick="closeHMo()">✕</button></div>
     <div class="mo-bd" id="hmo-bd"></div>
     <div class="mo-ft"><button class="hbtn" onclick="closeHMo()">Close</button></div>
+  </div>
+</div>
+<!-- Link member to profile modal -->
+<div class="mo-ov" id="link-mo">
+  <div class="mo" style="max-width:420px">
+    <div class="mo-hd">
+      <div class="mo-title" id="link-mo-title">Link to Profile</div>
+      <button class="pan-x" onclick="closeLinkMo()">✕</button>
+    </div>
+    <div class="mo-bd">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:12px" id="link-mo-sub">
+        Select the person in the family tree that this member corresponds to.
+      </div>
+      <input class="fi" id="link-search" type="text" placeholder="Search by name…"
+        oninput="filterLinkPicker(this.value)" style="margin-bottom:10px">
+      <div id="link-picker-list"></div>
+    </div>
+    <div class="mo-ft">
+      <button class="hbtn" onclick="closeLinkMo()">Cancel</button>
+      <button class="hbtn" onclick="clearLink()" id="btn-clear-link" style="display:none;background:var(--rose);color:white;border-color:var(--rose)">Unlink</button>
+    </div>
   </div>
 </div>
 <div id="toast"></div>
@@ -755,6 +829,9 @@ function membersRef(fh) { return ref(db, `families/${fh}/members`); }
 function histRef(fh,pid){ return ref(db, `families/${fh}/history/${pid}`); }
 function memberRef(fh,uid){ return ref(db, `families/${fh}/members/${uid}`); }
 function adminFlagRef(fh) { return ref(db, `families/${fh}/adminSet`); }
+// Reverse index: lets us look up all families a user belongs to from Firebase
+// without scanning every family — critical for cross-device login recovery
+function userFamsRef(uid) { return ref(db, `userFamilies/${uid}`); }
 
 // ── Email ↔ Firebase-safe key ──────────────────────────────────────
 // Firebase keys cannot contain . so we encode email for use as a key
@@ -793,8 +870,9 @@ function showApp() {
   SCREENS.forEach(s => el(s).classList.add('hide'));
   el('app').classList.add('show');
   updatePermUI();
-  startSync();
   applyHeaderH(52);
+  // initEgoView decides whether to use ego-centric or full sync
+  initEgoView();
 }
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
@@ -861,17 +939,9 @@ function boot() {
     // User is signed in — find their families
     const s = getSessions();
     if (!s.families.length) {
-      // Signed in but no local session — this happens when:
-      // (a) logging in from a new device, or (b) localStorage was cleared.
-      // Show the join tab with a clear explanation so the user isn't confused.
-      showScreen('s-auth');
-      switchTab('join');
-      // Show helpful message in the join error area
-      const joinErr = el('j-err');
-      if (joinErr) {
-        joinErr.style.color = 'var(--gold)';
-        joinErr.textContent = 'Signed in — enter your Family Key to re-join this device.';
-      }
+      // No local session — try to recover from Firebase user-families index.
+      // This happens on a new device or after clearing localStorage.
+      recoverFamiliesFromFirebase(user);
       return;
     }
     if (s.families.length === 1) resumeFamily(s.families[0]);
@@ -879,7 +949,51 @@ function boot() {
   });
 }
 
-// ══ FAMILY PICKER ══════════════════════════════════════════════════
+// ══ CROSS-DEVICE SESSION RECOVERY ══════════════════════════════════
+// When a signed-in user has no local para_v3 session (new device or cleared
+// storage), look up their families from the Firebase user-families index,
+// rebuild the local session cache, then proceed normally.
+async function recoverFamiliesFromFirebase(user) {
+  setSyncStatus('off', 'Recovering session…');
+  try {
+    const snap = await get(userFamsRef(user.uid));
+    if (!snap.exists()) {
+      // Genuinely no families — first time, show join tab
+      showScreen('s-auth');
+      switchTab('join');
+      return;
+    }
+    // snap.val() = { fh1: { famKey, first, last, role }, fh2: … }
+    const recovered = [];
+    snap.forEach(child => {
+      const d = child.val();
+      recovered.push({ fh: child.key, famKey: d.famKey||'', first: d.first||'', last: d.last||'', role: d.role||'viewer' });
+    });
+    // Filter out removed/rejected
+    const active = recovered.filter(f => f.role !== 'removed' && f.role !== 'rejected');
+    if (!active.length) {
+      showScreen('s-auth');
+      switchTab('join');
+      return;
+    }
+    // Save recovered session locally
+    active.forEach(f => saveSession(f));
+    toast('Session restored ✓');
+    if (active.length === 1) resumeFamily(active[0]);
+    else buildFamilyPicker(active);
+  } catch(e) {
+    // Firebase unavailable — fall back to join screen
+    showScreen('s-auth');
+    switchTab('join');
+    const joinErr = el('j-err');
+    if (joinErr) {
+      joinErr.style.color = 'var(--gold)';
+      joinErr.textContent = 'Signed in — enter your Family Key to connect on this device.';
+    }
+  }
+}
+
+
 function buildFamilyPicker(families) {
   el('fp-list').innerHTML = families.map(f => `
     <div class="fam-row" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
@@ -898,6 +1012,10 @@ function openFamilySwitcher() {
   if (s.families.length <= 1) return;
   clearListeners();
   DB = { people:{}, rels:{} };
+  // Reset ego state
+  egoId = null; viewMode = 'full';
+  loadedPids.clear(); loadedRids.clear();
+  knownRels = {}; egoNeighbourhood.clear();
   // Reset selection state so stale panel doesn't persist into next family
   selId = null;
   el('panel').classList.remove('open');
@@ -1036,6 +1154,8 @@ async function doJoin() {
 
   const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
   await set(memberRef(fh, user.uid), memberData);
+  // Write reverse index so this user can recover their families on any device
+  await set(ref(db, `userFamilies/${user.uid}/${fh}`), { famKey: key, first, last, role, joinedAt: Date.now() });
 
   const famData = { fh, famKey: key, first, last, role };
   saveSession(famData);
@@ -1128,6 +1248,9 @@ async function fullLogout() {
   stopApprovalWatch();
   if (_authUnsub) { _authUnsub(); _authUnsub = null; }
   if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
+  egoId = null; viewMode = 'full';
+  loadedPids.clear(); loadedRids.clear();
+  knownRels = {}; egoNeighbourhood.clear();
   CU = null; FAM = null;
   DB = { people:{}, rels:{} };
   el('nodes-layer').innerHTML = '';
@@ -1161,48 +1284,146 @@ function updatePermUI() {
   ['btn-add','btn-add-m'].forEach(id => { const e=el(id); if(e) e.style.display=canAdd?'':'none'; });
 }
 
-// ══ REAL-TIME SYNC ═════════════════════════════════════════════════
-// Track which data sets have loaded so we only render once both are ready
+// ══ REAL-TIME SYNC ═════════════════════════════════════════════════════
 let _syncReady = { people: false, rels: false };
 let _renderTimer = null;
 function scheduleRender() {
-  // Debounce: if both listeners fire within 50ms, only render once
   if (_renderTimer) clearTimeout(_renderTimer);
   _renderTimer = setTimeout(() => { _renderTimer = null; render(); }, 50);
 }
 
+// Full tree mode: stream everything.
 function startSync() {
   clearListeners();
+  DB = { people:{}, rels:{} };
+  loadedPids.clear();
+  loadedRids.clear();
   setSyncStatus('off', 'Connecting…');
   _syncReady = { people: false, rels: false };
 
-  // People listener
   listen(peopleRef(FAM), snap => {
     DB.people = {};
-    if (snap.exists()) {
-      snap.forEach(child => {
-        const p = child.val();
-        if (!p.deleted) DB.people[child.key] = p;
-      });
-    }
+    if (snap.exists()) snap.forEach(child => {
+      const p = child.val();
+      if (!p.deleted) { DB.people[child.key] = p; loadedPids.add(child.key); }
+    });
     _syncReady.people = true;
     scheduleRender();
     if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
   });
 
-  // Rels listener
   listen(relsRef(FAM), snap => {
     DB.rels = {};
-    if (snap.exists()) {
-      snap.forEach(child => {
-        const r = child.val();
-        if (!r.deleted) DB.rels[child.key] = r;
-      });
-    }
+    if (snap.exists()) snap.forEach(child => {
+      const r = child.val();
+      if (!r.deleted) { DB.rels[child.key] = r; loadedRids.add(child.key); }
+    });
     _syncReady.rels = true;
     scheduleRender();
     if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
   });
+}
+
+// Ego-centric initial fetch: only ego + depth-1 neighbourhood.
+async function startEgoSync(pivotId) {
+  clearListeners();
+  DB = { people:{}, rels:{} };
+  loadedPids.clear();
+  loadedRids.clear();
+  setSyncStatus('off', 'Loading your tree…');
+  try {
+    // 1. Fetch ego person
+    const egoSnap = await get(ref(db, `families/${FAM}/people/${pivotId}`));
+    if (!egoSnap.exists() || egoSnap.val().deleted) {
+      toast('Profile not found — loading full tree.');
+      setViewMode('full'); startSync(); return;
+    }
+    DB.people[pivotId] = egoSnap.val();
+    loadedPids.add(pivotId);
+
+    // 2. Fetch ego rel index
+    const idxSnap = await get(ref(db, `families/${FAM}/personRels/${pivotId}`));
+    const relIds = idxSnap.exists() ? Object.keys(idxSnap.val()) : [];
+    knownRels[pivotId] = new Set(relIds);
+
+    // 3. Fetch rels
+    await Promise.all(relIds.map(async rid => {
+      const rs = await get(ref(db, `families/${FAM}/rels/${rid}`));
+      if (rs.exists()) { const r = rs.val(); if (!r.deleted) { DB.rels[rid] = r; loadedRids.add(rid); } }
+    }));
+
+    // 4. Collect connected pids
+    const connectedPids = new Set();
+    Object.values(DB.rels).forEach(r => { connectedPids.add(r.from); connectedPids.add(r.to); });
+    connectedPids.delete(pivotId);
+
+    // 5. Siblings via shared parent
+    const parentIds = Object.values(DB.rels)
+      .filter(r => r.to === pivotId && r.type === 'Parent').map(r => r.from);
+    const sibRelIds = new Set();
+    await Promise.all(parentIds.map(async parentId => {
+      const pIdx = await get(ref(db, `families/${FAM}/personRels/${parentId}`));
+      if (pIdx.exists()) Object.keys(pIdx.val()).forEach(rid => sibRelIds.add(rid));
+    }));
+    await Promise.all([...sibRelIds].filter(rid => !loadedRids.has(rid)).map(async rid => {
+      const rs = await get(ref(db, `families/${FAM}/rels/${rid}`));
+      if (rs.exists()) { const r = rs.val(); if (!r.deleted) { DB.rels[rid] = r; loadedRids.add(rid); } }
+    }));
+    Object.values(DB.rels).forEach(r => {
+      if (parentIds.includes(r.from) && r.type === 'Parent' && r.to !== pivotId)
+        connectedPids.add(r.to);
+    });
+
+    // 6. Fetch connected people
+    await Promise.all([...connectedPids].map(async p => {
+      if (loadedPids.has(p)) return;
+      const ps = await get(ref(db, `families/${FAM}/people/${p}`));
+      if (ps.exists()) { const person = ps.val(); if (!person.deleted) { DB.people[p] = person; loadedPids.add(p); } }
+    }));
+
+    // 7. Live watchers for loaded nodes
+    setupEgoListeners();
+    setSyncStatus('ok', 'Synced ✓');
+    render();
+
+    // 8. Ego layout + visuals after render
+    setTimeout(() => {
+      applyEgoLayout(pivotId);
+      computeEgoNeighbourhood();
+      applyDimming();
+      updateAllExpandBadges();
+      centreOnEgo();
+    }, 120);
+
+  } catch(e) {
+    console.error('startEgoSync', e);
+    toast('Error — falling back to full view.');
+    setViewMode('full'); startSync();
+  }
+}
+
+// Watch loaded nodes for live edits in ego mode
+function setupEgoListeners() {
+  for (const pid of [...loadedPids]) {
+    const pRef = ref(db, `families/${FAM}/people/${pid}`);
+    listen(pRef, snap => {
+      if (!snap.exists()) return;
+      const p = snap.val();
+      if (p.deleted) { delete DB.people[pid]; loadedPids.delete(pid); }
+      else DB.people[pid] = p;
+      scheduleRender();
+    });
+  }
+  for (const rid of [...loadedRids]) {
+    const rRef = ref(db, `families/${FAM}/rels/${rid}`);
+    listen(rRef, snap => {
+      if (!snap.exists()) return;
+      const r = snap.val();
+      if (r.deleted) { delete DB.rels[rid]; loadedRids.delete(rid); }
+      else DB.rels[rid] = r;
+      scheduleRender();
+    });
+  }
 }
 
 // ══ FIREBASE SECURITY RULES ════════════════════════════════════════
@@ -1269,10 +1490,19 @@ async function putPerson(id, data) {
 async function putRel(id, data) {
   assertCan('add');
   await set(ref(db, `families/${FAM}/rels/${id}`), data);
+  // Maintain personRels index for efficient ego-centric queries
+  await set(ref(db, `families/${FAM}/personRels/${data.from}/${id}`), true);
+  await set(ref(db, `families/${FAM}/personRels/${data.to}/${id}`), true);
 }
 async function deleteRelFb(id) {
   assertCan('add');
+  const rel = DB.rels[id];
   await set(ref(db, `families/${FAM}/rels/${id}`), { id, deleted: true });
+  // Remove from personRels index
+  if (rel) {
+    await set(ref(db, `families/${FAM}/personRels/${rel.from}/${id}`), null);
+    await set(ref(db, `families/${FAM}/personRels/${rel.to}/${id}`), null);
+  }
   delete DB.rels[id];
 }
 async function logHistory(pid, action, changes) {
@@ -1355,11 +1585,21 @@ function memberRow(m, isPending) {
             <button class="mbtn mbtn-reject"  onclick="setRole('${m.uid}','rejected')">✕ Reject</button>`;
   } else if (!isSelf) {
     const opts = ALL_ROLES.map(r => `<option value="${r}"${r===m.role?' selected':''}>${r}</option>`).join('');
+    const linkedPid = m.linkedProfileId || '';
+    const linkLabel = linkedPid && DB.people[linkedPid]
+      ? `🔗 ${escHtml(fullName(DB.people[linkedPid]))}`
+      : '🔗 Link Profile';
     acts = `<select class="role-sel" onchange="setRole('${m.uid}',this.value)"><option disabled>Set role</option>${opts}</select>
+            <button class="mbtn" style="background:var(--slate);color:white" onclick="openLinkMo('${m.uid}','${escHtml((m.first||'')+(m.last?' '+m.last:''))}','${escHtml(linkedPid)}')">${linkLabel}</button>
             <button class="mbtn" style="background:var(--slate);color:white" onclick="adminSendReset('${escHtml(m.email||'')}')">🔑 Reset</button>
             <button class="mbtn mbtn-reject" onclick="removeM('${m.uid}')">Remove</button>`;
   } else {
-    acts = `<span style="font-size:10px;color:var(--ink4)">(you)</span>`;
+    const linkedPid = m.linkedProfileId || '';
+    const linkLabel = linkedPid && DB.people[linkedPid]
+      ? `🔗 ${escHtml(fullName(DB.people[linkedPid]))}`
+      : '🔗 Link My Profile';
+    acts = `<button class="mbtn" style="background:var(--slate);color:white" onclick="openLinkMo('${m.uid}','${escHtml((m.first||'')+(m.last?' '+m.last:''))}','${escHtml(linkedPid)}')">${linkLabel}</button>
+            <span style="font-size:10px;color:var(--ink4)">(you)</span>`;
   }
   return `<div class="member-row">
     <div class="member-av">${ini}</div>
@@ -1483,6 +1723,473 @@ async function ndEnd(){
   if(!moved&&id) selectPerson(id);
 }
 
+// ══ EGO VIEW ENGINE ════════════════════════════════════════════════
+// State
+let egoId      = null;           // pid of logged-in user's linked profile
+let viewMode   = 'full';         // 'ego' | 'full'
+let loadedPids = new Set();      // which person nodes are in DB.people
+let loadedRids = new Set();      // which rel nodes are in DB.rels
+let knownRels  = {};             // personRels cache { pid: Set<rid> }
+let egoNeighbourhood = new Set();// pids in current ego neighbourhood
+
+// ── Initialise ego view on login ──────────────────────────────────
+async function initEgoView() {
+  if (!CU || !FAM || !fbUser) { startSync(); return; }
+
+  const snap = await get(memberRef(FAM, fbUser.uid));
+  if (!snap.exists()) { startSync(); return; }
+
+  const linkedId = snap.val().linkedProfileId;
+  const hasLink  = !!linkedId;
+
+  // Show/hide view toggle + centre-me buttons
+  ['btn-view-toggle','btn-view-toggle-m','btn-centre-me','btn-centre-me-m']
+    .forEach(id => { const b = el(id); if (b) b.style.display = hasLink ? '' : 'none'; });
+
+  if (!hasLink) {
+    // No linked profile — full tree for everyone
+    setViewMode('full');
+    startSync();
+    return;
+  }
+
+  egoId = linkedId;
+  viewMode = 'ego'; // set before startEgoSync so render() applies ego styles
+  ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
+    const b = el(id); if (b) b.textContent = '\uD83C\uDF33 Full Tree';
+  });
+
+  // Ego-centric fetch — much smaller initial payload
+  await startEgoSync(linkedId);
+}
+
+// ── Ego layout: position neighbourhood around pivot ───────────────
+// Runs after ego fetch when nodes have no stored positions yet.
+function applyEgoLayout(pivotId) {
+  const pivot = DB.people[pivotId];
+  if (!pivot) return;
+
+  // If ego already has a non-zero position, trust stored positions
+  if ((pivot.x || 0) !== 0 || (pivot.y || 0) !== 0) return;
+
+  const GAP_H = 200, GAP_V = 190;
+  const rels   = Object.values(DB.rels);
+
+  const parents  = rels.filter(r => r.to === pivotId && r.type === 'Parent').map(r => r.from);
+  const children = rels.filter(r => r.from === pivotId && r.type === 'Parent').map(r => r.to);
+  const partners = rels.filter(r => (r.from===pivotId||r.to===pivotId) && r.type==='Partner')
+                       .map(r => r.from === pivotId ? r.to : r.from);
+  const siblings = [...new Set(
+    parents.flatMap(pid => rels.filter(r => r.from===pid && r.type==='Parent' && r.to!==pivotId).map(r=>r.to))
+  )];
+
+  const updates = {};
+  const place = (pid, x, y) => {
+    if (!DB.people[pid]) return;
+    DB.people[pid].x = x; DB.people[pid].y = y;
+    updates[`families/${FAM}/people/${pid}/x`] = x;
+    updates[`families/${FAM}/people/${pid}/y`] = y;
+  };
+
+  // Ego at origin
+  place(pivotId, 0, 0);
+
+  // Partners to the right
+  partners.forEach((pid, i) => place(pid, (i+1)*GAP_H, 0));
+
+  // Parents above, centred
+  const pOff = -(parents.length-1)/2 * GAP_H;
+  parents.forEach((pid, i) => place(pid, pOff + i*GAP_H, -GAP_V));
+
+  // Children below, centred
+  const cOff = -(children.length-1)/2 * GAP_H;
+  children.forEach((pid, i) => place(pid, cOff + i*GAP_H, GAP_V));
+
+  // Siblings at same level, spread left
+  siblings.forEach((pid, i) => {
+    const offset = -(i+1) * GAP_H;
+    place(pid, offset, 0);
+  });
+
+  // Persist positions
+  if (Object.keys(updates).length) update(ref(db), updates);
+  render();
+}
+
+function setViewMode(mode) {
+  const prev = viewMode;
+  viewMode = mode;
+  const isEgo = mode === 'ego';
+
+  ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
+    const b = el(id);
+    if (b) b.textContent = isEgo ? '\uD83C\uDF33 Full Tree' : '\uD83D\uDC64 My View';
+  });
+  ['btn-centre-me','btn-centre-me-m'].forEach(id => {
+    const b = el(id);
+    if (b) b.style.display = (isEgo && egoId) ? '' : 'none';
+  });
+
+  if (isEgo && egoId) {
+    el('unlinked-prompt').classList.add('hide');
+    // Re-sync with ego fetch if switching from full tree
+    if (prev === 'full') {
+      startEgoSync(egoId);
+    } else {
+      computeEgoNeighbourhood();
+      applyDimming();
+      updateAllExpandBadges();
+      centreOnEgo();
+    }
+  } else if (isEgo && !egoId) {
+    el('unlinked-prompt').classList.remove('hide');
+  } else {
+    // Switching to full tree — stream everything
+    el('unlinked-prompt').classList.add('hide');
+    egoNeighbourhood.clear();
+    nodesL.querySelectorAll('.card').forEach(c => {
+      c.classList.remove('dimmed','ego','new-node');
+      const badge = c.querySelector('.card-expand');
+      if (badge) badge.remove();
+    });
+    if (prev === 'ego') startSync();
+  }
+}
+
+function toggleViewMode() {
+  setViewMode(viewMode === 'ego' ? 'full' : 'ego');
+}
+
+// ── Neighbourhood computation ─────────────────────────────────────
+// Returns the set of pids in ego's depth-1 neighbourhood:
+// ego + parents + children + partners + siblings (via shared parent)
+function computeEgoNeighbourhood(pivotId) {
+  const pid = pivotId || egoId;
+  if (!pid || !DB.people[pid]) return;
+
+  const rels = Object.values(DB.rels);
+  const nbh = new Set([pid]);
+
+  // Parents
+  const parents = rels.filter(r => r.to === pid && r.type === 'Parent').map(r => r.from);
+  parents.forEach(p => nbh.add(p));
+
+  // Children
+  rels.filter(r => r.from === pid && r.type === 'Parent').forEach(r => nbh.add(r.to));
+
+  // Partners
+  rels.filter(r => (r.from === pid || r.to === pid) && r.type === 'Partner')
+    .forEach(r => nbh.add(r.from === pid ? r.to : r.from));
+
+  // Siblings — other children of same parents
+  parents.forEach(parentId => {
+    rels.filter(r => r.from === parentId && r.type === 'Parent' && r.to !== pid)
+      .forEach(r => nbh.add(r.to));
+  });
+  // Also explicit Sibling rels
+  rels.filter(r => (r.from === pid || r.to === pid) && r.type === 'Sibling')
+    .forEach(r => nbh.add(r.from === pid ? r.to : r.from));
+
+  if (!pivotId) {
+    // This is the primary ego neighbourhood
+    egoNeighbourhood = nbh;
+  }
+  return nbh;
+}
+
+// ── Expand: fetch neighbourhood of any person outward ────────────
+async function expandPerson(pid) {
+  if (!pid || !FAM) return;
+  const badge = nodesL.querySelector(`.card[data-id="${pid}"] .card-expand`);
+  if (badge) { badge.classList.add('loading'); badge.textContent = '…'; }
+
+  try {
+    // 1. Fetch rel index for this person
+    const idxSnap = await get(ref(db, `families/${FAM}/personRels/${pid}`));
+    if (!idxSnap.exists()) { if (badge) badge.remove(); return; }
+
+    const relIds = Object.keys(idxSnap.val());
+    knownRels[pid] = new Set(relIds);
+
+    // 2. Fetch missing rels and start watching them
+    const missingRids = relIds.filter(rid => !loadedRids.has(rid));
+    await Promise.all(missingRids.map(async rid => {
+      const rSnap = await get(ref(db, `families/${FAM}/rels/${rid}`));
+      if (rSnap.exists()) {
+        const r = rSnap.val();
+        if (!r.deleted) {
+          DB.rels[rid] = r;
+          loadedRids.add(rid);
+          // Watch for live edits
+          if (viewMode === 'ego') {
+            const rRef = ref(db, `families/${FAM}/rels/${rid}`);
+            listen(rRef, snap => {
+              if (!snap.exists()) return;
+              const rv = snap.val();
+              if (rv.deleted) { delete DB.rels[rid]; loadedRids.delete(rid); }
+              else DB.rels[rid] = rv;
+              scheduleRender();
+            });
+          }
+        }
+      }
+    }));
+
+    // 3. Collect connected pids
+    const connectedPids = new Set();
+    relIds.forEach(rid => {
+      const r = DB.rels[rid];
+      if (r) { connectedPids.add(r.from); connectedPids.add(r.to); }
+    });
+
+    // 4. Fetch missing people and start watching them
+    const missingPids = [...connectedPids].filter(p => !loadedPids.has(p));
+    const newPids = [];
+    await Promise.all(missingPids.map(async p => {
+      const pSnap = await get(ref(db, `families/${FAM}/people/${p}`));
+      if (pSnap.exists()) {
+        const person = pSnap.val();
+        if (!person.deleted) {
+          DB.people[p] = person;
+          loadedPids.add(p);
+          newPids.push(p);
+          // Watch for live edits
+          if (viewMode === 'ego') {
+            const pRef = ref(db, `families/${FAM}/people/${p}`);
+            listen(pRef, snap => {
+              if (!snap.exists()) return;
+              const pv = snap.val();
+              if (pv.deleted) { delete DB.people[p]; loadedPids.delete(p); }
+              else DB.people[p] = pv;
+              scheduleRender();
+            });
+          }
+        }
+      }
+    }));
+
+    // 5. Position new nodes around pivot (outward growth)
+    if (newPids.length) positionNewNodes(pid, newPids);
+
+    // 6. Re-render
+    computeEgoNeighbourhood();
+    render();
+
+    // 7. Animate new cards in, update badges
+    setTimeout(() => {
+      newPids.forEach(p => {
+        const c = nodesL.querySelector(`.card[data-id="${p}"]`);
+        if (c) c.classList.add('new-node');
+      });
+      applyDimming();
+      updateAllExpandBadges();
+      if (newPids.length) toast(`+${newPids.length} person${newPids.length > 1 ? 's' : ''} loaded`);
+      else toast('All relatives already loaded');
+    }, 50);
+
+  } catch(e) {
+    toast('Error loading relatives');
+    if (badge) { badge.classList.remove('loading'); badge.textContent = 'Expand'; }
+  }
+}
+
+// ── Position new nodes around a pivot ────────────────────────────
+function positionNewNodes(pivotId, newPids) {
+  const pivot = DB.people[pivotId];
+  if (!pivot) return;
+  const px = pivot.x || 0, py = pivot.y || 0;
+  const CW = 158, CH = 92;
+  const GAP_H = 190, GAP_V = 180;
+
+  // Categorise each new node relative to pivot
+  const rels = Object.values(DB.rels);
+  newPids.forEach((npid, i) => {
+    if (DB.people[npid].x !== undefined && DB.people[npid].x !== 0) return; // already placed
+
+    const isParent   = rels.some(r => r.from === npid && r.to === pivotId && r.type === 'Parent');
+    const isChild    = rels.some(r => r.from === pivotId && r.to === npid && r.type === 'Parent');
+    const isPartner  = rels.some(r => (r.from === npid || r.to === npid) && (r.from === pivotId || r.to === pivotId) && r.type === 'Partner');
+    const isSibling  = !isParent && !isChild && !isPartner;
+
+    // Count how many nodes of same type we've already placed to spread them out
+    const sameType = newPids.slice(0, i).filter(p => {
+      if (isParent)  return rels.some(r => r.from === p && r.to === pivotId && r.type === 'Parent');
+      if (isChild)   return rels.some(r => r.from === pivotId && r.to === p && r.type === 'Parent');
+      if (isPartner) return rels.some(r => (r.from===p||r.to===p) && (r.from===pivotId||r.to===pivotId) && r.type==='Partner');
+      return true;
+    }).length;
+
+    let x, y;
+    if (isParent) {
+      x = px + (sameType - 0.5) * GAP_H;
+      y = py - GAP_V;
+    } else if (isChild) {
+      x = px + (sameType - 0.5) * GAP_H;
+      y = py + GAP_V;
+    } else if (isPartner) {
+      x = px + (sameType + 1) * GAP_H;
+      y = py;
+    } else {
+      // Sibling — spread horizontally at same level
+      const offset = Math.ceil((sameType + 1) / 2) * (sameType % 2 === 0 ? 1 : -1);
+      x = px + offset * GAP_H;
+      y = py;
+    }
+
+    DB.people[npid].x = x;
+    DB.people[npid].y = y;
+    // Persist positions
+    set(ref(db, `families/${FAM}/people/${npid}/x`), x);
+    set(ref(db, `families/${FAM}/people/${npid}/y`), y);
+  });
+}
+
+// ── Dimming ───────────────────────────────────────────────────────
+function applyDimming() {
+  if (viewMode !== 'ego') return;
+  nodesL.querySelectorAll('.card').forEach(c => {
+    const pid = c.dataset.id;
+    const inNbh = egoNeighbourhood.has(pid);
+    c.classList.toggle('dimmed', !inNbh);
+    c.classList.toggle('ego', pid === egoId);
+  });
+}
+
+// ── Expand badges ─────────────────────────────────────────────────
+async function updateAllExpandBadges() {
+  if (viewMode !== 'ego') return;
+  for (const pid of Object.keys(DB.people)) {
+    await updateExpandBadge(pid);
+  }
+}
+
+async function updateExpandBadge(pid) {
+  if (viewMode !== 'ego') return;
+  const card = nodesL.querySelector(`.card[data-id="${pid}"]`);
+  if (!card) return;
+
+  // Remove existing badge
+  const existing = card.querySelector('.card-expand');
+  if (existing) existing.remove();
+
+  // Count known rels vs loaded rels for this person
+  let knownCount = 0;
+  if (knownRels[pid]) {
+    knownCount = knownRels[pid].size;
+  } else {
+    // Fetch the index once (lightweight — just keys)
+    try {
+      const snap = await get(ref(db, `families/${FAM}/personRels/${pid}`));
+      if (snap.exists()) {
+        knownRels[pid] = new Set(Object.keys(snap.val()));
+        knownCount = knownRels[pid].size;
+      }
+    } catch { return; }
+  }
+
+  const loadedCount = [...(knownRels[pid]||[])].filter(rid => loadedRids.has(rid)).length;
+  const unloaded = knownCount - loadedCount;
+
+  if (unloaded > 0) {
+    const badge = document.createElement('div');
+    badge.className = 'card-expand';
+    badge.textContent = `+${unloaded} more`;
+    badge.addEventListener('click', e => { e.stopPropagation(); expandPerson(pid); });
+    card.appendChild(badge);
+  }
+}
+
+// ── Centre viewport on ego ────────────────────────────────────────
+function centreOnEgo() {
+  if (!egoId || !DB.people[egoId]) return;
+  const p = DB.people[egoId];
+  const r = wrap.getBoundingClientRect();
+  vp.x = r.width / 2 - (p.x || 0) * vp.s - (158 / 2) * vp.s;
+  vp.y = r.height / 2 - (p.y || 0) * vp.s - (92 / 2) * vp.s;
+  applyVP();
+}
+
+// ══ PROFILE LINKING (Admin only) ═══════════════════════════════════
+let _linkTargetUid  = null;  // uid of member being linked
+let _linkTargetName = '';
+let _linkAllPeople  = [];    // cached list for picker
+
+function openLinkMo(uid, memberName, currentPid) {
+  _linkTargetUid  = uid;
+  _linkTargetName = memberName;
+  el('link-mo-title').textContent = `Link ${memberName} to Profile`;
+  el('link-mo-sub').textContent   = `Select the person in the family tree that corresponds to ${memberName}.`;
+  el('link-search').value = '';
+  // Show unlink button only if already linked
+  el('btn-clear-link').style.display = currentPid ? '' : 'none';
+  el('btn-clear-link').dataset.pid = currentPid || '';
+
+  _linkAllPeople = Object.entries(DB.people).map(([pid, p]) => ({ pid, ...p }));
+  renderLinkPicker(_linkAllPeople);
+  el('link-mo').classList.add('on');
+}
+
+function closeLinkMo() {
+  el('link-mo').classList.remove('on');
+  _linkTargetUid = null;
+}
+
+function filterLinkPicker(query) {
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? _linkAllPeople.filter(p => fullName(p).toLowerCase().includes(q))
+    : _linkAllPeople;
+  renderLinkPicker(filtered);
+}
+
+function renderLinkPicker(people) {
+  el('link-picker-list').innerHTML = people.length
+    ? people.map(p => `
+        <div class="link-row" onclick="confirmLink('${p.pid}')">
+          <div class="link-row-av">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>
+          <div>
+            <div class="link-row-name">${escHtml(fullName(p))}</div>
+            <div class="link-row-meta">${escHtml(lifeSpan(p)||p.occupation||p.gender||'')}</div>
+          </div>
+        </div>`).join('')
+    : '<div style="padding:14px;color:var(--ink3);font-size:12px">No matching people found</div>';
+}
+
+async function confirmLink(pid) {
+  if (!_linkTargetUid || !pid) return;
+  try {
+    // Write linkedProfileId to member record
+    await set(ref(db, `families/${FAM}/members/${_linkTargetUid}/linkedProfileId`), pid);
+    // Write reverse: linkedUid on person so we can show "you" badge
+    await set(ref(db, `families/${FAM}/people/${pid}/linkedUid`), _linkTargetUid);
+    // If linking self, refresh egoId immediately
+    if (_linkTargetUid === fbUser.uid) {
+      egoId = pid;
+      setViewMode('ego');
+    }
+    toast(`${_linkTargetName} linked to ${fullName(DB.people[pid])}`);
+    closeLinkMo();
+    setTimeout(loadMembers, 300);
+  } catch(e) {
+    toast('Error linking profile: ' + e.message);
+  }
+}
+
+async function clearLink() {
+  if (!_linkTargetUid) return;
+  const oldPid = el('btn-clear-link').dataset.pid;
+  try {
+    await set(ref(db, `families/${FAM}/members/${_linkTargetUid}/linkedProfileId`), null);
+    if (oldPid) await set(ref(db, `families/${FAM}/people/${oldPid}/linkedUid`), null);
+    if (_linkTargetUid === fbUser.uid) { egoId = null; setViewMode('full'); }
+    toast('Profile link removed');
+    closeLinkMo();
+    setTimeout(loadMembers, 300);
+  } catch(e) {
+    toast('Error removing link: ' + e.message);
+  }
+}
+
 // ══ RENDER ═════════════════════════════════════════════════════════
 function getGen(id, memo={}, visiting=new Set()){
   if(memo[id]!==undefined) return memo[id];
@@ -1500,8 +2207,15 @@ function render(){
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
   const memo={};
   ids.forEach(id=>getGen(id,memo));
-  ids.forEach(id=>renderCard(id,memo[id]%6));
+  ids.forEach(id=>{
+    loadedPids.add(id); // track loaded state
+    renderCard(id,memo[id]%6);
+  });
+  // Track loaded rels
+  Object.keys(DB.rels).forEach(rid => loadedRids.add(rid));
   redrawLines();
+  // Refresh ego view visuals after every render
+  if(viewMode==='ego'){ applyDimming(); updateAllExpandBadges(); }
 }
 function renderCard(id,gen){
   const p=DB.people[id];
@@ -1522,19 +2236,21 @@ function renderCard(id,gen){
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
-  card.className=`card g${gen}${selId===id?' sel':''}`;
+  card.className=`card g${gen}${selId===id?' sel':''}${id===egoId?' ego':''}${viewMode==='ego'&&!egoNeighbourhood.has(id)&&egoId?' dimmed':''}`;
   card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">`
     :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
-  const isMe = fbUser && p.addedBy === fbUser.uid;
+  // "you" badge: show if this person is linked to the current user
+  const isMe = fbUser && (p.linkedUid === fbUser.uid || id === egoId);
   card.innerHTML=`
     <div class="card-stripe"></div>
     <div class="card-av ${avCls}">${av}</div>
     <div class="card-name">${escHtml(fullName(p))}</div>
     <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
     ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
-}
+  // Re-attach expand badge if it existed (innerHTML wipes it)
+  if (viewMode === 'ego') updateExpandBadge(id);}
 function reposCard(id){
   const card=nodesL.querySelector(`.card[data-id="${id}"]`);
   if(!card)return;
@@ -1908,6 +2624,8 @@ Object.assign(window, {
   // App header actions
   autoLayout, fitScreen, openRelMo, openAddMo, openAdminMo,
   toggleMenu, closeMenu,
+  // Ego view
+  toggleViewMode, centreOnEgo, expandPerson,
   // PWA install
   triggerInstall, dismissInstall,
   // Canvas / zoom
@@ -1920,6 +2638,8 @@ Object.assign(window, {
   closeRMo, addRel, removeRel,
   // Admin modal
   closeAMo, setRole, removeM, adminSendReset,
+  // Profile link modal
+  openLinkMo, closeLinkMo, confirmLink, clearLink, filterLinkPicker,
   // History modal
   openHistMo, closeHMo,
   // Pending screen

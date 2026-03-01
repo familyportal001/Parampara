@@ -143,39 +143,89 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   color:var(--parch);font-size:13px}
 .sd-row:hover{background:var(--soil)}
 .sd-row small{display:block;color:var(--copper);font-size:10px;margin-top:2px}
-/* Mobile overlay drawer (M1) — floats above canvas, doesn't push layout */
+/* ── Mobile drawer: compact right-panel card, not full-width ── */
 #menu-drawer{
-  position:fixed;top:52px;left:0;right:0;z-index:190;
-  background:var(--bark);border-bottom:1px solid var(--clay);
-  padding:12px 14px 14px;flex-direction:column;gap:8px;
+  position:fixed;
+  top:calc(52px + 6px);   /* just below header with small gap */
+  right:10px;
+  width:260px;
+  z-index:191;
+  background:var(--bark);
+  border:1px solid var(--clay);
+  border-radius:12px;
+  padding:0;
+  flex-direction:column;
   display:none;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);
-  animation:drawerIn .18s ease-out}
+  box-shadow:0 8px 32px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
+  overflow:hidden;
+  transform-origin:top right;
+  animation:drawerIn .18s cubic-bezier(.2,0,.2,1)}
 #menu-drawer.open{display:flex}
-@keyframes drawerIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-/* Backdrop to close drawer by tapping outside (M1) */
-#menu-backdrop{display:none;position:fixed;inset:0;z-index:189;background:transparent}
-#menu-backdrop.on{display:block}
-#srch-wrap-m{position:relative}
-#srch-m{width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.25);
-  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;
-  padding:10px 10px 10px 32px;border-radius:var(--r);outline:none;
-  -webkit-user-select:text;user-select:text}
-#srch-m::placeholder{color:var(--ink3)}#srch-m:focus{border-color:var(--gold)}
-#srch-wrap-m::before{content:'⌕';position:absolute;left:10px;top:50%;
-  transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
+@keyframes drawerIn{
+  from{opacity:0;transform:scale(.92) translateY(-6px)}
+  to  {opacity:1;transform:scale(1)   translateY(0)}}
+/* drawer header row: search + toggle + close */
+#drawer-head{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 10px 8px;
+  border-bottom:1px solid rgba(200,137,58,.15)}
+#srch-wrap-m{position:relative;flex:1}
+#srch-m{width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.2);
+  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:14px;
+  padding:7px 8px 7px 28px;border-radius:8px;outline:none;
+  -webkit-user-select:text;user-select:text;transition:border-color .15s}
+#srch-m::placeholder{color:var(--ink4)}#srch-m:focus{border-color:var(--gold)}
+#srch-wrap-m::before{content:'⌕';position:absolute;left:8px;top:50%;
+  transform:translateY(-50%);color:var(--copper);font-size:14px;pointer-events:none}
 #srch-drop-m{position:absolute;top:calc(100% + 4px);left:0;right:0;
   background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
   z-index:500;display:none;max-height:200px;overflow-y:auto}
 #srch-drop-m.on{display:block}
-/* Single column, generous touch targets (M2) */
-.mob-grid{display:flex;flex-direction:column;gap:6px}
-#menu-drawer .hbtn{width:100%;text-align:left;padding:14px 16px;font-size:13px;
-  min-height:48px;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+/* label-toggle pill */
+#drawer-label-tog{
+  width:30px;height:30px;flex-shrink:0;
+  background:var(--soil);border:1px solid var(--clay);border-radius:8px;
+  cursor:pointer;color:var(--ink4);font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;flex-shrink:0}
+#drawer-label-tog:hover{border-color:var(--gold);color:var(--gold)}
+#drawer-label-tog.labelled{background:rgba(200,137,58,.12);border-color:rgba(200,137,58,.4);color:var(--gold)}
+/* close button */
+#drawer-close{
+  width:30px;height:30px;flex-shrink:0;
+  background:none;border:1px solid rgba(200,137,58,.2);border-radius:8px;
+  cursor:pointer;color:var(--ink3);font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+#drawer-close:hover{border-color:var(--rose);color:var(--rose)}
+/* button grid */
+.mob-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px;
+  padding:8px}
+/* default: icon+label mode */
+#menu-drawer .hbtn{
+  width:100%;text-align:left;padding:10px 10px;font-size:11.5px;
+  min-height:44px;letter-spacing:.03em;
+  display:flex;align-items:center;gap:8px;
+  border-radius:8px;white-space:nowrap;overflow:hidden}
+#menu-drawer .hbtn .btn-ico{font-size:16px;flex-shrink:0;line-height:1}
+#menu-drawer .hbtn .btn-lbl{flex:1;overflow:hidden;text-overflow:ellipsis}
+/* icon-only mode: hide labels, centre icons */
+#menu-drawer.icons-only .hbtn{
+  justify-content:center;padding:10px 6px;gap:0}
+#menu-drawer.icons-only .hbtn .btn-lbl{display:none}
+/* primary Add button spans full width always */
+#menu-drawer .hbtn.primary{
+  grid-column:1/-1;font-size:12px;padding:12px 14px}
 @media(max-width:720px){
   #desktop-acts{display:none!important}#srch-wrap{display:none}#menu-tog{display:block}}
 @media(min-width:721px){
   #desktop-acts{display:contents}#menu-tog{display:none}#menu-drawer{display:none!important}}
+/* backdrop: subtle dim, closes drawer */
+#menu-backdrop{display:none;position:fixed;inset:0;z-index:189;
+  background:rgba(0,0,0,.25);backdrop-filter:blur(1px)}
+#menu-backdrop.on{display:block}
 
 /* canvas */
 #canvas-wrap{flex:1;overflow:hidden;cursor:grab;position:relative;
@@ -398,6 +448,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 /* zoom + sync */
 #zoom-ctl{position:fixed;bottom:20px;right:14px;z-index:100;display:flex;flex-direction:column;gap:4px}
+/* FAB — ＋ Add Person, floats above zoom cluster */
+#fab-add{
+  position:fixed;bottom:160px;right:10px;z-index:101;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gold);color:var(--ink);
+  border:none;cursor:pointer;
+  font-size:22px;font-weight:300;line-height:1;
+  box-shadow:0 4px 16px rgba(200,137,58,.45),0 2px 6px rgba(0,0,0,.3);
+  display:none;             /* shown only on mobile via JS */
+  align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+  -webkit-tap-highlight-color:transparent}
+#fab-add:hover{transform:scale(1.08);box-shadow:0 6px 22px rgba(200,137,58,.55)}
+#fab-add:active{transform:scale(.95)}
+#fab-add.show{display:flex}
 
 /* C1 — Canvas legend */
 #canvas-legend{
@@ -611,19 +676,44 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
     </div>
   </div>
-  <!-- menu-drawer is a SIBLING of #hdr, not a child — so position:fixed removes it from flex flow -->
+  <!-- menu-drawer: compact right-panel card, sibling of #hdr -->
   <div id="menu-drawer">
-    <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search people…" autocomplete="off"><div id="srch-drop-m"></div></div>
+    <div id="drawer-head">
+      <div id="srch-wrap-m">
+        <input id="srch-m" type="text" placeholder="Search…" autocomplete="off">
+        <div id="srch-drop-m"></div>
+      </div>
+      <button id="drawer-label-tog" onclick="toggleDrawerLabels()" title="Toggle labels">≡</button>
+      <button id="drawer-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
+    </div>
     <div class="mob-grid">
-      <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">＋ Add Person</button>
-      <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Relationships</button>
-      <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Auto Layout</button>
-      <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit to Screen</button>
-      <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Centre on Me</button>
-      <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">🌳 Full Tree</button>
-      <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin Panel</button>
-      <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch Family</button>
-      <button class="hbtn" onclick="fullLogout();closeMenu()">⏻ Sign Out</button>
+      <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">
+        <span class="btn-ico">＋</span><span class="btn-lbl">Add Person</span>
+      </button>
+      <button class="hbtn" onclick="openRelMo();closeMenu()">
+        <span class="btn-ico">⛓</span><span class="btn-lbl">Relationships</span>
+      </button>
+      <button class="hbtn" onclick="autoLayout();closeMenu()">
+        <span class="btn-ico">⚡</span><span class="btn-lbl">Auto Layout</span>
+      </button>
+      <button class="hbtn" onclick="fitScreen();closeMenu()">
+        <span class="btn-ico">⊡</span><span class="btn-lbl">Fit Screen</span>
+      </button>
+      <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">
+        <span class="btn-ico">◎</span><span class="btn-lbl">Centre Me</span>
+      </button>
+      <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">
+        <span class="btn-ico">🌳</span><span class="btn-lbl">Full Tree</span>
+      </button>
+      <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">
+        <span class="btn-ico">👑</span><span class="btn-lbl">Admin</span>
+      </button>
+      <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">
+        <span class="btn-ico">⇄</span><span class="btn-lbl">Switch Family</span>
+      </button>
+      <button class="hbtn" onclick="fullLogout();closeMenu()">
+        <span class="btn-ico">⏻</span><span class="btn-lbl">Sign Out</span>
+      </button>
     </div>
   </div>
   <div id="menu-backdrop" onclick="closeMenu()"></div>
@@ -647,6 +737,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   </div>
 </div>
 
+<button id="fab-add" onclick="openAddMo()" aria-label="Add person" title="Add Person">＋</button>
 <div id="zoom-ctl">
   <button class="zb" onclick="doZoom(.15)">＋</button>
   <div id="zlbl">100%</div>
@@ -3039,18 +3130,39 @@ function applyHeaderH(h){
   document.documentElement.style.setProperty('--hh',h+'px');
   el('panel').style.top=h+'px';
 }
+// ── Drawer label preference (persisted across sessions) ─────────────
+let _drawerLabels = localStorage.getItem('drawerLabels') !== 'off'; // default: labels on
+function _applyDrawerLabelMode(){
+  const d=el('menu-drawer'),tog=el('drawer-label-tog');
+  if(!d||!tog)return;
+  d.classList.toggle('icons-only',!_drawerLabels);
+  tog.classList.toggle('labelled',_drawerLabels);
+  tog.title = _drawerLabels ? 'Icon-only mode' : 'Show labels';
+  tog.textContent = _drawerLabels ? '≡' : '⊞';
+}
+function toggleDrawerLabels(){
+  _drawerLabels=!_drawerLabels;
+  localStorage.setItem('drawerLabels',_drawerLabels?'on':'off');
+  _applyDrawerLabelMode();
+}
 function toggleMenu(){
   const d=el('menu-drawer'),bd=el('menu-backdrop');
   const opening=!d.classList.contains('open');
   d.classList.toggle('open',opening);
   if(bd) bd.classList.toggle('on',opening);
-  // M1: overlay — never push canvas, always keep header at 52px
-  applyHeaderH(52);
+  if(opening) _applyDrawerLabelMode(); // apply saved pref each open
+  applyHeaderH(52); // overlay — never push canvas
 }
 function closeMenu(){
   el('menu-drawer').classList.remove('open');
   const bd=el('menu-backdrop'); if(bd) bd.classList.remove('on');
   applyHeaderH(52);
+}
+// ── FAB: show on mobile, hide on desktop ─────────────────────────────
+function _updateFab(){
+  const fab=el('fab-add'); if(!fab)return;
+  const isMobile=window.innerWidth<=720;
+  fab.classList.toggle('show',isMobile);
 }
 let _lastW=window.innerWidth;
 window.addEventListener('resize',()=>{
@@ -3058,7 +3170,9 @@ window.addEventListener('resize',()=>{
   if(Math.abs(nw-_lastW)>10||nw>720)closeMenu();
   _lastW=nw;
   applyVP();
+  _updateFab();
 });
+_updateFab(); // initial call
 
 // C1 — Legend: tap to toggle open on touch devices
 el('canvas-legend').addEventListener('click',()=>{
@@ -3128,7 +3242,7 @@ Object.assign(window, {
   resumeFamily, openFamilySwitcher,
   // App header actions
   autoLayout, fitScreen, openRelMo, openAddMo, openAdminMo,
-  toggleMenu, closeMenu,
+  toggleMenu, closeMenu, toggleDrawerLabels,
   // Ego view
   toggleViewMode, centreOnEgo, expandPerson,
   // PWA install

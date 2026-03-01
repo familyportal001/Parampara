@@ -535,6 +535,102 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 </div>
 <div id="toast"></div>
 
+<!-- ══ DIAGNOSTIC PANEL (tap the Parampara logo 5 times to open) ══ -->
+<div id="diag-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);padding:16px;overflow-y:auto">
+  <div style="background:#1e1005;border:1px solid #4a2e10;border-radius:8px;padding:16px;max-width:500px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span style="color:#c8893a;font-family:serif;font-size:18px">🔧 Diagnostics</span>
+      <button onclick="document.getElementById('diag-ov').style.display='none'"
+        style="background:none;border:none;color:#9b7a50;font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <button id="diag-run" onclick="runDiag()"
+      style="width:100%;padding:11px;background:#c8893a;color:#1e1005;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px">
+      ▶ Run Connectivity Check
+    </button>
+    <div id="diag-out" style="font-family:monospace;font-size:12px;line-height:1.9;color:#e0ceaa;white-space:pre-wrap"></div>
+  </div>
+</div>
+
+<script>
+// ── Diagnostic tap handler — tap brand logo 5 times to open ──────
+let _diagTaps = 0, _diagTimer;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.brand,.app-logo').forEach(el => {
+    el.addEventListener('click', () => {
+      _diagTaps++;
+      clearTimeout(_diagTimer);
+      if (_diagTaps >= 5) {
+        _diagTaps = 0;
+        document.getElementById('diag-ov').style.display = 'block';
+      } else {
+        _diagTimer = setTimeout(() => _diagTaps = 0, 2000);
+      }
+    });
+  });
+});
+
+async function runDiag() {
+  const out = document.getElementById('diag-out');
+  const btn = document.getElementById('diag-run');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  out.textContent = '';
+
+  function log(line) { out.textContent += line + '\n'; }
+
+  log('=== Parampara Diagnostics ===');
+  log('Time: ' + new Date().toLocaleString());
+  log('URL:  ' + location.href);
+  log('UA:   ' + navigator.userAgent.slice(0, 80));
+  log('Online: ' + navigator.onLine);
+  log('');
+
+  // localStorage
+  log('--- Storage ---');
+  log('para_lang : ' + (localStorage.getItem('para_lang') || '(not set)'));
+  log('para_v3   : ' + (localStorage.getItem('para_v3') ? 'present' : '(not set)'));
+  log('');
+
+  // Module / window functions
+  log('--- JS Module ---');
+  const fns = ['setLang','doLogin','doJoin','switchTab','boot'];
+  fns.forEach(fn => log(fn + ': ' + typeof window[fn]));
+  log('');
+
+  // Network checks
+  log('--- Network ---');
+  const checks = [
+    ['Firebase CDN (app.js)',
+     'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'],
+    ['Firebase CDN (auth.js)',
+     'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'],
+    ['Firebase CDN (database.js)',
+     'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js'],
+    ['Firebase Auth API',
+     'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw'],
+    ['Firebase Realtime DB',
+     'https://parampara-4c9b7-default-rtdb.europe-west1.firebasedatabase.app/.json'],
+    ['Google Fonts',
+     'https://fonts.googleapis.com/css2?family=DM+Sans'],
+  ];
+
+  for (const [label, url] of checks) {
+    try {
+      const t0 = Date.now();
+      const r = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
+      log('✅ ' + label + ' (' + r.status + ', ' + (Date.now()-t0) + 'ms)');
+    } catch(e) {
+      log('❌ ' + label + ': ' + e.message);
+    }
+  }
+
+  log('');
+  log('--- Done ---');
+  btn.disabled = false;
+  btn.textContent = '▶ Run Again';
+}
+</script>
+
 <script type="module">
 'use strict';
 
@@ -544,7 +640,8 @@ import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getDatabase, ref, set, get, update,
-         onValue, off, push, serverTimestamp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+         onValue, off, push, serverTimestamp,
+         runTransaction }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw",
@@ -570,13 +667,26 @@ function fmtDT(ts)  { return ts ? new Date(ts).toLocaleString()     : ''; }
 function fmtD(ts)   { return ts ? new Date(ts).toLocaleDateString() : ''; }
 
 // ── Family key → safe Firebase path key (no dots/slashes etc.) ─────
+// Uses two independent hash passes to produce a 16-char key,
+// drastically reducing collision probability vs. single 10-char hash.
 function famHash(key) {
-  let h = 0;
-  for (const c of key) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
-  return 'f' + Math.abs(h).toString(36).slice(0, 10);
+  const norm = key.trim().toLowerCase(); // normalise so "Krishna" === "krishna"
+  let h1 = 0x9e3779b9, h2 = 0x6c62272e;
+  for (let i = 0; i < norm.length; i++) {
+    const c = norm.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x9e3779b9) >>> 0;
+    h2 = Math.imul(h2 ^ c, 0x85ebca77) >>> 0;
+    h1 = ((h1 << 13) | (h1 >>> 19)) >>> 0;
+    h2 = ((h2 << 7)  | (h2 >>> 25)) >>> 0;
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 0x85ebca6b) >>> 0;
+  h2 = Math.imul(h2 ^ (h2 >>> 13), 0xc2b2ae35) >>> 0;
+  return 'f' + h1.toString(36).padStart(7,'0') + h2.toString(36).padStart(7,'0');
 }
 
 // ── Firebase path helpers ──────────────────────────────────────────
+function famRef(fh)     { return ref(db, `families/${fh}`); }
+function peopleRef(fh)  { return ref(db, `families/${fh}/people`); }
 function relsRef(fh)    { return ref(db, `families/${fh}/rels`); }
 function membersRef(fh) { return ref(db, `families/${fh}/members`); }
 function histRef(fh,pid){ return ref(db, `families/${fh}/history/${pid}`); }
@@ -629,6 +739,11 @@ let LANG = localStorage.getItem('para_lang') || '';
 function setLang(l) {
   LANG = l;
   localStorage.setItem('para_lang', l);
+  // Show immediate visual feedback — user tapped a button, they need to see a response
+  el('s-lang').querySelector('.lang-opts').style.opacity = '0.4';
+  el('s-lang').querySelector('.lang-opts').style.pointerEvents = 'none';
+  const brand = el('s-lang').querySelector('.brand-sub');
+  if (brand) brand.textContent = 'Loading…';
   boot();
 }
 
@@ -647,10 +762,33 @@ function saveSession(fam) {
 }
 
 // ══ BOOT ═══════════════════════════════════════════════════════════
+let _authUnsub = null; // track the active onAuthStateChanged unsubscriber
+let _bootTimer = null; // fallback timer in case Firebase stalls
 function boot() {
   if (!LANG) { showScreen('s-lang'); return; }
+  // Unsubscribe any previous auth listener before registering a new one.
+  // Without this, calling boot() more than once (e.g. after language selection)
+  // stacks duplicate listeners — the second one may never fire if Firebase
+  // already delivered the auth event to the first.
+  if (_authUnsub) { _authUnsub(); _authUnsub = null; }
+  if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
+
+  // Safety fallback: if onAuthStateChanged hasn't fired within 6 seconds
+  // (e.g. opening as file://, slow network, Firebase init stall),
+  // show the auth screen anyway — Firebase will reconnect in the background.
+  _bootTimer = setTimeout(() => {
+    _bootTimer = null;
+    // Only act if we're still on the language screen
+    const langEl = el('s-lang');
+    if (langEl && !langEl.classList.contains('hide')) {
+      showScreen('s-auth');
+      setSyncStatus('off', 'Not signed in');
+    }
+  }, 6000);
+
   // Firebase auth state drives everything
-  onAuthStateChanged(auth, user => {
+  _authUnsub = onAuthStateChanged(auth, user => {
+    if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
     fbUser = user;
     if (!user) {
       showScreen('s-auth');
@@ -689,6 +827,11 @@ function openFamilySwitcher() {
   if (s.families.length <= 1) return;
   clearListeners();
   DB = { people:{}, rels:{} };
+  // Reset selection state so stale panel doesn't persist into next family
+  selId = null;
+  el('panel').classList.remove('open');
+  el('nodes-layer').innerHTML = '';
+  el('world-svg').innerHTML   = '';
   buildFamilyPicker(s.families);
 }
 
@@ -707,12 +850,20 @@ async function resumeFamily(fam) {
       boot(); return;
     }
     const data = snap.val();
+    // Block removed/rejected members from accessing the tree
+    if (data.role === 'removed' || data.role === 'rejected') {
+      toast('Your access to this family has been revoked');
+      const s = getSessions();
+      s.families = s.families.filter(f => f.fh !== fam.fh);
+      localStorage.setItem('para_v3', JSON.stringify(s));
+      boot(); return;
+    }
     CU = { ...fam, uid: fbUser.uid, email: fbUser.email, role: data.role };
     fam.role = data.role;
     saveSession(fam);
     DB = { people:{}, rels:{} };
     el('nodes-layer').innerHTML = '';
-    if (data.role === 'pending') { showScreen('s-pending'); return; }
+    if (data.role === 'pending') { showScreen('s-pending'); startApprovalWatch(); return; }
     showApp();
   } catch(e) {
     setSyncStatus('off', 'Error loading family');
@@ -758,15 +909,6 @@ async function doJoin() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email address'; return; }
 
   const fh = famHash(key);
-  errEl.textContent = 'Checking family…';
-
-  // Check if family admin slot is taken
-  let isFirstMember = false;
-  try {
-    const snap = await get(adminFlagRef(fh));
-    isFirstMember = !snap.exists();
-  } catch(e) { /* network issue — assume not first */ }
-
   errEl.textContent = 'Creating account…';
 
   // Create or sign into Firebase Auth account
@@ -776,7 +918,6 @@ async function doJoin() {
     user = cred.user;
   } catch(e) {
     if (e.code === 'auth/email-already-in-use') {
-      // Already has an account — sign them in and add to this family
       try {
         const cred = await signInWithEmailAndPassword(auth, email, pass);
         user = cred.user;
@@ -791,21 +932,34 @@ async function doJoin() {
   }
 
   // Check if this user is already in this family
+  errEl.textContent = 'Checking family…';
   const existingSnap = await get(memberRef(fh, user.uid));
   if (existingSnap.exists()) {
+    const existingRole = existingSnap.val().role;
+    if (existingRole === 'rejected' || existingRole === 'removed') {
+      errEl.textContent = 'Your access to this family has been revoked. Contact the family admin.';
+      await signOut(auth);
+      return;
+    }
     errEl.textContent = 'You are already a member of this family. Use Sign In instead.';
     await signOut(auth);
     return;
   }
 
-  const role = isFirstMember ? 'admin' : 'pending';
-  const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
+  // ── Atomic first-admin election using Firebase transaction ────────
+  // runTransaction ensures only one concurrent joiner wins admin,
+  // even if two people join with the same key at exactly the same time.
+  let role = 'pending';
+  try {
+    const txResult = await runTransaction(adminFlagRef(fh), current => {
+      if (current === null) return true; // claim admin slot
+      return undefined;                  // abort — slot already taken
+    });
+    if (txResult.committed) role = 'admin';
+  } catch(e) { /* network issue — default to pending, admin can promote later */ }
 
-  // Write member record and admin flag atomically
-  const updates = {};
-  updates[`families/${fh}/members/${user.uid}`] = memberData;
-  if (isFirstMember) updates[`families/${fh}/adminSet`] = true;
-  await update(ref(db), updates);
+  const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
+  await set(memberRef(fh, user.uid), memberData);
 
   const famData = { fh, famKey: key, first, last, role };
   saveSession(famData);
@@ -818,6 +972,7 @@ async function doJoin() {
     showApp();
   } else {
     showScreen('s-pending');
+    startApprovalWatch();
     toast('Request sent — awaiting admin approval');
   }
 }
@@ -862,13 +1017,41 @@ async function checkApproval() {
       const f = s.families.find(x => x.fh === FAM);
       if (f) { f.role = CU.role; saveSession(f); }
       DB = { people:{}, rels:{} };
+      stopApprovalWatch();
       showApp();
     } else toast('Still pending — please wait for admin approval');
   } catch(e) { toast('Error checking status'); }
 }
 
+// ── Auto-watch for approval while on pending screen ────────────────
+let _approvalUnsub = null;
+function startApprovalWatch() {
+  if (_approvalUnsub || !CU || !FAM) return;
+  const r = memberRef(FAM, fbUser.uid);
+  const fn = snap => {
+    if (snap.exists() && snap.val().role !== 'pending') {
+      CU.role = snap.val().role;
+      const s = getSessions();
+      const f = s.families.find(x => x.fh === FAM);
+      if (f) { f.role = CU.role; saveSession(f); }
+      DB = { people:{}, rels:{} };
+      stopApprovalWatch();
+      toast('You have been approved! Welcome.');
+      showApp();
+    }
+  };
+  onValue(r, fn);
+  _approvalUnsub = () => off(r, 'value', fn);
+}
+function stopApprovalWatch() {
+  if (_approvalUnsub) { _approvalUnsub(); _approvalUnsub = null; }
+}
+
 async function fullLogout() {
   clearListeners();
+  stopApprovalWatch();
+  if (_authUnsub) { _authUnsub(); _authUnsub = null; }
+  if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
   CU = null; FAM = null;
   DB = { people:{}, rels:{} };
   el('nodes-layer').innerHTML = '';
@@ -903,9 +1086,19 @@ function updatePermUI() {
 }
 
 // ══ REAL-TIME SYNC ═════════════════════════════════════════════════
+// Track which data sets have loaded so we only render once both are ready
+let _syncReady = { people: false, rels: false };
+let _renderTimer = null;
+function scheduleRender() {
+  // Debounce: if both listeners fire within 50ms, only render once
+  if (_renderTimer) clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(() => { _renderTimer = null; render(); }, 50);
+}
+
 function startSync() {
   clearListeners();
   setSyncStatus('off', 'Connecting…');
+  _syncReady = { people: false, rels: false };
 
   // People listener
   listen(peopleRef(FAM), snap => {
@@ -916,8 +1109,9 @@ function startSync() {
         if (!p.deleted) DB.people[child.key] = p;
       });
     }
-    render();
-    setSyncStatus('ok', 'Synced ✓');
+    _syncReady.people = true;
+    scheduleRender();
+    if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
   });
 
   // Rels listener
@@ -929,18 +1123,79 @@ function startSync() {
         if (!r.deleted) DB.rels[child.key] = r;
       });
     }
-    render();
+    _syncReady.rels = true;
+    scheduleRender();
+    if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
   });
 }
 
-// ── Write helpers ──────────────────────────────────────────────────
+// ══ FIREBASE SECURITY RULES ════════════════════════════════════════
+// Deploy these rules in Firebase Console → Realtime Database → Rules.
+// They enforce role checks SERVER-SIDE so no client can bypass them.
+//
+// {
+//   "rules": {
+//     "families": {
+//       "$fh": {
+//         // Only authenticated members of this family can read
+//         ".read": "auth != null && root.child('families/'+$fh+'/members/'+auth.uid+'/role').exists()
+//                   && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() != 'pending'
+//                   && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() != 'removed'
+//                   && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() != 'rejected'",
+//
+//         "adminSet": {
+//           // Only writable once (for first-admin election via transaction)
+//           ".write": "auth != null && !data.exists()"
+//         },
+//         "members": {
+//           "$uid": {
+//             // Anyone authenticated can create their own member record (join flow)
+//             ".write": "auth != null && (auth.uid === $uid || root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin')"
+//           }
+//         },
+//         "people": {
+//           ".write": "auth != null && (
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'editor' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'contributor'
+//           )"
+//         },
+//         "rels": {
+//           ".write": "auth != null && (
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'editor' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'contributor'
+//           )"
+//         },
+//         "history": {
+//           ".write": "auth != null && (
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'editor' ||
+//             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'contributor'
+//           )"
+//         }
+//       }
+//     }
+//   }
+// }
+
+// ── Runtime write guard (client-side defence-in-depth) ─────────────
+// Even if someone calls putPerson/putRel directly from the console,
+// this ensures we never attempt a write the server would reject anyway.
+function assertCan(action) {
+  if (!can(action)) throw new Error(`Permission denied: cannot ${action}`);
+}
+
 async function putPerson(id, data) {
+  assertCan('add');
   await set(ref(db, `families/${FAM}/people/${id}`), data);
 }
 async function putRel(id, data) {
+  assertCan('add');
   await set(ref(db, `families/${FAM}/rels/${id}`), data);
 }
 async function deleteRelFb(id) {
+  assertCan('add');
   await set(ref(db, `families/${FAM}/rels/${id}`), { id, deleted: true });
   delete DB.rels[id];
 }
@@ -961,6 +1216,9 @@ async function getHistory(pid) {
   return entries.sort((a,b) => (b.at||0) - (a.at||0));
 }
 
+// ── Generate unique ID ─────────────────────────────────────────────
+function gid() { return 'p' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
 // ══ ADMIN PANEL ════════════════════════════════════════════════════
 const ALL_ROLES = ['admin','editor','contributor','viewer'];
 
@@ -978,8 +1236,9 @@ async function loadMembers() {
     const members = [];
     snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
 
-    const pending = members.filter(m => m.role === 'pending');
-    const active  = members.filter(m => m.role !== 'pending');
+    const pending  = members.filter(m => m.role === 'pending');
+    const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));
+    const revoked  = members.filter(m => m.role === 'removed' || m.role === 'rejected');
 
     let html = `<div class="sec-t">Family Secret Key</div>
       <div class="key-box">${escHtml(CU.famKey)}</div>
@@ -991,6 +1250,11 @@ async function loadMembers() {
     }
     html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
     active.forEach(m => html += memberRow(m, false));
+
+    if (revoked.length) {
+      html += `<div class="sec-t" style="margin-top:12px;color:var(--ink3)">Removed / Rejected (${revoked.length})</div>`;
+      revoked.forEach(m => html += memberRow(m, false));
+    }
 
     html += `<div class="sec-t" style="margin-top:18px">💾 Data Storage</div>
       <div style="font-size:12px;color:var(--ink2);line-height:1.7;background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:12px">
@@ -1144,11 +1408,14 @@ async function ndEnd(){
 }
 
 // ══ RENDER ═════════════════════════════════════════════════════════
-function getGen(id,memo={}){
-  if(memo[id]!==undefined)return memo[id];
+function getGen(id, memo={}, visiting=new Set()){
+  if(memo[id]!==undefined) return memo[id];
+  if(visiting.has(id)){ memo[id]=0; return 0; } // cycle detected — break it
+  visiting.add(id);
   const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
-  if(!pars.length){memo[id]=0;return 0;}
-  memo[id]=1+Math.max(...pars.map(p=>getGen(p,memo)));
+  if(!pars.length){ visiting.delete(id); memo[id]=0; return 0; }
+  memo[id]=1+Math.max(...pars.map(p=>getGen(p,memo,visiting)));
+  visiting.delete(id);
   return memo[id];
 }
 function render(){
@@ -1170,9 +1437,12 @@ function renderCard(id,gen){
     card.addEventListener('mousedown',e=>{ if(e.button===0)ndStart(e,id,e.clientX,e.clientY); });
     card.addEventListener('touchstart',e=>{
       const t=e.touches[0]; ndStart(e,id,t.clientX,t.clientY);
-      const mv=ev=>{const t2=ev.touches[0];ndMove(t2.clientX,t2.clientY);};
+      const mv=ev=>{
+        ev.stopPropagation(); // stop world touchmove from also panning
+        const t2=ev.touches[0]; ndMove(t2.clientX,t2.clientY);
+      };
       const up=()=>{ndEnd();card.removeEventListener('touchmove',mv);card.removeEventListener('touchend',up);};
-      card.addEventListener('touchmove',mv,{passive:true});
+      card.addEventListener('touchmove',mv,{passive:false}); // must be non-passive to stop propagation properly
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
@@ -1189,7 +1459,12 @@ function renderCard(id,gen){
     <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
     ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
 }
-
+function reposCard(id){
+  const card=nodesL.querySelector(`.card[data-id="${id}"]`);
+  if(!card)return;
+  card.style.left=(DB.people[id].x||0)+'px';
+  card.style.top=(DB.people[id].y||0)+'px';
+}
 
 // ══ SVG LINES ══════════════════════════════════════════════════════
 function cBot(p){return{x:(p.x||0)+CW/2,y:(p.y||0)+CH};}
@@ -1345,6 +1620,13 @@ function pv(id){ return (el(id)||{}).value||''; }
 async function savePerson(){
   const first=pv('pf-first').trim();
   if(!first){toast('First name is required');return;}
+
+  // ── #4 Photo URL validation — must be empty or a safe https:// URL ──
+  const rawPhoto = pv('pf-photo').trim();
+  if(rawPhoto && !/^https:\/\/.+\..+/i.test(rawPhoto)){
+    toast('Photo URL must start with https://'); return;
+  }
+  const photo = rawPhoto;
   const now=Date.now();
   const who=fbUser.uid;
   const whoName=CU?`${CU.first} ${CU.last}`.trim()||CU.email:'?';
@@ -1357,7 +1639,7 @@ async function savePerson(){
       .forEach(([k,fid])=>{const nv=pv(fid).trim();if(nv!==(prev[k]||''))changes[k]={from:prev[k]||'',to:nv};});
     const data={...prev,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
       dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
-      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo,
       notes:pv('pf-notes').trim(),editedBy:who,editedByName:whoName,editedAt:now};
     await putPerson(editId,data);
     await logHistory(editId,'edited',changes);
@@ -1366,7 +1648,7 @@ async function savePerson(){
     const id=gid(), count=Object.keys(DB.people).length;
     const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
       dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
-      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo:pv('pf-photo').trim(),
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo,
       notes:pv('pf-notes').trim(),x:60+(count%5)*190,y:60+Math.floor(count/5)*170,
       addedBy:who,addedByName:whoName,addedAt:now};
     await putPerson(id,data);
@@ -1537,6 +1819,36 @@ setupSearch('srch-m','srch-drop-m');
 applyHeaderH(52);
 applyVP();
 boot();
+
+// ══ EXPOSE TO GLOBAL SCOPE (required because onclick= runs outside module scope) ══
+Object.assign(window, {
+  // Language & boot
+  setLang,
+  // Auth screens
+  switchTab, doLogin, doJoin, doForgot,
+  checkApproval, fullLogout,
+  // Family picker
+  resumeFamily, openFamilySwitcher,
+  // App header actions
+  autoLayout, fitScreen, openRelMo, openAddMo, openAdminMo,
+  toggleMenu, closeMenu,
+  // PWA install
+  triggerInstall, dismissInstall,
+  // Canvas / zoom
+  doZoom,
+  // Panel
+  closePanel, selectPerson,
+  // Person modal
+  openEditMo, closePMo, savePerson, delPerson,
+  // Relation modal
+  closeRMo, addRel, removeRel,
+  // Admin modal
+  closeAMo, setRole, removeM, adminSendReset,
+  // History modal
+  openHistMo, closeHMo,
+  // Pending screen
+  showScreen, startApprovalWatch, stopApprovalWatch,
+});
 
 </script>
 </body>

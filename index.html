@@ -583,6 +583,7 @@ async function runDiag() {
   log('URL:  ' + location.href);
   log('UA:   ' + navigator.userAgent.slice(0, 80));
   log('Online: ' + navigator.onLine);
+  log('Protocol: ' + location.protocol);
   log('');
 
   // localStorage
@@ -593,35 +594,94 @@ async function runDiag() {
 
   // Module / window functions
   log('--- JS Module ---');
-  const fns = ['setLang','doLogin','doJoin','switchTab','boot'];
+  const fns = ['setLang','doLogin','doJoin','switchTab'];
   fns.forEach(fn => log(fn + ': ' + typeof window[fn]));
   log('');
 
   // Network checks
   log('--- Network ---');
   const checks = [
-    ['Firebase CDN (app.js)',
-     'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'],
-    ['Firebase CDN (auth.js)',
-     'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'],
-    ['Firebase CDN (database.js)',
-     'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js'],
-    ['Firebase Auth API',
-     'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw'],
-    ['Firebase Realtime DB',
-     'https://parampara-4c9b7-default-rtdb.europe-west1.firebasedatabase.app/.json'],
-    ['Google Fonts',
-     'https://fonts.googleapis.com/css2?family=DM+Sans'],
+    { label: 'Firebase CDN (app.js)',
+      url: 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
+      method: 'HEAD' },
+    { label: 'Firebase CDN (auth.js)',
+      url: 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js',
+      method: 'HEAD' },
+    { label: 'Firebase CDN (database.js)',
+      url: 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
+      method: 'HEAD' },
+    { label: 'Firebase Auth API',
+      // Must use POST — HEAD returns CORS error giving false negative
+      url: 'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw',
+      method: 'POST',
+      body: '{}',
+      headers: { 'Content-Type': 'application/json' },
+      // 400 = reachable (bad request expected with empty body)
+      // anything other than network error = reachable
+      expectStatus: [400, 401, 403] },
+    { label: 'Firebase Realtime DB',
+      url: 'https://parampara-4c9b7-default-rtdb.europe-west1.firebasedatabase.app/.json',
+      method: 'HEAD',
+      expectStatus: [400, 401, 403, 405] },
+    { label: 'Google Fonts',
+      url: 'https://fonts.googleapis.com/css2?family=DM+Sans',
+      method: 'HEAD' },
   ];
 
-  for (const [label, url] of checks) {
+  for (const c of checks) {
     try {
       const t0 = Date.now();
-      const r = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(8000) });
-      log('✅ ' + label + ' (' + r.status + ', ' + (Date.now()-t0) + 'ms)');
+      const opts = { method: c.method, signal: AbortSignal.timeout(8000) };
+      if (c.body) opts.body = c.body;
+      if (c.headers) opts.headers = c.headers;
+      const r = await fetch(c.url, opts);
+      const ms = Date.now() - t0;
+      const ok = !c.expectStatus || c.expectStatus.includes(r.status) || r.status < 500;
+      log((ok ? '✅' : '⚠️') + ' ' + c.label + ' (' + r.status + ', ' + ms + 'ms)');
     } catch(e) {
-      log('❌ ' + label + ': ' + e.message);
+      log('❌ ' + c.label + ': ' + e.message);
     }
+  }
+
+  // Live Firebase auth state check
+  log('');
+  log('--- Firebase Auth State ---');
+  try {
+    await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        log('⚠️  onAuthStateChanged: no response in 5s (Firebase init stall)');
+        log('    → This is the language screen freeze bug');
+        log('    → Fallback timer will show auth screen after 6s');
+        resolve();
+      }, 5000);
+      // Try to read auth state via the exposed firebase app
+      if (window.__firebaseAuth) {
+        window.__firebaseAuth.onAuthStateChanged(user => {
+          clearTimeout(timeout);
+          log('✅ onAuthStateChanged fired: ' + (user ? 'signed in as ' + user.email : 'not signed in'));
+          resolve();
+        });
+      } else {
+        clearTimeout(timeout);
+        log('ℹ️  Firebase auth object not exposed (normal — module scoped)');
+        log('    Check: does language selection now show the auth screen?');
+        resolve();
+      }
+    });
+  } catch(e) {
+    log('❌ Auth state check error: ' + e.message);
+  }
+
+  log('');
+  log('--- GitHub Pages Check ---');
+  if (location.hostname.endsWith('github.io')) {
+    log('✅ Served from GitHub Pages (HTTPS) — correct origin');
+    log('   Firebase Auth CORS will work from this origin');
+  } else if (location.protocol === 'file:' || location.href.startsWith('content://')) {
+    log('❌ Opened as local file — Firebase Auth will be blocked');
+    log('   Use GitHub Pages or a local HTTP server instead');
+  } else {
+    log('ℹ️  Origin: ' + location.origin);
   }
 
   log('');
@@ -656,6 +716,9 @@ const firebaseConfig = {
 const fbApp  = initializeApp(firebaseConfig);
 const auth   = getAuth(fbApp);
 const db     = getDatabase(fbApp);
+
+// Expose auth to diagnostic panel (read-only, safe)
+window.__firebaseAuth = auth;
 
 // ══ HELPERS ════════════════════════════════════════════════════════
 function el(id)     { return document.getElementById(id); }
@@ -798,9 +861,17 @@ function boot() {
     // User is signed in — find their families
     const s = getSessions();
     if (!s.families.length) {
-      // Signed in but no family joined yet
+      // Signed in but no local session — this happens when:
+      // (a) logging in from a new device, or (b) localStorage was cleared.
+      // Show the join tab with a clear explanation so the user isn't confused.
       showScreen('s-auth');
       switchTab('join');
+      // Show helpful message in the join error area
+      const joinErr = el('j-err');
+      if (joinErr) {
+        joinErr.style.color = 'var(--gold)';
+        joinErr.textContent = 'Signed in — enter your Family Key to re-join this device.';
+      }
       return;
     }
     if (s.families.length === 1) resumeFamily(s.families[0]);
@@ -878,6 +949,11 @@ function switchTab(t) {
     if (tab) tab.classList.toggle('on', id===t);
     if (sec) sec.classList.toggle('on', id===t);
   });
+  // Reset error styles when switching away
+  const joinErr = el('j-err');
+  if (joinErr && t !== 'join') { joinErr.style.color = ''; joinErr.textContent = ''; }
+  const loginErr = el('l-err');
+  if (loginErr && t !== 'login') { loginErr.textContent = ''; }
 }
 
 async function doLogin() {
@@ -889,7 +965,7 @@ async function doLogin() {
   errEl.textContent = 'Signing in…';
   try {
     await signInWithEmailAndPassword(auth, email, pass);
-    // onAuthStateChanged will fire and call boot()
+    errEl.textContent = ''; // clear — onAuthStateChanged will drive navigation
   } catch(e) {
     errEl.textContent = friendlyAuthError(e.code);
   }

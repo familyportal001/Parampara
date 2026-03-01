@@ -108,14 +108,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .hgap{flex:1}
 .hbtn{background:none;border:1px solid rgba(200,137,58,.3);color:var(--gold);
   font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;
-  text-transform:uppercase;padding:6px 10px;cursor:pointer;border-radius:var(--r);
-  transition:all .18s;white-space:nowrap;flex-shrink:0}
+  text-transform:uppercase;padding:8px 12px;cursor:pointer;border-radius:var(--r);
+  transition:all .18s;white-space:nowrap;flex-shrink:0;min-height:36px;position:relative}
 .hbtn:hover,.hbtn.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .hbtn.primary{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .hbtn.primary:hover{background:var(--gold2)}
+/* Icon-only secondary buttons (H1) */
+.hbtn.icon{padding:8px 10px;font-size:15px;letter-spacing:0;text-transform:none}
+/* Tooltip for icon-only buttons */
+.hbtn.icon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;
+  transform:translateX(-50%);background:var(--bark);color:var(--parch);
+  font-size:10px;font-weight:400;letter-spacing:.04em;text-transform:uppercase;
+  padding:4px 8px;border-radius:3px;border:1px solid var(--clay);
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:900}
+.hbtn.icon:hover::after{opacity:1}
+/* Visual divider between header button groups */
+.hbtn-sep{width:1px;background:rgba(200,137,58,.2);height:22px;flex-shrink:0;align-self:center;margin:0 2px}
 #menu-tog{display:none;background:none;border:1px solid rgba(200,137,58,.3);
-  color:var(--gold);font-size:20px;line-height:1;padding:5px 9px;
-  border-radius:var(--r);cursor:pointer;flex-shrink:0}
+  color:var(--gold);font-size:20px;line-height:1;padding:8px 11px;
+  border-radius:var(--r);cursor:pointer;flex-shrink:0;min-height:40px}
 #srch-wrap{position:relative;flex-shrink:1}
 #srch{background:var(--soil);border:1px solid rgba(200,137,58,.25);color:var(--cream);
   font-family:'DM Sans',sans-serif;font-size:16px;padding:5px 10px 5px 28px;
@@ -132,24 +143,35 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   color:var(--parch);font-size:13px}
 .sd-row:hover{background:var(--soil)}
 .sd-row small{display:block;color:var(--copper);font-size:10px;margin-top:2px}
-#menu-drawer{display:none;background:var(--night);
-  border-top:1px solid rgba(74,46,16,.5);padding:10px 12px 12px;
-  flex-direction:column;gap:8px}
+/* Mobile overlay drawer (M1) — floats above canvas, doesn't push layout */
+#menu-drawer{
+  position:fixed;top:52px;left:0;right:0;z-index:190;
+  background:var(--bark);border-bottom:1px solid var(--clay);
+  padding:12px 14px 14px;flex-direction:column;gap:8px;
+  display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:drawerIn .18s ease-out}
 #menu-drawer.open{display:flex}
+@keyframes drawerIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+/* Backdrop to close drawer by tapping outside (M1) */
+#menu-backdrop{display:none;position:fixed;inset:0;z-index:189;background:transparent}
+#menu-backdrop.on{display:block}
 #srch-wrap-m{position:relative}
 #srch-m{width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.25);
   color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;
-  padding:8px 10px 8px 30px;border-radius:var(--r);outline:none;
+  padding:10px 10px 10px 32px;border-radius:var(--r);outline:none;
   -webkit-user-select:text;user-select:text}
-#srch-m::placeholder{color:var(--ink3)}
-#srch-wrap-m::before{content:'⌕';position:absolute;left:9px;top:50%;
+#srch-m::placeholder{color:var(--ink3)}#srch-m:focus{border-color:var(--gold)}
+#srch-wrap-m::before{content:'⌕';position:absolute;left:10px;top:50%;
   transform:translateY(-50%);color:var(--copper);font-size:15px;pointer-events:none}
 #srch-drop-m{position:absolute;top:calc(100% + 4px);left:0;right:0;
   background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
   z-index:500;display:none;max-height:200px;overflow-y:auto}
 #srch-drop-m.on{display:block}
-.mob-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-#menu-drawer .hbtn{width:100%;text-align:center;padding:9px 6px;font-size:11px}
+/* Single column, generous touch targets (M2) */
+.mob-grid{display:flex;flex-direction:column;gap:6px}
+#menu-drawer .hbtn{width:100%;text-align:left;padding:14px 16px;font-size:13px;
+  min-height:48px;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
 @media(max-width:720px){
   #desktop-acts{display:none!important}#srch-wrap{display:none}#menu-tog{display:block}}
 @media(min-width:721px){
@@ -179,8 +201,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 /* cards */
 .card{position:absolute;width:158px;background:var(--bark);border:1.5px solid var(--clay);
-  border-radius:var(--r);cursor:pointer;user-select:none;box-shadow:0 2px 10px var(--shadow);
+  border-radius:var(--r);cursor:grab;user-select:none;box-shadow:0 2px 10px var(--shadow);
   transition:box-shadow .18s,border-color .18s,transform .14s}
+.card.dragging{cursor:grabbing;transform:translateY(-3px) scale(1.02);
+  box-shadow:0 10px 30px var(--shadow);z-index:30}
 .card:hover{box-shadow:0 6px 22px var(--shadow);border-color:var(--gold);transform:translateY(-2px);z-index:10}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 2.5px var(--gold),0 6px 22px var(--shadow);z-index:20}
 .card-stripe{height:4px;border-radius:calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0}
@@ -210,11 +234,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .card.ego .card-stripe{background:var(--gold)}
 
 /* Expand badge — shown when a card has unloaded relatives */
-.card-expand{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+.card-expand{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);
   background:var(--gold);color:var(--ink);font-size:9px;font-weight:700;
-  padding:2px 7px;border-radius:10px;cursor:pointer;white-space:nowrap;
+  padding:5px 10px;border-radius:10px;cursor:pointer;white-space:nowrap;
   box-shadow:0 2px 6px var(--shadow);border:1.5px solid var(--bark);
-  transition:transform .15s,background .15s;z-index:5;letter-spacing:.04em}
+  transition:transform .15s,background .15s;z-index:5;letter-spacing:.04em;min-height:24px}
 .card-expand:hover{transform:translateX(-50%) scale(1.1);background:var(--gold2)}
 .card-expand.loading{background:var(--copper);pointer-events:none}
 
@@ -237,8 +261,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 /* Link picker modal */
 #link-mo .mo{max-width:420px}
 #link-picker-list{max-height:280px;overflow-y:auto}
-.link-row{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.3);
-  display:flex;align-items:center;gap:10px;transition:background .15s}
+.link-row{padding:13px 14px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.3);
+  display:flex;align-items:center;gap:10px;transition:background .15s;min-height:48px}
 .link-row:hover{background:var(--soil)}
 .link-row-av{width:32px;height:32px;border-radius:50%;background:var(--soil);
   border:1px solid var(--clay);display:flex;align-items:center;justify-content:center;
@@ -255,17 +279,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .pan-title{font-family:'Crimson Pro',serif;font-size:21px;font-weight:600;
   color:var(--ink);padding-right:28px;line-height:1.2}
 .pan-sub{font-size:10px;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
-.pan-x{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;
-  color:var(--ink3);font-size:18px;padding:2px 5px;border-radius:2px;transition:color .15s}
+.pan-x{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;
+  color:var(--ink3);font-size:18px;padding:8px;border-radius:4px;transition:color .15s;
+  min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
 .pan-x:hover{color:var(--ink)}
 .pan-bd{flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;color:var(--ink)}
 .pan-bd::-webkit-scrollbar{width:3px}.pan-bd::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .pan-ft{display:flex;gap:6px;padding:12px 18px;border-top:1px solid var(--border);
   flex-shrink:0;background:var(--panel);flex-wrap:wrap}
-.pan-btn{flex:1;min-width:56px;padding:8px 5px;background:var(--parch2);
+.pan-btn{flex:1;min-width:56px;padding:11px 5px;background:var(--parch2);
   border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;
   font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
-  cursor:pointer;transition:all .18s;color:var(--ink)}
+  cursor:pointer;transition:all .18s;color:var(--ink);min-height:44px}
 .pan-btn:hover{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
 .pan-btn.pri{background:var(--gold);color:var(--ink);border-color:var(--gold)}
 .pan-btn.pri:hover{background:var(--gold2)}
@@ -284,8 +309,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .info-k{color:var(--ink3);min-width:110px;font-weight:500}.info-v{color:var(--ink);flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
 .chip{background:var(--parch2);border:1px solid var(--border);border-radius:3px;
-  padding:5px 9px;font-size:11.5px;cursor:pointer;transition:all .14s;
-  color:var(--ink);display:flex;flex-direction:column}
+  padding:9px 11px;font-size:11.5px;cursor:pointer;transition:all .14s;
+  color:var(--ink);display:flex;flex-direction:column;min-height:40px;justify-content:center}
 .chip:hover{border-color:var(--gold);background:var(--parch)}
 .chip small{font-size:8.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
 .no-rel{font-size:11.5px;color:var(--ink3);font-style:italic}
@@ -333,7 +358,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .member-name{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3}
 .member-meta{font-size:10px;color:var(--ink3);margin-top:1px}
 .member-acts{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-.mbtn{font-size:10px;padding:4px 9px;border-radius:3px;border:none;cursor:pointer;font-weight:500;transition:all .15s}
+.mbtn{font-size:10px;padding:8px 10px;border-radius:3px;border:none;cursor:pointer;font-weight:500;transition:all .15s;min-height:36px}
 .mbtn-approve{background:#3d6e40;color:white}.mbtn-reject{background:var(--rose);color:white}
 .mbtn-revoke{background:var(--clay);color:var(--cream)}
 .role-sel{font-size:11px;padding:4px 6px;border:1px solid var(--border);
@@ -373,11 +398,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 /* zoom + sync */
 #zoom-ctl{position:fixed;bottom:20px;right:14px;z-index:100;display:flex;flex-direction:column;gap:4px}
-.zb{width:34px;height:34px;background:var(--bark);border:1px solid var(--clay);
+
+/* C1 — Canvas legend */
+#canvas-legend{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:100;cursor:pointer;outline:none}
+#legend-pill{
+  background:var(--bark);border:1px solid var(--clay);border-radius:12px;
+  padding:4px 12px;font-size:11px;color:var(--ink4);letter-spacing:.06em;
+  text-transform:uppercase;white-space:nowrap;
+  box-shadow:0 2px 8px var(--shadow);transition:all .2s;
+  display:flex;align-items:center;gap:5px}
+#legend-pill::before{content:'◈';color:var(--copper);font-size:12px}
+#legend-body{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--bark);border:1px solid var(--clay);border-radius:6px;
+  padding:12px 14px;min-width:170px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  opacity:0;pointer-events:none;
+  transform:translateX(-50%) translateY(6px);
+  transition:opacity .18s,transform .18s}
+#canvas-legend:hover #legend-body,
+#canvas-legend:focus #legend-body,
+#canvas-legend.open #legend-body{
+  opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.legend-title{font-family:'Crimson Pro',serif;font-size:13px;color:var(--gold);
+  margin-bottom:8px;font-weight:600;letter-spacing:.04em}
+.legend-section{font-size:9px;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink4);margin-bottom:5px;font-weight:600}
+.legend-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px;color:var(--parch2)}
+.legend-row svg{flex-shrink:0}
+.legend-gens{display:flex;gap:3px;margin-top:4px}
+.legend-gen{width:18px;height:6px;border-radius:3px}
+.zb{width:44px;height:44px;background:var(--bark);border:1px solid var(--clay);
   border-radius:var(--r);cursor:pointer;font-size:18px;display:flex;align-items:center;
   justify-content:center;color:var(--copper);box-shadow:0 2px 8px var(--shadow);transition:all .15s}
 .zb:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
-#zlbl{width:34px;text-align:center;font-size:10px;color:var(--ink4);padding:2px 0;
+#zlbl{width:44px;text-align:center;font-size:10px;color:var(--ink4);padding:2px 0;
   background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);box-shadow:0 2px 8px var(--shadow)}
 #sync-bar{position:fixed;bottom:20px;left:14px;z-index:100;display:flex;align-items:center;
   gap:6px;background:var(--bark);border:1px solid var(--clay);border-radius:12px;
@@ -408,7 +465,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   pointer-events:none;transition:transform .28s;white-space:nowrap}
 #toast.on{transform:translateX(-50%) translateY(0)}
 
-@media(max-width:600px){#panel{width:100%;left:0}}
+/* P1 — Mobile panel: bottom sheet (slides up, 75vh, shows tree behind) */
+@media(max-width:600px){
+  #panel{
+    top:auto;right:0;left:0;bottom:0;width:100%;
+    height:78vh;
+    border-left:none;border-top:1px solid var(--border);
+    border-radius:14px 14px 0 0;
+    transform:translateY(100%);
+    box-shadow:0 -4px 24px var(--shadow)
+  }
+  #panel.open{transform:translateY(0)}
+  /* drag handle */
+  .pan-hd::before{
+    content:'';display:block;width:36px;height:4px;
+    background:var(--border);border-radius:2px;
+    margin:0 auto 12px;
+  }
+}
 </style>
 </head>
 <body>
@@ -519,33 +593,39 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       </div>
       <div class="hgap"></div>
       <span id="desktop-acts" style="display:contents">
-        <button class="hbtn" onclick="autoLayout()">⚡ Layout</button>
-        <button class="hbtn" onclick="fitScreen()">⊡ Fit</button>
-        <button class="hbtn" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" title="Centre on my profile">◎ Me</button>
-        <button class="hbtn" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none">🌳 Full Tree</button>
-        <button class="hbtn" onclick="openRelMo()">⛓ Links</button>
+        <!-- View group -->
+        <button class="hbtn icon" onclick="autoLayout()" data-tip="Auto Layout">⚡</button>
+        <button class="hbtn icon" onclick="fitScreen()" data-tip="Fit to Screen">⊡</button>
+        <button class="hbtn icon" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" data-tip="Centre on Me">◎</button>
+        <button class="hbtn icon" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none" data-tip="Toggle View">🌳</button>
+        <div class="hbtn-sep"></div>
+        <!-- Action group -->
+        <button class="hbtn" onclick="openRelMo()">⛓ Relationships</button>
         <button class="hbtn primary" onclick="openAddMo()" id="btn-add">＋ Add</button>
-        <button class="hbtn" onclick="openAdminMo()" id="btn-admin" style="display:none">👑 Admin</button>
-        <button class="hbtn" onclick="openFamilySwitcher()">⇄</button>
-        <button class="hbtn" onclick="fullLogout()">Exit</button>
+        <div class="hbtn-sep"></div>
+        <!-- Account group -->
+        <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel">👑</button>
+        <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family">⇄</button>
+        <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out">⏻</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
     </div>
     <div id="menu-drawer">
-      <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search…" autocomplete="off"><div id="srch-drop-m"></div></div>
+      <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search people…" autocomplete="off"><div id="srch-drop-m"></div></div>
       <div class="mob-grid">
         <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">＋ Add Person</button>
-        <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Links</button>
-        <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Layout</button>
-        <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit</button>
-        <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Me</button>
+        <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Relationships</button>
+        <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Auto Layout</button>
+        <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit to Screen</button>
+        <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Centre on Me</button>
         <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">🌳 Full Tree</button>
-        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin</button>
-        <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch</button>
-        <button class="hbtn" onclick="fullLogout()">Exit</button>
+        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin Panel</button>
+        <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch Family</button>
+        <button class="hbtn" onclick="fullLogout();closeMenu()">⏻ Sign Out</button>
       </div>
     </div>
   </div>
+  <div id="menu-backdrop" onclick="closeMenu()"></div>
   <div id="canvas-wrap">
     <div id="world">
       <svg id="world-svg" width="1" height="1"></svg>
@@ -572,6 +652,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <button class="zb" onclick="doZoom(-.15)">－</button>
 </div>
 <div id="sync-bar"><div class="dot amber" id="sdot"></div><span id="slbl">Connecting…</span></div>
+
+<!-- C1 — Canvas legend: collapsed pill, expands on hover/focus -->
+<div id="canvas-legend" tabindex="0" aria-label="Map legend" title="Legend">
+  <div id="legend-pill">?</div>
+  <div id="legend-body">
+    <div class="legend-title">Legend</div>
+    <div class="legend-section">Lines</div>
+    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,6 20,6 26,6" stroke="rgba(155,122,80,.75)" stroke-width="2" fill="none"/></svg><span>Parent – child</span></div>
+    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,2 20,2 26,6" stroke="rgba(200,137,58,.85)" stroke-width="2" stroke-dasharray="5,3" fill="none"/></svg><span>Partners</span></div>
+    <div class="legend-row"><svg width="28" height="12"><line x1="2" y1="6" x2="26" y2="6" stroke="rgba(92,171,106,.75)" stroke-width="1.5" stroke-dasharray="2,5"/></svg><span>Siblings</span></div>
+    <div class="legend-section" style="margin-top:8px">Card stripe = generation</div>
+    <div class="legend-gens">
+      <div class="legend-gen" style="background:var(--copper)"></div>
+      <div class="legend-gen" style="background:var(--slate)"></div>
+      <div class="legend-gen" style="background:var(--sage)"></div>
+      <div class="legend-gen" style="background:var(--rose)"></div>
+      <div class="legend-gen" style="background:#5c4a7a"></div>
+      <div class="legend-gen" style="background:var(--ink3)"></div>
+    </div>
+    <div style="font-size:9px;color:var(--ink4);margin-top:4px">Repeats after 6 generations</div>
+  </div>
+</div>
 
 <!-- SIDE PANEL -->
 <div id="panel">
@@ -1809,13 +1911,35 @@ wrap.addEventListener('wheel',e=>{
   zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?.1:-.1);
 },{passive:false});
 
+// Keyboard shortcuts: +/= zoom in, - zoom out, 0 fit screen, F fit, space/home centre ego
+document.addEventListener('keydown', e => {
+  // Don't fire when typing in inputs/textareas
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (!el('app').classList.contains('show')) return;
+  if (e.key === '+' || e.key === '=') { e.preventDefault(); doZoom(.15); }
+  else if (e.key === '-') { e.preventDefault(); doZoom(-.15); }
+  else if (e.key === '0') { e.preventDefault(); fitScreen(); }
+  else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); fitScreen(); }
+  else if (e.key === 'Escape') { closePanel(); }
+  else if ((e.key === ' ' || e.key === 'Home') && egoId) { e.preventDefault(); centreOnEgo(); }
+});
+
 // ── Node drag ──────────────────────────────────────────────────────
 let nd = {on:false,id:null,sx:0,sy:0,ox:0,oy:0,moved:false};
-function ndStart(e,id,cx,cy){ nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false}; e.stopPropagation(); }
+function ndStart(e,id,cx,cy){
+  nd={on:true,id,sx:cx,sy:cy,ox:DB.people[id].x||0,oy:DB.people[id].y||0,moved:false};
+  e.stopPropagation();
+}
 function ndMove(cx,cy){
   if(!nd.on)return;
   const dx=(cx-nd.sx)/vp.s,dy=(cy-nd.sy)/vp.s;
-  if(Math.abs(dx)>3||Math.abs(dy)>3)nd.moved=true;
+  if(Math.abs(dx)>3||Math.abs(dy)>3){
+    if(!nd.moved){ // first movement — add visual drag feedback
+      nd.moved=true;
+      const dc=nodesL.querySelector(`.card[data-id="${nd.id}"]`);
+      if(dc) dc.classList.add('dragging');
+    }
+  }
   if(!nd.moved)return;
   DB.people[nd.id].x=nd.ox+dx; DB.people[nd.id].y=nd.oy+dy;
   reposCard(nd.id); redrawLines();
@@ -1823,6 +1947,9 @@ function ndMove(cx,cy){
 async function ndEnd(){
   if(!nd.on)return;
   const moved=nd.moved,id=nd.id; nd.on=false;
+  // Remove drag visual feedback
+  const dc=id?nodesL.querySelector(`.card[data-id="${id}"]`):null;
+  if(dc) dc.classList.remove('dragging');
   if(moved&&id){
     await set(ref(db,`families/${FAM}/people/${id}/x`),DB.people[id].x);
     await set(ref(db,`families/${FAM}/people/${id}/y`),DB.people[id].y);
@@ -2203,9 +2330,8 @@ function applyDimming() {
 // ── Expand badges ─────────────────────────────────────────────────
 async function updateAllExpandBadges() {
   if (viewMode !== 'ego') return;
-  for (const pid of Object.keys(DB.people)) {
-    await updateExpandBadge(pid);
-  }
+  // PE1 — parallel fetches, not serial — avoids 15 sequential Firebase reads per render
+  await Promise.all(Object.keys(DB.people).map(pid => updateExpandBadge(pid)));
 }
 
 async function updateExpandBadge(pid) {
@@ -2360,7 +2486,9 @@ function render(){
   Object.keys(DB.rels).forEach(rid => loadedRids.add(rid));
   redrawLines();
   // Refresh ego view visuals after every render
-  if(viewMode==='ego'){ applyDimming(); updateAllExpandBadges(); }
+  if(viewMode==='ego'){ applyDimming(); }
+  // Note: updateAllExpandBadges() is NOT called here — it fires async Firebase reads
+  // and is called explicitly only when rels change (addRel, removeRel, expandPerson).
 }
 function renderCard(id,gen){
   const p=DB.people[id];
@@ -2394,8 +2522,9 @@ function renderCard(id,gen){
     <div class="card-name">${escHtml(fullName(p))}</div>
     <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
     ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
-  // Re-attach expand badge if it existed (innerHTML wipes it)
-  if (viewMode === 'ego') updateExpandBadge(id);}
+  // Re-attach expand badge is handled by updateAllExpandBadges() called after rel changes
+  // Not called per-renderCard to avoid N async Firebase reads per render cycle
+}
 function reposCard(id){
   const card=nodesL.querySelector(`.card[data-id="${id}"]`);
   if(!card)return;
@@ -2494,10 +2623,12 @@ function showPanel(id){
   const siblings=sibIds.map(sid=>({id:sid,role:'Sibling'}));
 
   function chipG(title,items){
-    return `<div class="sec"><div class="sec-t">${title} (${items.length})</div><div class="chips">${
-      items.length
-        ?items.filter(it=>DB.people[it.id]).map(it=>`<div class="chip" onclick="selectPerson('${it.id}')"><span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role}</small></div>`).join('')
-        :`<div class="no-rel">None recorded</div>`
+    // P3 — only render sections that have content (or loaded relatives)
+    const loaded = items.filter(it=>DB.people[it.id]);
+    if (!loaded.length) return '';
+    return `<div class="sec"><div class="sec-t">${title} (${loaded.length})</div><div class="chips">${
+      loaded.map(it=>`<div class="chip" onclick="selectPerson('${it.id}')">
+        <span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role} →</small></div>`).join('')
     }</div></div>`;
   }
 
@@ -2779,6 +2910,7 @@ async function addRel(){
 
   render();
   if (selId) showPanel(selId);
+  updateAllExpandBadges(); // update badges now that a rel changed
   closeRMo();
 
   try {
@@ -2798,6 +2930,7 @@ async function removeRel(id,elRef){
   if(elRef)elRef.remove();
   render();
   if(selId)showPanel(selId);
+  updateAllExpandBadges(); // update badges now that a rel was removed
   toast('Link removed');
 }
 
@@ -2868,14 +3001,34 @@ function applyHeaderH(h){
   document.documentElement.style.setProperty('--hh',h+'px');
   el('panel').style.top=h+'px';
 }
-function toggleMenu(){ const d=el('menu-drawer'); const o=!d.classList.contains('open'); d.classList.toggle('open'); applyHeaderH(o?192:52); }
-function closeMenu(){ el('menu-drawer').classList.remove('open'); applyHeaderH(52); }
+function toggleMenu(){
+  const d=el('menu-drawer'),bd=el('menu-backdrop');
+  const opening=!d.classList.contains('open');
+  d.classList.toggle('open',opening);
+  if(bd) bd.classList.toggle('on',opening);
+  // M1: overlay — never push canvas, always keep header at 52px
+  applyHeaderH(52);
+}
+function closeMenu(){
+  el('menu-drawer').classList.remove('open');
+  const bd=el('menu-backdrop'); if(bd) bd.classList.remove('on');
+  applyHeaderH(52);
+}
 let _lastW=window.innerWidth;
 window.addEventListener('resize',()=>{
   const nw=window.innerWidth;
   if(Math.abs(nw-_lastW)>10||nw>720)closeMenu();
   _lastW=nw;
   applyVP();
+});
+
+// C1 — Legend: tap to toggle open on touch devices
+el('canvas-legend').addEventListener('click',()=>{
+  el('canvas-legend').classList.toggle('open');
+});
+// Close legend when clicking elsewhere
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#canvas-legend')) el('canvas-legend').classList.remove('open');
 });
 
 // ══ PWA INSTALL ════════════════════════════════════════════════════

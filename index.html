@@ -610,19 +610,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
     </div>
-    <div id="menu-drawer">
-      <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search people…" autocomplete="off"><div id="srch-drop-m"></div></div>
-      <div class="mob-grid">
-        <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">＋ Add Person</button>
-        <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Relationships</button>
-        <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Auto Layout</button>
-        <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit to Screen</button>
-        <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Centre on Me</button>
-        <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">🌳 Full Tree</button>
-        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin Panel</button>
-        <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch Family</button>
-        <button class="hbtn" onclick="fullLogout();closeMenu()">⏻ Sign Out</button>
-      </div>
+  </div>
+  <!-- menu-drawer is a SIBLING of #hdr, not a child — so position:fixed removes it from flex flow -->
+  <div id="menu-drawer">
+    <div id="srch-wrap-m"><input id="srch-m" type="text" placeholder="Search people…" autocomplete="off"><div id="srch-drop-m"></div></div>
+    <div class="mob-grid">
+      <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">＋ Add Person</button>
+      <button class="hbtn" onclick="openRelMo();closeMenu()">⛓ Relationships</button>
+      <button class="hbtn" onclick="autoLayout();closeMenu()">⚡ Auto Layout</button>
+      <button class="hbtn" onclick="fitScreen();closeMenu()">⊡ Fit to Screen</button>
+      <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">◎ Centre on Me</button>
+      <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">🌳 Full Tree</button>
+      <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">👑 Admin Panel</button>
+      <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">⇄ Switch Family</button>
+      <button class="hbtn" onclick="fullLogout();closeMenu()">⏻ Sign Out</button>
     </div>
   </div>
   <div id="menu-backdrop" onclick="closeMenu()"></div>
@@ -2467,7 +2468,27 @@ function getGen(id, memo={}, visiting=new Set()){
   if(visiting.has(id)){ memo[id]=0; return 0; } // cycle detected — break it
   visiting.add(id);
   const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
-  if(!pars.length){ visiting.delete(id); memo[id]=0; return 0; }
+  if(!pars.length){
+    // No parent rels loaded — check if this person is a partner or sibling of someone
+    // whose generation we already know, and inherit it. This prevents a partner with
+    // unloaded parents from being assigned gen-0 (oldest-generation stripe) when their
+    // actual generation matches their partner's.
+    const partnerRel = Object.values(DB.rels).find(r =>
+      (r.from===id||r.to===id) && r.type==='Partner'
+    );
+    if(partnerRel){
+      const peerId = partnerRel.from===id ? partnerRel.to : partnerRel.from;
+      if(memo[peerId]!==undefined){ visiting.delete(id); memo[id]=memo[peerId]; return memo[id]; }
+    }
+    const sibRel = Object.values(DB.rels).find(r =>
+      (r.from===id||r.to===id) && r.type==='Sibling'
+    );
+    if(sibRel){
+      const peerId = sibRel.from===id ? sibRel.to : sibRel.from;
+      if(memo[peerId]!==undefined){ visiting.delete(id); memo[id]=memo[peerId]; return memo[id]; }
+    }
+    visiting.delete(id); memo[id]=0; return 0;
+  }
   memo[id]=1+Math.max(...pars.map(p=>getGen(p,memo,visiting)));
   visiting.delete(id);
   return memo[id];
@@ -2477,7 +2498,16 @@ function render(){
   el('empty').classList.toggle('hide',ids.length>0);
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
   const memo={};
+  // Pass 1: compute all parent-chain generations
   ids.forEach(id=>getGen(id,memo));
+  // Pass 2: re-resolve partner/sibling gens now that parent chains are fully populated.
+  // On pass 1 a partner processed before their partner's parents were resolved may have
+  // received gen 0 by default. This pass corrects those by re-running getGen with a
+  // fully-populated memo so the peer lookup in getGen finds the right value.
+  ids.forEach(id=>{
+    const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
+    if(!pars.length) { delete memo[id]; getGen(id,memo); } // re-run for parentless nodes only
+  });
   ids.forEach(id=>{
     loadedPids.add(id); // track loaded state
     renderCard(id,memo[id]%6);
@@ -2570,7 +2600,15 @@ function redrawLines(){
 async function autoLayout(){
   const ids=Object.keys(DB.people); if(!ids.length)return;
   const memo={};
+  // Pass 1: parent-chain generations
   ids.forEach(id=>getGen(id,memo));
+  // Pass 2: re-resolve partner/sibling gens — partners with no loaded parents
+  // default to gen 0 on pass 1, placing them in the grandparent row instead of
+  // alongside their partner. Pass 2 corrects this once partner's gen is in memo.
+  ids.forEach(id=>{
+    const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent');
+    if(!pars.length){ delete memo[id]; getGen(id,memo); }
+  });
   const byGen={};
   ids.forEach(id=>{const g=memo[id]||0;if(!byGen[g])byGen[g]=[];byGen[g].push(id);});
   const GH=170,GW=190,PAD=60;

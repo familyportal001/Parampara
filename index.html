@@ -402,6 +402,44 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 /* admin/members */
 .member-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
   background:var(--parch2);border-radius:var(--r);margin-bottom:8px}
+/* admin tabs */
+.adm-tab{flex:1;padding:10px 6px;font-size:11px;font-weight:500;text-transform:uppercase;
+  letter-spacing:.06em;cursor:pointer;background:none;border:none;color:var(--ink3);
+  border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif}
+.adm-tab:hover{color:var(--ink)}
+.adm-tab.on{color:var(--gold);border-bottom-color:var(--gold);background:none}
+/* import wizard */
+.imp-step{display:none}.imp-step.on{display:block}
+.imp-drop{border:2px dashed var(--clay);border-radius:8px;padding:28px 16px;
+  text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:14px}
+.imp-drop:hover,.imp-drop.drag{border-color:var(--gold)}
+.imp-drop input{display:none}
+.imp-drop-ico{font-size:32px;margin-bottom:8px}
+.imp-drop-lbl{font-size:13px;color:var(--ink3)}
+.imp-drop-sub{font-size:11px;color:var(--ink4);margin-top:4px}
+.imp-preview{max-height:220px;overflow-y:auto;border:1px solid var(--border);
+  border-radius:6px;margin-bottom:12px;font-size:11px}
+.imp-preview table{width:100%;border-collapse:collapse}
+.imp-preview th{background:var(--parch2);padding:6px 8px;text-align:left;
+  font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);
+  position:sticky;top:0;border-bottom:1px solid var(--border)}
+.imp-preview td{padding:5px 8px;border-bottom:1px solid rgba(74,46,16,.2);color:var(--ink2)}
+.imp-preview tr:last-child td{border-bottom:none}
+.imp-progress{background:var(--parch2);border-radius:6px;height:8px;
+  overflow:hidden;margin:8px 0}
+.imp-progress-bar{height:100%;background:var(--gold);transition:width .3s;border-radius:6px}
+.imp-mode-sel{display:flex;gap:8px;margin-bottom:14px}
+.imp-mode-btn{flex:1;padding:10px 6px;font-size:11px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;
+  background:var(--soil);border:1px solid var(--clay);border-radius:var(--r);
+  color:var(--ink3);transition:all .15s;font-family:'DM Sans',sans-serif}
+.imp-mode-btn.on{background:rgba(200,137,58,.12);border-color:var(--gold);color:var(--gold)}
+.imp-stat{font-size:12px;color:var(--ink3);margin-bottom:8px;line-height:1.6}
+/* archive banner in family picker */
+.fam-row.archived{opacity:.55}
+.fam-archived-badge{font-size:9px;background:rgba(120,80,40,.3);color:var(--copper);
+  border:1px solid rgba(120,80,40,.4);border-radius:10px;padding:2px 8px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .member-av{width:34px;height:34px;border-radius:50%;background:var(--border);
   display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
 .member-info{flex:1;min-width:0}
@@ -597,8 +635,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
     <!-- JOIN -->
     <div class="asec" id="asec-join">
-      <div class="fg"><label class="fl">Family Secret Key</label>
-        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" autocomplete="off"></div>
+      <div class="fg">
+        <label class="fl">Family Secret Key</label>
+        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" autocomplete="off"
+          oninput="onJoinKeyInput()">
+      </div>
+      <!-- New-group warning — shown only when key resolves to no existing family -->
+      <div id="j-newgroup-warn" style="display:none;background:rgba(224,112,112,.1);
+        border:1px solid rgba(224,112,112,.35);border-radius:6px;
+        padding:10px 12px;margin-bottom:10px;font-size:12px;color:#e8a0a0;line-height:1.6">
+        ⚠️ No family found with this key. If you continue, a <b>new family tree</b> will be created and you'll become its admin.
+        <label style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;cursor:pointer;color:var(--parch2)">
+          <input type="checkbox" id="j-newgroup-ack" style="margin-top:2px;accent-color:var(--gold);flex-shrink:0">
+          <span>I understand — I want to start a new family tree with this key</span>
+        </label>
+      </div>
       <div class="fi-row">
         <div class="fg"><label class="fl">First Name</label>
           <input class="fi" id="j-first" type="text" placeholder="First"></div>
@@ -794,10 +845,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   </div>
 </div>
 <div class="mo-ov" id="admin-mo">
-  <div class="mo" style="max-width:520px">
-    <div class="mo-hd"><div class="mo-title">Admin Panel</div><button class="pan-x" onclick="closeAMo()">✕</button></div>
+  <div class="mo" style="max-width:560px">
+    <div class="mo-hd">
+      <div class="mo-title">Admin Panel</div>
+      <button class="pan-x" onclick="closeAMo()">✕</button>
+    </div>
+    <!-- Admin tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);background:var(--parch2);flex-shrink:0">
+      <button class="adm-tab on" id="adm-tab-members" onclick="switchAdminTab('members')">👥 Members</button>
+      <button class="adm-tab" id="adm-tab-import"  onclick="switchAdminTab('import')">📥 Import</button>
+      <button class="adm-tab" id="adm-tab-settings" onclick="switchAdminTab('settings')">⚙️ Settings</button>
+    </div>
     <div class="mo-bd" id="amo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closeAMo()">Close</button></div>
+    <div class="mo-ft" id="amo-ft"><button class="hbtn" onclick="closeAMo()">Close</button></div>
   </div>
 </div>
 <div class="mo-ov" id="hist-mo">
@@ -1225,13 +1285,16 @@ async function recoverFamiliesFromFirebase(user) {
 
 function buildFamilyPicker(families) {
   el('fp-list').innerHTML = families.map(f => `
-    <div class="fam-row" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
-      <div style="font-size:26px">🌳</div>
+    <div class="fam-row${f.archived?' archived':''}" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
+      <div style="font-size:26px">${f.archived?'📦':'🌳'}</div>
       <div class="fam-info">
         <div class="fam-name">${escHtml(f.famKey)}</div>
         <div class="fam-meta">${escHtml(f.first||'')} ${escHtml(f.last||'')}</div>
       </div>
-      <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
+        ${f.archived?'<span class="fam-archived-badge">Archived</span>':''}
+      </div>
     </div>`).join('');
   showScreen('s-family');
 }
@@ -1275,6 +1338,11 @@ async function resumeFamily(fam) {
     }
     CU = { ...fam, uid: fbUser.uid, email: fbUser.email, role: data.role };
     fam.role = data.role;
+    // Load archived flag into CU so can() blocks writes correctly
+    try {
+      const archSnap = await get(ref(db, `families/${FAM}/archived`));
+      if (archSnap.exists() && archSnap.val()) CU.archived = true;
+    } catch(_) {}
     saveSession(fam);
 
     // Always backfill the userFamilies index — self-heals for existing members
@@ -1343,6 +1411,31 @@ async function doJoin() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email address'; return; }
 
   const fh = famHash(key);
+
+  // Guard against accidental new-group creation —
+  // if the key resolves to no existing family, require explicit acknowledgement.
+  const ackBox = el('j-newgroup-ack');
+  const warn   = el('j-newgroup-warn');
+  if (warn && warn.style.display !== 'none') {
+    // Warning is visible — user is attempting to create a new family
+    if (!ackBox || !ackBox.checked) {
+      errEl.textContent = 'Tick the checkbox to confirm you want to start a new family tree, or correct the key above.';
+      return;
+    }
+  } else if (_keyHasFamily === null && key.length >= 3) {
+    // Check hasn't run yet — do it inline before proceeding
+    errEl.textContent = 'Checking family key…';
+    try {
+      const snap = await get(adminFlagRef(fh));
+      _keyHasFamily = snap.exists();
+      if (!_keyHasFamily) {
+        if (warn) warn.style.display = 'block';
+        errEl.textContent = 'No family found with this key — see warning above.';
+        return;
+      }
+    } catch(_) { /* network issue — let it proceed */ }
+  }
+
   errEl.textContent = 'Creating account…';
 
   // Create or sign into Firebase Auth account
@@ -1513,6 +1606,8 @@ async function fullLogout() {
 
 // ══ PERMISSIONS ════════════════════════════════════════════════════
 function can(action) {
+  // Archived families are read-only — block all write actions
+  if (CU && CU.archived && ['add','edit','editOwn','delete'].includes(action)) return false;
   const r = CU && CU.role;
   if (!r) return false;
   const map = {
@@ -1830,7 +1925,13 @@ function gid() { return 'p' + Date.now() + '_' + Math.random().toString(36).slic
 const ALL_ROLES = ['admin','editor','contributor','viewer'];
 
 function openAdminMo() {
+  _adminTab = 'members';
+  ['members','import','settings'].forEach(t => {
+    const btn = el('adm-tab-'+t);
+    if (btn) btn.classList.toggle('on', t==='members');
+  });
   el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
   el('admin-mo').classList.add('on');
   loadMembers();
 }
@@ -3231,6 +3332,401 @@ applyHeaderH(52);
 applyVP();
 boot();
 
+// ══ ADMIN TABS ════════════════════════════════════════════════════
+let _adminTab = 'members';
+function switchAdminTab(tab) {
+  _adminTab = tab;
+  ['members','import','settings'].forEach(t => {
+    const btn = el('adm-tab-'+t);
+    if (btn) btn.classList.toggle('on', t===tab);
+  });
+  if (tab==='members')  loadMembers();
+  if (tab==='import')   loadImportTab();
+  if (tab==='settings') loadSettingsTab();
+}
+
+function openAdminMo_new() {
+  _adminTab = 'members';
+  ['members','import','settings'].forEach(t => {
+    const btn = el('adm-tab-'+t);
+    if (btn) btn.classList.toggle('on', t==='members');
+  });
+  el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('admin-mo').classList.add('on');
+  loadMembers();
+}
+
+// ══ BULK IMPORT ════════════════════════════════════════════════════
+let _impMode = 'people';   // 'people' | 'rels'
+let _impRows = [];         // parsed CSV rows ready to import
+
+function loadImportTab() {
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('amo-bd').innerHTML = `
+    <div class="imp-step on" id="imp-step-1">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.65">
+        Upload a <b>CSV file</b> to add people or relationships in bulk.
+        <a href="#" onclick="downloadImportTemplate();return false"
+          style="color:var(--gold);text-decoration:none;margin-left:4px">↓ Download template</a>
+      </div>
+      <div class="imp-mode-sel">
+        <button class="imp-mode-btn on" id="imp-btn-people" onclick="setImpMode('people')">👤 People</button>
+        <button class="imp-mode-btn"    id="imp-btn-rels"   onclick="setImpMode('rels')">⛓ Relationships</button>
+      </div>
+      <div class="imp-drop" id="imp-drop" onclick="el('imp-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleImpDrop(event)">
+        <input type="file" id="imp-file" accept=".csv" onchange="handleImpFile(this.files[0])">
+        <div class="imp-drop-ico">📄</div>
+        <div class="imp-drop-lbl">Click or drag a CSV file here</div>
+        <div class="imp-drop-sub" id="imp-mode-hint">Columns: first, last, dob, dod, gender, occupation, notes</div>
+      </div>
+      <div id="imp-file-err" style="font-size:12px;color:#e07070;min-height:16px"></div>
+    </div>
+
+    <div class="imp-step" id="imp-step-2">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;color:var(--ink)"><b id="imp-row-count">0</b> rows ready to import</div>
+        <button class="hbtn" style="padding:6px 12px;font-size:11px" onclick="impReset()">← Back</button>
+      </div>
+      <div class="imp-stat" id="imp-stat"></div>
+      <div class="imp-preview" id="imp-preview-wrap"></div>
+      <div style="font-size:11px;color:var(--ink4);margin-bottom:10px">
+        Duplicate names will be imported as new entries (no merge). Relationships require exact name matches.
+      </div>
+    </div>
+
+    <div class="imp-step" id="imp-step-3">
+      <div style="font-size:13px;color:var(--ink);margin-bottom:10px" id="imp-progress-lbl">Importing…</div>
+      <div class="imp-progress"><div class="imp-progress-bar" id="imp-progress-bar" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--ink4);margin-top:6px" id="imp-progress-sub"></div>
+    </div>
+
+    <div class="imp-step" id="imp-step-4">
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:40px;margin-bottom:10px" id="imp-done-ico">✅</div>
+        <div style="font-size:16px;color:var(--ink);font-family:'Crimson Pro',serif;margin-bottom:6px" id="imp-done-title">Import complete</div>
+        <div style="font-size:12px;color:var(--ink3)" id="imp-done-sub"></div>
+      </div>
+    </div>`;
+}
+
+function setImpMode(mode) {
+  _impMode = mode;
+  el('imp-btn-people').classList.toggle('on', mode==='people');
+  el('imp-btn-rels').classList.toggle('on', mode==='rels');
+  const hint = el('imp-mode-hint');
+  if (hint) hint.textContent = mode==='people'
+    ? 'Columns: first, last, dob, dod, gender, occupation, notes'
+    : 'Columns: personA, personB, type  (type = Parent | Partner | Sibling)';
+}
+
+function handleImpDrop(e) {
+  e.preventDefault();
+  el('imp-drop').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleImpFile(file);
+}
+
+function handleImpFile(file) {
+  if (!file) return;
+  if (!file.name.endsWith('.csv')) {
+    el('imp-file-err').textContent = 'Please upload a .csv file';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => parseImpCSV(e.target.result);
+  reader.readAsText(file);
+}
+
+function parseImpCSV(text) {
+  // Normalise line endings, split rows, trim
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
+  if (lines.length < 2) { el('imp-file-err').textContent = 'CSV must have a header row and at least one data row'; return; }
+
+  // Parse header — be lenient about casing and whitespace
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g,''));
+
+  const rows = [];
+  const errs = [];
+  lines.slice(1).forEach((line, i) => {
+    // Handle quoted fields with commas
+    const cells = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch==='"') inQ=!inQ;
+      else if (ch===',' && !inQ) { cells.push(cur.trim()); cur=''; }
+      else cur+=ch;
+    }
+    cells.push(cur.trim());
+
+    const row = {};
+    headers.forEach((h,j) => { row[h] = (cells[j]||'').replace(/^"|"$/g,'').trim(); });
+
+    if (_impMode === 'people') {
+      if (!row.first) { errs.push(`Row ${i+2}: missing 'first' name`); return; }
+      rows.push(row);
+    } else {
+      if (!row.persona && !row.person_a && !row['persona']) {
+        // try common header variants
+        const a = row.persona || row.person_a || row.a || row.from || '';
+        const b = row.personb || row.person_b || row.b || row.to || '';
+        row._a = a; row._b = b;
+      } else {
+        row._a = row.persona || row.person_a || '';
+        row._b = row.personb || row.person_b || '';
+      }
+      const validTypes = ['parent','partner','sibling'];
+      const t = (row.type||'').toLowerCase();
+      if (!row._a || !row._b) { errs.push(`Row ${i+2}: missing personA or personB`); return; }
+      if (!validTypes.includes(t)) { errs.push(`Row ${i+2}: type must be Parent, Partner, or Sibling`); return; }
+      row._type = t.charAt(0).toUpperCase()+t.slice(1);
+      rows.push(row);
+    }
+  });
+
+  if (!rows.length) {
+    el('imp-file-err').textContent = errs.length
+      ? 'Errors: ' + errs.slice(0,3).join(' | ')
+      : 'No valid rows found in file';
+    return;
+  }
+
+  _impRows = rows;
+  showImpStep(2);
+  buildImpPreview(rows, errs);
+}
+
+function buildImpPreview(rows, errs) {
+  el('imp-row-count').textContent = rows.length;
+
+  const stat = errs.length
+    ? `<span style="color:#e07070">${errs.length} row(s) skipped — ${escHtml(errs[0])}</span>`
+    : `<span style="color:#5cab6a">All rows parsed cleanly ✓</span>`;
+  el('imp-stat').innerHTML = stat;
+
+  let thead, tbody;
+  if (_impMode === 'people') {
+    thead = '<tr><th>#</th><th>First</th><th>Last</th><th>DOB</th><th>Gender</th><th>Occupation</th></tr>';
+    tbody = rows.slice(0,50).map((r,i) =>
+      `<tr><td>${i+1}</td><td>${escHtml(r.first)}</td><td>${escHtml(r.last||'')}</td>
+       <td>${escHtml(r.dob||'')}</td><td>${escHtml(r.gender||'')}</td><td>${escHtml(r.occupation||'')}</td></tr>`
+    ).join('');
+  } else {
+    thead = '<tr><th>#</th><th>Person A</th><th>Person B</th><th>Type</th></tr>';
+    tbody = rows.slice(0,50).map((r,i) =>
+      `<tr><td>${i+1}</td><td>${escHtml(r._a)}</td><td>${escHtml(r._b)}</td><td>${escHtml(r._type)}</td></tr>`
+    ).join('');
+  }
+  if (rows.length > 50) tbody += `<tr><td colspan="6" style="text-align:center;color:var(--ink4)">…and ${rows.length-50} more rows</td></tr>`;
+  el('imp-preview-wrap').innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+
+  el('amo-ft').innerHTML = `
+    <button class="hbtn" onclick="impReset()">Cancel</button>
+    <button class="hbtn primary" onclick="runImport()">Import ${rows.length} ${_impMode==='people'?'People':'Relationships'}</button>`;
+}
+
+function showImpStep(n) {
+  [1,2,3,4].forEach(i => {
+    const s = el('imp-step-'+i);
+    if (s) s.classList.toggle('on', i===n);
+  });
+}
+
+function impReset() {
+  _impRows = [];
+  loadImportTab();
+}
+
+async function runImport() {
+  if (!_impRows.length) return;
+  showImpStep(3);
+  el('amo-ft').innerHTML = '';
+
+  const total = _impRows.length;
+  let done = 0, failed = 0;
+  const BATCH = 10, DELAY = 250; // respect Firebase rate limits
+
+  const setProgress = (d, f) => {
+    const pct = Math.round((d/total)*100);
+    el('imp-progress-bar').style.width = pct+'%';
+    el('imp-progress-lbl').textContent = `Importing… ${d} / ${total}`;
+    el('imp-progress-sub').textContent = f ? `${f} error(s)` : '';
+  };
+
+  if (_impMode === 'people') {
+    // Build a name→pid lookup for existing people (needed if rels come later)
+    for (let i=0; i<total; i+=BATCH) {
+      const batch = _impRows.slice(i, i+BATCH);
+      await Promise.all(batch.map(async row => {
+        try {
+          const pid = gid();
+          const personData = {
+            id: pid,
+            first: row.first || '',
+            last:  row.last  || '',
+            dob:   row.dob   || '',
+            dod:   row.dod   || '',
+            gender:     row.gender     || '',
+            occupation: row.occupation || '',
+            notes:      row.notes      || '',
+            addedBy:     fbUser.uid,
+            addedByName: `${CU.first} ${CU.last}`.trim(),
+            addedAt:     Date.now(),
+          };
+          await set(ref(db, `families/${FAM}/people/${pid}`), personData);
+          searchCache.set(pid, { first: personData.first, last: personData.last, dob: personData.dob, gender: personData.gender });
+          done++;
+        } catch(e) { failed++; }
+        setProgress(done+failed, failed);
+      }));
+      if (i+BATCH < total) await new Promise(r=>setTimeout(r,DELAY));
+    }
+  } else {
+    // Rels import — need name→pid lookup
+    const nameToPid = {};
+    Object.entries(DB.people).forEach(([pid,p]) => {
+      const key = `${(p.first||'').toLowerCase().trim()} ${(p.last||'').toLowerCase().trim()}`.trim();
+      nameToPid[key] = pid;
+    });
+
+    for (let i=0; i<total; i+=BATCH) {
+      const batch = _impRows.slice(i, i+BATCH);
+      await Promise.all(batch.map(async row => {
+        try {
+          const keyA = row._a.toLowerCase().trim();
+          const keyB = row._b.toLowerCase().trim();
+          const pidA = nameToPid[keyA];
+          const pidB = nameToPid[keyB];
+          if (!pidA || !pidB) { failed++; setProgress(done+failed,failed); return; }
+          const rid = 'r'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+          const relData = { id:rid, from:pidA, to:pidB, type:row._type,
+            addedBy:fbUser.uid, addedAt:Date.now() };
+          await putRel(rid, relData);
+          done++;
+        } catch(e) { failed++; }
+        setProgress(done+failed, failed);
+      }));
+      if (i+BATCH < total) await new Promise(r=>setTimeout(r,DELAY));
+    }
+  }
+
+  // Done
+  showImpStep(4);
+  el('imp-done-ico').textContent  = failed===0 ? '✅' : '⚠️';
+  el('imp-done-title').textContent = failed===0 ? 'Import complete' : 'Import finished with errors';
+  el('imp-done-sub').textContent  = `${done} ${_impMode==='people'?'people':'relationships'} imported`
+    + (failed ? `, ${failed} skipped (name not found or write error)` : '');
+  el('amo-ft').innerHTML = `
+    <button class="hbtn" onclick="loadImportTab()">Import More</button>
+    <button class="hbtn primary" onclick="closeAMo()">Done</button>`;
+
+  if (done > 0) setTimeout(()=>render(), 400);
+}
+
+function downloadImportTemplate() {
+  const content = _impMode === 'people'
+    ? 'first,last,dob,dod,gender,occupation,notes\nArjun,Sharma,1980-03-15,,Male,Engineer,\nPriya,Sharma,1983-07-22,,Female,Doctor,'
+    : 'personA,personB,type\nArjun Sharma,Priya Sharma,Partner\nArjun Sharma,Rahul Sharma,Parent';
+  const blob = new Blob([content], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = _impMode==='people' ? 'parampara-people-template.csv' : 'parampara-rels-template.csv';
+  a.click();
+}
+
+// ══ ARCHIVE FAMILY ════════════════════════════════════════════════
+async function archiveFamily() {
+  if (!confirm('Archive this family tree? Members will still be able to view it, but no edits will be allowed until it is unarchived.')) return;
+  try {
+    await set(ref(db, `families/${FAM}/archived`), true);
+    await set(ref(db, `families/${FAM}/archivedAt`), Date.now());
+    await set(ref(db, `families/${FAM}/archivedBy`), fbUser.uid);
+    // Update local session flag
+    const s = getSessions();
+    const f = s.families.find(x => x.fh === FAM);
+    if (f) { f.archived = true; localStorage.setItem('para_v3', JSON.stringify(s)); }
+    if (CU) CU.archived = true;
+    updatePermUI();
+    toast('Family archived — now read-only');
+    loadSettingsTab();
+  } catch(e) { toast('Error archiving: ' + e.message); }
+}
+
+async function unarchiveFamily() {
+  try {
+    await set(ref(db, `families/${FAM}/archived`), null);
+    await set(ref(db, `families/${FAM}/archivedAt`), null);
+    await set(ref(db, `families/${FAM}/archivedBy`), null);
+    const s = getSessions();
+    const f = s.families.find(x => x.fh === FAM);
+    if (f) { delete f.archived; localStorage.setItem('para_v3', JSON.stringify(s)); }
+    if (CU) delete CU.archived;
+    updatePermUI();
+    toast('Family restored — editing enabled');
+    loadSettingsTab();
+  } catch(e) { toast('Error restoring: ' + e.message); }
+}
+
+function loadSettingsTab() {
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  const isArchived = CU && CU.archived;
+  el('amo-bd').innerHTML = `
+    <div class="sec-t">Family Tree Status</div>
+    <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:20px">${isArchived ? '📦' : '🌳'}</span>
+        <div>
+          <div style="font-size:13px;color:var(--ink);font-weight:500">${isArchived ? 'Archived' : 'Active'}</div>
+          <div style="font-size:11px;color:var(--ink3)">${isArchived ? 'Read-only — no edits allowed' : 'Fully editable by authorised members'}</div>
+        </div>
+      </div>
+      ${isArchived
+        ? `<button class="hbtn" style="width:100%" onclick="unarchiveFamily()">↩ Restore Family (allow editing)</button>`
+        : `<button class="hbtn" style="width:100%;border-color:var(--copper);color:var(--copper)" onclick="archiveFamily()">📦 Archive this Family Tree</button>`
+      }
+    </div>
+
+    <div class="sec-t" style="color:var(--rose)">Danger Zone</div>
+    <div style="background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);
+      border-radius:var(--r);padding:14px;font-size:12px;color:var(--ink3);line-height:1.7">
+      Permanent deletion is not available — archive the family instead to preserve data.
+      If you need the family permanently removed, contact support.
+    </div>`;
+}
+
+// ══ KEY-EXISTS CHECK (for join form warning) ═══════════════════════
+let _keyCheckTimer = null;
+let _keyHasFamily = null; // null=unknown, true=exists, false=new
+
+async function onJoinKeyInput() {
+  const key = (el('j-key')||{value:''}).value.trim();
+  const warn = el('j-newgroup-warn');
+  const ack  = el('j-newgroup-ack');
+  if (!warn) return;
+
+  // Reset on short keys
+  if (key.length < 3) { warn.style.display='none'; _keyHasFamily=null; return; }
+
+  // Debounce — only check 600ms after user stops typing
+  clearTimeout(_keyCheckTimer);
+  _keyCheckTimer = setTimeout(async () => {
+    try {
+      const fh = famHash(key);
+      const snap = await get(adminFlagRef(fh));
+      _keyHasFamily = snap.exists();
+      if (warn) warn.style.display = _keyHasFamily ? 'none' : 'block';
+      if (ack && _keyHasFamily) ack.checked = false;
+    } catch(_) { /* network error — don't show warning */ }
+  }, 600);
+}
+
+// ══ ADMIN PANEL — patch openAdminMo ═══════════════════════════════
+// openAdminMo is defined above and already uses tabs.
+
+
 // ══ EXPOSE TO GLOBAL SCOPE (required because onclick= runs outside module scope) ══
 Object.assign(window, {
   // Language & boot
@@ -3257,6 +3753,9 @@ Object.assign(window, {
   closeRMo, addRel, removeRel, relPersonSearch, clearRelPerson,
   // Admin modal
   closeAMo, setRole, removeM, adminSendReset,
+  switchAdminTab, loadImportTab, loadSettingsTab,
+  setImpMode, handleImpDrop, handleImpFile, impReset, runImport, downloadImportTemplate,
+  archiveFamily, unarchiveFamily, onJoinKeyInput,
   // Profile link modal
   openLinkMo, closeLinkMo, confirmLink, clearLink, filterLinkPicker,
   // History modal

@@ -607,6 +607,232 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   /* panel footer sits above home indicator in PWA standalone */
   .pan-ft{padding-bottom:calc(12px + var(--sab))}
 }
+
+
+/* Relationship Finder modal overlay */
+#rel-finder-mo {
+  position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,.72);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .22s;
+}
+#rel-finder-mo.on { opacity:1;pointer-events:all; }
+
+/* Modal card */
+.rfi-card {
+  background:var(--panel);
+  border-radius:12px;
+  width:100%;max-width:520px;
+  max-height:90vh;
+  display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.55),0 4px 16px rgba(0,0,0,.3);
+  color:var(--ink);
+  transform:translateY(14px) scale(.97);
+  transition:transform .22s cubic-bezier(.2,0,.2,1);
+  overflow:hidden;
+}
+#rel-finder-mo.on .rfi-card { transform:none; }
+
+/* Header */
+.rfi-hd {
+  background:var(--parch2);
+  border-bottom:1px solid var(--border);
+  padding:18px 20px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.rfi-hd-left { display:flex;align-items:center;gap:10px; }
+.rfi-icon {
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--gold),var(--copper));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;box-shadow:0 2px 8px rgba(200,137,58,.3);
+}
+.rfi-title {
+  font-family:'Crimson Pro',serif;font-size:20px;font-weight:600;color:var(--ink);
+}
+.rfi-subtitle {
+  font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;
+}
+.rfi-close {
+  background:none;border:none;cursor:pointer;color:var(--ink3);
+  font-size:20px;padding:6px;border-radius:4px;transition:color .15s;
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+}
+.rfi-close:hover { color:var(--rose); }
+
+/* Person selector row */
+.rfi-selectors {
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:10px;align-items:start;
+  padding:16px 20px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--parch);
+  flex-shrink:0;
+}
+.rfi-vs {
+  display:flex;align-items:center;justify-content:center;
+  padding-top:22px;
+  font-size:13px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro',serif;
+}
+.rfi-slot-label {
+  font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);
+  font-weight:600;margin-bottom:5px;
+}
+.rfi-slot-wrap { position:relative; }
+.rfi-slot-input {
+  width:100%;background:white;border:1.5px solid var(--border);color:var(--ink);
+  font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;
+  border-radius:var(--r);outline:none;transition:border-color .15s;
+}
+.rfi-slot-input:focus { border-color:var(--gold); }
+.rfi-slot-input::placeholder { color:var(--ink4); }
+
+/* selected chip inside slot */
+.rfi-chip {
+  display:flex;align-items:center;gap:6px;
+  background:var(--parch2);border:1.5px solid var(--gold);
+  border-radius:var(--r);padding:7px 9px;min-height:36px;
+}
+.rfi-chip-av {
+  width:24px;height:24px;border-radius:50%;
+  background:var(--soil);border:1px solid var(--clay);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:var(--cream);flex-shrink:0;
+}
+.rfi-chip-name {
+  font-size:12px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;
+}
+.rfi-chip-x {
+  cursor:pointer;color:var(--ink4);font-size:14px;line-height:1;
+  padding:0 2px;transition:color .12s;flex-shrink:0;
+}
+.rfi-chip-x:hover { color:var(--rose); }
+
+/* Search dropdown */
+.rfi-drop {
+  position:absolute;top:calc(100% + 3px);left:0;right:0;
+  background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
+  z-index:700;display:none;max-height:160px;overflow-y:auto;
+  box-shadow:0 4px 18px rgba(0,0,0,.4);
+}
+.rfi-drop.on { display:block; }
+.rfi-drop-row {
+  padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.3);
+  color:var(--parch);font-size:12px;transition:background .1s;
+}
+.rfi-drop-row:hover { background:var(--soil); }
+.rfi-drop-row small { display:block;color:var(--copper);font-size:10px;margin-top:1px; }
+
+/* Find button */
+.rfi-find-btn {
+  margin:0 20px 14px;padding:11px;border:none;border-radius:var(--r);
+  background:var(--gold);color:var(--ink);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  flex-shrink:0;
+}
+.rfi-find-btn:hover { background:var(--gold2);transform:translateY(-1px); }
+.rfi-find-btn:disabled { background:var(--clay);color:var(--ink4);transform:none;cursor:not-allowed; }
+.rfi-find-btn-ico { font-size:15px; }
+
+/* Results body */
+.rfi-results {
+  flex:1;overflow-y:auto;padding:0 20px 20px;
+  overscroll-behavior:contain;
+}
+.rfi-results::-webkit-scrollbar { width:3px; }
+.rfi-results::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
+
+/* Empty / loading / error states */
+.rfi-state {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 20px;text-align:center;min-height:140px;
+}
+.rfi-state-ico { font-size:40px;margin-bottom:12px;opacity:.5; }
+.rfi-state-t { font-family:'Crimson Pro',serif;font-size:18px;color:var(--ink3);margin-bottom:6px; }
+.rfi-state-s { font-size:12px;color:var(--ink4);line-height:1.6; }
+
+/* Result: relationship label banner */
+.rfi-rel-banner {
+  background:linear-gradient(135deg,rgba(200,137,58,.12),rgba(139,94,42,.08));
+  border:1px solid rgba(200,137,58,.3);
+  border-radius:8px;padding:14px 16px;margin:16px 0 12px;
+  text-align:center;
+}
+.rfi-rel-label {
+  font-family:'Crimson Pro',serif;font-size:22px;font-weight:600;color:var(--gold);
+  line-height:1.2;margin-bottom:4px;
+}
+.rfi-rel-degree {
+  font-size:11px;color:var(--ink4);text-transform:uppercase;letter-spacing:.08em;
+}
+
+/* Path chain */
+.rfi-path-title {
+  font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--copper);
+  font-weight:700;margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+.rfi-path-chain { display:flex;flex-direction:column;gap:0; }
+
+/* Each node in chain */
+.rfi-node {
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  position:relative;
+}
+.rfi-node:not(:last-child)::after {
+  content:'';position:absolute;left:17px;top:48px;bottom:0;
+  width:2px;background:rgba(200,137,58,.2);
+  height:calc(100% - 30px);
+}
+.rfi-node-av {
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--cream);
+  border:2px solid var(--clay);background:var(--soil);position:relative;z-index:1;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.rfi-node-av.ego { border-color:var(--gold);background:linear-gradient(135deg,var(--clay),var(--soil)); }
+.rfi-node-info { flex:1;min-width:0; }
+.rfi-node-name {
+  font-size:13px;font-weight:500;color:var(--ink);line-height:1.3;
+}
+.rfi-node-meta { font-size:10px;color:var(--ink3);margin-top:1px; }
+.rfi-node-you {
+  font-size:8px;padding:2px 6px;border-radius:8px;
+  background:rgba(200,137,58,.15);color:var(--gold);
+  border:1px solid rgba(200,137,58,.3);font-weight:700;letter-spacing:.04em;
+  margin-left:6px;vertical-align:middle;
+}
+
+/* Connector between nodes */
+.rfi-connector {
+  display:flex;align-items:center;gap:8px;padding:2px 0 2px 48px;
+}
+.rfi-conn-line {
+  width:24px;height:2px;background:rgba(200,137,58,.35);flex-shrink:0;
+}
+.rfi-conn-label {
+  font-size:10px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro',serif;
+  white-space:nowrap;
+}
+
+/* No path found */
+.rfi-no-path {
+  background:rgba(122,48,48,.08);border:1px solid rgba(122,48,48,.25);
+  border-radius:8px;padding:16px;text-align:center;margin-top:16px;
+}
+.rfi-no-path-ico { font-size:28px;margin-bottom:8px; }
+.rfi-no-path-t { font-family:'Crimson Pro',serif;font-size:16px;color:var(--rose);margin-bottom:4px; }
+.rfi-no-path-s { font-size:11px;color:var(--ink4);line-height:1.6; }
+
+/* Spin animation */
+@keyframes rfi-spin { to{transform:rotate(360deg)} }
+.rfi-spin { animation:rfi-spin .9s linear infinite;display:inline-block; }
+
 </style>
 </head>
 <body>
@@ -738,6 +964,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         <div class="hbtn-sep"></div>
         <!-- Action group -->
         <button class="hbtn" onclick="openRelMo()" data-i18n="relationships2">⛓ Relationships</button>
+        <button class="hbtn icon" onclick="openRelFinderMo()" data-i18n="findRelation" data-tip="Find Relationship">🔍</button>
         <button class="hbtn primary" onclick="openAddMo()" id="btn-add" data-i18n="addBtn">＋ Add</button>
         <div class="hbtn-sep"></div>
         <!-- Account group -->
@@ -765,6 +992,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       </button>
       <button class="hbtn" onclick="openRelMo();closeMenu()">
         <span class="btn-ico">⛓</span><span class="btn-lbl" data-i18n="relationships">Relationships</span>
+      </button>
+      <button class="hbtn" onclick="openRelFinderMo();closeMenu()">
+        <span class="btn-ico">🔍</span><span class="btn-lbl" data-i18n="findRelation">Find Relation</span>
       </button>
       <button class="hbtn" onclick="autoLayout();closeMenu()">
         <span class="btn-ico">⚡</span><span class="btn-lbl" data-i18n="autoLayout">Auto Layout</span>
@@ -914,6 +1144,62 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   </div>
 </div>
 <div id="toast"></div>
+
+<!-- ══ RELATIONSHIP FINDER ══  -->
+<div id="rel-finder-mo">
+  <div class="rfi-card">
+
+    <!-- Header -->
+    <div class="rfi-hd">
+      <div class="rfi-hd-left">
+        <div class="rfi-icon">🔗</div>
+        <div>
+          <div class="rfi-title">Find Relationship</div>
+          <div class="rfi-subtitle">How are two people connected?</div>
+        </div>
+      </div>
+      <button class="rfi-close" onclick="closeRelFinderMo()">✕</button>
+    </div>
+
+    <!-- Person Selectors -->
+    <div class="rfi-selectors">
+      <div>
+        <div class="rfi-slot-label">Person A</div>
+        <div class="rfi-slot-wrap" id="rfi-a-wrap">
+          <div id="rfi-a-chip" style="display:none"></div>
+          <input class="rfi-slot-input" id="rfi-a-in" placeholder="Search name…" autocomplete="off"
+            oninput="rfiSearch('A',this.value)">
+          <div class="rfi-drop" id="rfi-a-drop"></div>
+        </div>
+      </div>
+      <div class="rfi-vs">and</div>
+      <div>
+        <div class="rfi-slot-label">Person B</div>
+        <div class="rfi-slot-wrap" id="rfi-b-wrap">
+          <div id="rfi-b-chip" style="display:none"></div>
+          <input class="rfi-slot-input" id="rfi-b-in" placeholder="Search name…" autocomplete="off"
+            oninput="rfiSearch('B',this.value)">
+          <div class="rfi-drop" id="rfi-b-drop"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Find button -->
+    <button class="rfi-find-btn" id="rfi-find-btn" onclick="runRelFinder()" disabled>
+      <span class="rfi-find-btn-ico">🔍</span> Find Connection
+    </button>
+
+    <!-- Results -->
+    <div class="rfi-results" id="rfi-results">
+      <div class="rfi-state">
+        <div class="rfi-state-ico">🌳</div>
+        <div class="rfi-state-t">Select two family members</div>
+        <div class="rfi-state-s">Choose Person A and Person B above, then tap "Find Connection" to discover how they're related.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ══ DIAGNOSTIC PANEL (tap the Parampara logo 5 times to open) ══ -->
 <div id="diag-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);padding:16px;overflow-y:auto">
@@ -4100,6 +4386,400 @@ async function onJoinKeyInput() {
 // openAdminMo is defined above and already uses tabs.
 
 
+// ══════════════════════════════════════════════════════════════════════════════
+// RELATIONSHIP FINDER — Core Logic
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _rfiA = null; // { pid, name }
+let _rfiB = null; // { pid, name }
+
+function openRelFinderMo(preIdA) {
+  _rfiA = null; _rfiB = null;
+  // If called from a person's panel, pre-fill slot A
+  if (preIdA && DB.people[preIdA]) {
+    _rfiA = { pid: preIdA, name: fullName(DB.people[preIdA]) };
+    rfiRenderChip('A');
+    rfiUpdateBtn();
+  } else {
+    rfiReset();
+  }
+  document.getElementById('rfi-results').innerHTML = `
+    <div class="rfi-state">
+      <div class="rfi-state-ico">🌳</div>
+      <div class="rfi-state-t">Select two family members</div>
+      <div class="rfi-state-s">Choose Person A and Person B, then tap "Find Connection".</div>
+    </div>`;
+  document.getElementById('rel-finder-mo').classList.add('on');
+}
+
+function closeRelFinderMo() {
+  document.getElementById('rel-finder-mo').classList.remove('on');
+}
+
+// Close on backdrop click
+document.getElementById('rel-finder-mo').addEventListener('click', e => {
+  if (e.target === document.getElementById('rel-finder-mo')) closeRelFinderMo();
+});
+
+// ── Search within slots ────────────────────────────────────────────────────
+function rfiSearch(slot, q) {
+  const dropId = slot === 'A' ? 'rfi-a-drop' : 'rfi-b-drop';
+  const drop = document.getElementById(dropId);
+  const lq = q.trim().toLowerCase();
+  if (!lq) { drop.classList.remove('on'); return; }
+
+  const hits = [];
+  searchCache.forEach((p, pid) => {
+    const name = `${p.first} ${p.last}`.toLowerCase();
+    if (name.includes(lq)) hits.push({ pid, ...p });
+  });
+  if (!hits.length) { drop.classList.remove('on'); return; }
+
+  drop.innerHTML = hits.slice(0, 8).map(h =>
+    `<div class="rfi-drop-row" data-pid="${h.pid}" data-name="${escHtml(`${h.first} ${h.last}`.trim())}">
+      ${escHtml(`${h.first} ${h.last}`.trim())}
+      <small>${escHtml(h.dob || h.gender || '')}</small>
+    </div>`
+  ).join('');
+
+  drop.querySelectorAll('.rfi-drop-row').forEach(row => {
+    row.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const pid = row.dataset.pid;
+      const name = row.dataset.name;
+      if (slot === 'A') _rfiA = { pid, name };
+      else              _rfiB = { pid, name };
+      rfiRenderChip(slot);
+      drop.classList.remove('on');
+      rfiUpdateBtn();
+    });
+  });
+  drop.classList.add('on');
+}
+
+function rfiRenderChip(slot) {
+  const sel = slot === 'A' ? _rfiA : _rfiB;
+  const chipId = `rfi-${slot.toLowerCase()}-chip`;
+  const inId   = `rfi-${slot.toLowerCase()}-in`;
+  const chip = document.getElementById(chipId);
+  const inp  = document.getElementById(inId);
+  if (!sel) {
+    chip.style.display = 'none';
+    inp.style.display  = '';
+    inp.value = '';
+    return;
+  }
+  const p = DB.people[sel.pid] || {};
+  const ini = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
+  const avClass = p.gender === 'Female' ? 'rfi-node-av' : p.gender === 'Male' ? 'rfi-node-av' : 'rfi-node-av';
+  chip.innerHTML = `
+    <div class="rfi-chip">
+      <div class="rfi-chip-av">${ini}</div>
+      <span class="rfi-chip-name">${escHtml(sel.name)}</span>
+      <span class="rfi-chip-x" onclick="rfiClearSlot('${slot}')">✕</span>
+    </div>`;
+  chip.style.display = '';
+  inp.style.display  = 'none';
+}
+
+function rfiClearSlot(slot) {
+  if (slot === 'A') _rfiA = null;
+  else              _rfiB = null;
+  rfiRenderChip(slot);
+  rfiUpdateBtn();
+  document.getElementById(`rfi-${slot.toLowerCase()}-in`).focus();
+}
+
+function rfiReset() {
+  _rfiA = null; _rfiB = null;
+  ['A','B'].forEach(s => rfiRenderChip(s));
+  rfiUpdateBtn();
+}
+
+function rfiUpdateBtn() {
+  document.getElementById('rfi-find-btn').disabled = !(_rfiA && _rfiB && _rfiA.pid !== _rfiB.pid);
+}
+
+// ══ BFS: find shortest path between two people ══════════════════════════════
+// Graph is undirected: parent/child edges are bidirectional.
+// Each step records: { pid, via: relId, direction: 'up'|'down'|'partner'|'sibling' }
+function bfsPath(startId, endId) {
+  if (startId === endId) return [{ pid: startId, via: null, direction: null }];
+
+  const rels = Object.values(DB.rels);
+
+  // Build adjacency: pid → [ { pid, type, direction } ]
+  const adj = {};
+  const addEdge = (from, to, type, dir) => {
+    if (!adj[from]) adj[from] = [];
+    adj[from].push({ pid: to, type, direction: dir });
+  };
+
+  rels.forEach(r => {
+    if (r.deleted) return;
+    if (r.type === 'Parent') {
+      // from is parent of to
+      addEdge(r.from, r.to, 'Parent', 'down');  // parent→child
+      addEdge(r.to, r.from, 'Parent', 'up');     // child→parent
+    } else if (r.type === 'Partner') {
+      addEdge(r.from, r.to, 'Partner', 'partner');
+      addEdge(r.to, r.from, 'Partner', 'partner');
+    } else if (r.type === 'Sibling') {
+      addEdge(r.from, r.to, 'Sibling', 'sibling');
+      addEdge(r.to, r.from, 'Sibling', 'sibling');
+    }
+  });
+
+  // BFS
+  const visited = new Set([startId]);
+  const queue = [[ { pid: startId, via: null, direction: null } ]];
+
+  while (queue.length) {
+    const path = queue.shift();
+    const cur = path[path.length - 1].pid;
+    const neighbours = adj[cur] || [];
+    for (const nb of neighbours) {
+      if (visited.has(nb.pid)) continue;
+      visited.add(nb.pid);
+      const newPath = [...path, { pid: nb.pid, via: nb.type, direction: nb.direction }];
+      if (nb.pid === endId) return newPath;
+      queue.push(newPath);
+    }
+  }
+  return null; // no connection
+}
+
+// ══ Relationship Naming Engine ══════════════════════════════════════════════
+// Translates a chain of BFS steps into a human-readable relationship label.
+// Strategy: count net generations up (↑) and down (↓) from A's perspective.
+//   - Pure up: ancestor
+//   - Pure down: descendant
+//   - Up then down: cousins / aunt / uncle
+//   - Partner link: spouse
+//   - Sibling link: sibling
+
+function describeRelationship(path, pidA, pidB) {
+  if (!path || path.length < 2) return { label: 'Same person', degree: '' };
+
+  const genderB = (DB.people[pidB] || {}).gender || '';
+  const isFem = genderB === 'Female';
+  const isMal = genderB === 'Male';
+
+  // Analyse the step directions
+  const steps = path.slice(1).map(s => s.direction); // exclude start node
+
+  // ── Partner (1-hop) ────────────────────────────────────────────────
+  if (steps.length === 1 && steps[0] === 'partner') {
+    return { label: isFem ? 'Wife / Partner' : isMal ? 'Husband / Partner' : 'Spouse / Partner', degree: '1 step away' };
+  }
+
+  // ── Sibling (1-hop via sibling rel, or 2-hop via shared parent) ────
+  if (steps.length === 1 && steps[0] === 'sibling') {
+    return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '1 step away' };
+  }
+  if (steps.length === 2 && steps[0] === 'up' && steps[1] === 'down') {
+    return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '2 steps away' };
+  }
+
+  // ── Count genuine up/down steps (ignore partner hops) ──────────────
+  let up = 0, down = 0, partnerHops = 0, sibHops = 0;
+  steps.forEach(d => {
+    if (d === 'up')      up++;
+    else if (d === 'down') down++;
+    else if (d === 'partner') partnerHops++;
+    else if (d === 'sibling') sibHops++;
+  });
+
+  // ── Direct ancestor ────────────────────────────────────────────────
+  if (up > 0 && down === 0 && partnerHops === 0) {
+    if (up === 1) return { label: isFem ? 'Mother' : isMal ? 'Father' : 'Parent', degree: '1 generation up' };
+    if (up === 2) return { label: isFem ? 'Grandmother' : isMal ? 'Grandfather' : 'Grandparent', degree: '2 generations up' };
+    if (up === 3) return { label: isFem ? 'Great-Grandmother' : isMal ? 'Great-Grandfather' : 'Great-Grandparent', degree: '3 generations up' };
+    return { label: `${ordinal(up-1)} Great-${isFem?'Grandmother':isMal?'Grandfather':'Grandparent'}`, degree: `${up} generations up` };
+  }
+
+  // ── Direct descendant ──────────────────────────────────────────────
+  if (down > 0 && up === 0 && partnerHops === 0) {
+    if (down === 1) return { label: isFem ? 'Daughter' : isMal ? 'Son' : 'Child', degree: '1 generation down' };
+    if (down === 2) return { label: isFem ? 'Granddaughter' : isMal ? 'Grandson' : 'Grandchild', degree: '2 generations down' };
+    if (down === 3) return { label: isFem ? 'Great-Granddaughter' : isMal ? 'Great-Grandson' : 'Great-Grandchild', degree: '3 generations down' };
+    return { label: `${ordinal(down-1)} Great-${isFem?'Granddaughter':isMal?'Grandson':'Grandchild'}`, degree: `${down} generations down` };
+  }
+
+  // ── Aunt / Uncle (parent's sibling) ─────────────────────────────────
+  if (up === 2 && down === 1 && partnerHops === 0) {
+    return { label: isFem ? 'Aunt' : isMal ? 'Uncle' : 'Aunt/Uncle', degree: `${steps.length} steps away` };
+  }
+  // ── Niece / Nephew ────────────────────────────────────────────────
+  if (up === 1 && down === 2 && partnerHops === 0) {
+    return { label: isFem ? 'Niece' : isMal ? 'Nephew' : 'Niece/Nephew', degree: `${steps.length} steps away` };
+  }
+
+  // ── Great Aunt / Uncle ────────────────────────────────────────────
+  if (up === 3 && down === 1) {
+    return { label: isFem ? 'Great-Aunt' : isMal ? 'Great-Uncle' : 'Great-Aunt/Uncle', degree: `${steps.length} steps` };
+  }
+  if (up === 1 && down === 3) {
+    return { label: isFem ? 'Grand-Niece' : isMal ? 'Grand-Nephew' : 'Grand-Niece/Nephew', degree: `${steps.length} steps` };
+  }
+
+  // ── Cousins ────────────────────────────────────────────────────────
+  // up and down both >= 2 (share a common ancestor)
+  if (up >= 2 && down >= 2) {
+    const cousinDegree = Math.min(up, down) - 1;
+    const removal = Math.abs(up - down);
+    let label;
+    if (cousinDegree === 1 && removal === 0) label = '1st Cousin';
+    else if (cousinDegree === 2 && removal === 0) label = '2nd Cousin';
+    else if (cousinDegree === 3 && removal === 0) label = '3rd Cousin';
+    else if (cousinDegree >= 4 && removal === 0) label = `${ordinal(cousinDegree)} Cousin`;
+    else {
+      const deg = cousinDegree === 1 ? '1st' : cousinDegree === 2 ? '2nd' : cousinDegree === 3 ? '3rd' : `${cousinDegree}th`;
+      const rem = removal === 1 ? 'once' : removal === 2 ? 'twice' : `${removal}×`;
+      label = `${deg} Cousin ${rem} removed`;
+    }
+    return { label, degree: `${up} up, ${down} down` };
+  }
+
+  // ── Partner-adjacent (in-law style) ────────────────────────────────
+  if (partnerHops === 1) {
+    // Partner's parent / child
+    if (up === 1) return { label: isFem ? 'Mother-in-law' : isMal ? 'Father-in-law' : 'Parent-in-law', degree: 'via partner' };
+    if (down === 1) return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
+    if (sibHops === 1 || (up === 2 && down === 1)) return { label: isFem ? 'Sister-in-law' : isMal ? 'Brother-in-law' : 'Sibling-in-law', degree: 'via partner' };
+    return { label: 'Relative by marriage', degree: `${steps.length} steps via partner` };
+  }
+
+  // ── Fallback ───────────────────────────────────────────────────────
+  return {
+    label: 'Distant Relative',
+    degree: `${steps.length} step${steps.length !== 1 ? 's' : ''} apart (${up} up, ${down} down)`
+  };
+}
+
+function ordinal(n) {
+  const s = ['th','st','nd','rd'];
+  const v = n % 100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+
+// ══ Connector label for each step ═══════════════════════════════════════════
+function stepLabel(step, personPid) {
+  const p = DB.people[personPid] || {};
+  const gender = p.gender || '';
+  const isFem = gender === 'Female';
+  const isMal = gender === 'Male';
+
+  if (step.direction === 'up') {
+    if (isFem) return 'mother of';
+    if (isMal) return 'father of';
+    return 'parent of';
+  }
+  if (step.direction === 'down') {
+    if (isFem) return 'daughter of';
+    if (isMal) return 'son of';
+    return 'child of';
+  }
+  if (step.direction === 'partner') return 'partner of';
+  if (step.direction === 'sibling') return 'sibling of';
+  return 'related to';
+}
+
+// ══ Main find function ═══════════════════════════════════════════════════════
+async function runRelFinder() {
+  if (!_rfiA || !_rfiB) return;
+  if (_rfiA.pid === _rfiB.pid) {
+    document.getElementById('rfi-results').innerHTML = `
+      <div class="rfi-state"><div class="rfi-state-ico">🤔</div>
+        <div class="rfi-state-t">Same person selected</div>
+        <div class="rfi-state-s">Please choose two different people.</div></div>`;
+    return;
+  }
+
+  // Show loading
+  document.getElementById('rfi-results').innerHTML = `
+    <div class="rfi-state">
+      <div class="rfi-state-ico"><span class="rfi-spin">⏳</span></div>
+      <div class="rfi-state-t">Searching connections…</div>
+    </div>`;
+
+  // In a real app, we might need to load people from Firebase first.
+  // For now, use what's in DB. Slight async to let UI update.
+  await new Promise(r => setTimeout(r, 200));
+
+  const path = bfsPath(_rfiA.pid, _rfiB.pid);
+
+  if (!path) {
+    document.getElementById('rfi-results').innerHTML = `
+      <div class="rfi-no-path">
+        <div class="rfi-no-path-ico">🔍</div>
+        <div class="rfi-no-path-t">No connection found</div>
+        <div class="rfi-no-path-s">
+          ${escHtml(_rfiA.name)} and ${escHtml(_rfiB.name)} don't appear to be connected in this family tree.
+          They may belong to separate branches with no linking relationships recorded.
+        </div>
+      </div>`;
+    return;
+  }
+
+  const rel = describeRelationship(path, _rfiA.pid, _rfiB.pid);
+  const inverseRel = describeRelationship([...path].reverse(), _rfiB.pid, _rfiA.pid);
+
+  // Render
+  let html = `
+    <div class="rfi-rel-banner">
+      <div class="rfi-rel-label">${escHtml(_rfiB.name)} is ${escHtml(_rfiA.name)}'s<br><span style="font-size:28px">${escHtml(rel.label)}</span></div>
+      <div class="rfi-rel-degree">${escHtml(rel.degree)} · ${path.length - 1} step${path.length > 2 ? 's' : ''} between them</div>
+      ${inverseRel.label !== rel.label ? `<div style="font-size:11px;color:var(--ink4);margin-top:6px;font-style:italic">↔ ${escHtml(_rfiA.name)} is ${escHtml(_rfiB.name)}'s ${escHtml(inverseRel.label)}</div>` : ''}
+    </div>
+    <div class="rfi-path-title">Connection path (${path.length} ${path.length === 1 ? 'person' : 'people'})</div>
+    <div class="rfi-path-chain">`;
+
+  path.forEach((step, i) => {
+    const p = DB.people[step.pid] || {};
+    const isA = step.pid === _rfiA.pid;
+    const isB = step.pid === _rfiB.pid;
+    const ini = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
+    const avBg = p.gender === 'Female'
+      ? 'background:linear-gradient(135deg,#3a1525,#251020)'
+      : p.gender === 'Male'
+        ? 'background:linear-gradient(135deg,#1a3050,#0e2035)'
+        : 'background:linear-gradient(135deg,#1a3020,#102015)';
+    const lifeStr = (() => {
+      if (!p.dob && !p.dod) return p.occupation || '';
+      const b = p.dob ? p.dob.slice(0,4) : '?';
+      return p.dod ? `${b}–${p.dod.slice(0,4)}` : `b. ${b}`;
+    })();
+
+    html += `
+      <div class="rfi-node">
+        <div class="rfi-node-av ${isA||isB?'ego':''}" style="${avBg}">${ini}</div>
+        <div class="rfi-node-info">
+          <div class="rfi-node-name">
+            ${escHtml(fullName(p))}
+            ${isA ? '<span class="rfi-node-you">Person A</span>' : ''}
+            ${isB ? '<span class="rfi-node-you">Person B</span>' : ''}
+          </div>
+          ${lifeStr ? `<div class="rfi-node-meta">${escHtml(lifeStr)}</div>` : ''}
+        </div>
+      </div>`;
+
+    // Connector between this node and next
+    if (i < path.length - 1) {
+      const nextStep = path[i + 1];
+      const connLabel = stepLabel(nextStep, step.pid);
+      html += `
+        <div class="rfi-connector">
+          <div class="rfi-conn-line"></div>
+          <div class="rfi-conn-label">${escHtml(fullName(p))} is ${connLabel} ↓</div>
+        </div>`;
+    }
+  });
+
+  html += `</div>`;
+  document.getElementById('rfi-results').innerHTML = html;
+}
+
 // ══ EXPOSE TO GLOBAL SCOPE (required because onclick= runs outside module scope) ══
 Object.assign(window, {
   // Language & boot
@@ -4138,6 +4818,9 @@ Object.assign(window, {
   openHistMo, closeHMo,
   // Pending screen
   showScreen, startApprovalWatch, stopApprovalWatch,
+  // Relationship finder
+  openRelFinderMo, closeRelFinderMo,
+  rfiSearch, rfiClearSlot, runRelFinder,
 });
 
 </script>

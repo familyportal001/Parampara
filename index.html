@@ -104,12 +104,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .pend-acts{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
 /* ── APP ── */
-#app{position:fixed;inset:0;display:none;flex-direction:column;
-  /* On Android PWA, inset:0 extends behind the nav bar.
-     --app-h is set by JS visualViewport listener to the true usable height.
-     dvh (dynamic viewport height) is the CSS-native equivalent and is the primary fix.
-     The var(--app-h) is the JS fallback for older Android Chrome. */
-  height:var(--app-h, 100dvh);}
+#app{
+  /* Do NOT use inset:0 — on Android PWA that extends behind the nav bar.
+     Instead anchor top/left/right explicitly and let --app-h (set by
+     visualViewport JS listener) control height. dvh is the CSS fallback. */
+  position:fixed;top:0;left:0;right:0;
+  height:var(--app-h, 100dvh);
+  display:none;flex-direction:column;}
 #app.show{display:flex}
 #hdr{background:var(--bark);border-bottom:1px solid var(--clay);
   position:relative;z-index:200;flex-shrink:0;touch-action:auto;
@@ -244,7 +245,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #canvas-wrap{flex:1;overflow:hidden;cursor:grab;position:relative;
   isolation:isolate;
   background:radial-gradient(ellipse at 20% 70%,rgba(200,137,58,.06) 0%,transparent 55%),
-    radial-gradient(ellipse at 80% 20%,rgba(139,94,42,.05) 0%,transparent 50%),var(--night)}
+    radial-gradient(ellipse at 80% 20%,rgba(139,94,42,.05) 0%,transparent 50%),var(--night);
+  /* Fade cards out at the bottom so they don't peek behind zoom/FAB controls.
+     The mask starts fading 80px from the bottom — enough to cover the controls zone.
+     This works regardless of nav-bar height so it fixes Android PWA universally. */
+  -webkit-mask-image:linear-gradient(to bottom,black calc(100% - 80px),transparent 100%);
+  mask-image:linear-gradient(to bottom,black calc(100% - 80px),transparent 100%)}
 #canvas-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;
   background-image:linear-gradient(rgba(200,137,58,.05) 1px,transparent 1px),
     linear-gradient(90deg,rgba(200,137,58,.05) 1px,transparent 1px);background-size:40px 40px}
@@ -633,9 +639,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <div style="font-size:11px;color:var(--ink4);margin-bottom:24px;letter-spacing:.12em;text-transform:uppercase">Your family lineage</div>
   <div class="auth-card">
     <div class="tabs">
-      <button class="tab on" id="tab-login" onclick="switchTab('login')">Sign In</button>
-      <button class="tab" id="tab-join" onclick="switchTab('join')">Join Family</button>
-      <button class="tab" id="tab-forgot" onclick="switchTab('forgot')">Forgot?</button>
+      <button class="tab on" id="tab-login" onclick="switchTab('login')" data-i18n="signIn">Sign In</button>
+      <button class="tab" id="tab-join" onclick="switchTab('join')" data-i18n="joinFamily">Join Family</button>
+      <button class="tab" id="tab-forgot" onclick="switchTab('forgot')" data-i18n="forgot">Forgot?</button>
     </div>
 
     <!-- LOGIN -->
@@ -676,7 +682,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <div class="fg"><label class="fl">Password <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
         <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••"></div>
       <div class="aerr" id="j-err"></div>
-      <button class="btn btn-gold" onclick="doJoin()">Request Access</button>
+      <button class="btn btn-gold" onclick="doJoin()" data-i18n="requestAccess">Request Access</button>
       <div class="anote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
     </div>
 
@@ -697,7 +703,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 <!-- PENDING -->
 <div class="screen hide" id="s-pending" style="text-align:center">
   <div class="pend-ico">⏳</div>
-  <div class="pend-t">Awaiting Approval</div>
+  <div class="pend-t"><span id="pend-t-text">Awaiting Approval</span></div>
   <div class="pend-s" id="pend-s">Your request has been sent to the family admin. You can view the tree once approved.</div>
   <div class="pend-acts">
     <button class="btn btn-ghost btn-sm" onclick="checkApproval()">Check Status</button>
@@ -736,6 +742,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         <div class="hbtn-sep"></div>
         <!-- Account group -->
         <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel">👑</button>
+        <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language">🌐</button>
         <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family">⇄</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out">⏻</button>
       </span>
@@ -777,8 +784,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">
         <span class="btn-ico">⇄</span><span class="btn-lbl">Switch Family</span>
       </button>
+      <button class="hbtn" onclick="openLangMo();closeMenu()">
+        <span class="btn-ico">🌐</span><span class="btn-lbl" data-i18n="language">Language</span>
+      </button>
       <button class="hbtn" onclick="fullLogout();closeMenu()">
-        <span class="btn-ico">⏻</span><span class="btn-lbl">Sign Out</span>
+        <span class="btn-ico">⏻</span><span class="btn-lbl" data-i18n="signOut">Sign Out</span>
+      </button>
+      <button class="hbtn" id="btn-lang-m" onclick="openLangMo();closeMenu()">
+        <span class="btn-ico">🌐</span><span class="btn-lbl">Language</span>
       </button>
     </div>
   </div>
@@ -1173,15 +1186,157 @@ function showApp(linkedProfileId) {
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
 let LANG = localStorage.getItem('para_lang') || '';
+
+// Translation strings — keys are UI element IDs or logical names.
+// Only strings that meaningfully differ between languages are included;
+// everything else falls back to English.
+const STRINGS = {
+  en: {
+    'brand-sub':        'Your family lineage',
+    'tab-login':        'Sign In',
+    'tab-join':         'Join Family',
+    'tab-forgot':       'Forgot?',
+    'btn-add-label':    '＋ Add',
+    'btn-add-m-label':  'Add Person',
+    'fab-title':        'Add Person',
+    'rel-btn-label':    '⛓ Relationships',
+    'search-ph':        'Search…',
+    'search-ph-m':      'Search…',
+    'pend-t':           'Awaiting Approval',
+    'pend-s-text':      'Your request has been sent to the family admin. You can view the tree once approved.',
+    'lang-btn-label':   '🌐 Language',
+    'em-t':             'Your family tree awaits',
+    'em-s':             'Start by adding your first family member',
+    'em-btn':           '＋ Add First Person',
+  },
+  ta: {
+    'brand-sub':        'உங்கள் குடும்ப வரலாறு',
+    'tab-login':        'உள்நுழை',
+    'tab-join':         'குடும்பம் சேர்',
+    'tab-forgot':       'மறந்தீர்களா?',
+    'btn-add-label':    '＋ சேர்',
+    'btn-add-m-label':  'நபர் சேர்க்க',
+    'fab-title':        'நபர் சேர்க்க',
+    'rel-btn-label':    '⛓ உறவுகள்',
+    'search-ph':        'தேட…',
+    'search-ph-m':      'தேட…',
+    'pend-t':           'அனுமதி காத்திருக்கிறது',
+    'pend-s-text':      'உங்கள் கோரிக்கை குடும்ப நிர்வாகிக்கு அனுப்பப்பட்டது. அனுமதிக்கப்பட்ட பிறகு மரத்தை பார்க்கலாம்.',
+    'lang-btn-label':   '🌐 மொழி',
+    'em-t':             'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
+    'em-s':             'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
+    'em-btn':           '＋ முதலில் சேர்க்க',
+  },
+  ml: {
+    'brand-sub':        'നിങ്ങളുടെ കുടുംബ ചരിത്രം',
+    'tab-login':        'സൈൻ ഇൻ',
+    'tab-join':         'കുടുംബം ചേരുക',
+    'tab-forgot':       'മറന്നോ?',
+    'btn-add-label':    '＋ ചേർക്കുക',
+    'btn-add-m-label':  'ആളെ ചേർക്കുക',
+    'fab-title':        'ആളെ ചേർക്കുക',
+    'rel-btn-label':    '⛓ ബന്ധങ്ങൾ',
+    'search-ph':        'തിരയുക…',
+    'search-ph-m':      'തിരയുക…',
+    'pend-t':           'അംഗീകാരം കാത്തിരിക്കുന്നു',
+    'pend-s-text':      'നിങ്ങളുടെ അഭ്യർത്ഥന കുടുംബ അഡ്മിൻ‌ക്ക് അയച്ചു. അംഗീകരിച്ചതിനുശേഷം ട്രീ കാണാം.',
+    'lang-btn-label':   '🌐 ഭാഷ',
+    'em-t':             'നിങ്ങളുടെ കുടുംബ വൃക്ഷം കാത്തിരിക്കുന്നു',
+    'em-s':             'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
+    'em-btn':           '＋ ആദ്യം ചേർക്കുക',
+  }
+};
+
+function t(key) {
+  const lang = LANG || 'en';
+  return (STRINGS[lang] && STRINGS[lang][key]) || (STRINGS.en && STRINGS.en[key]) || key;
+}
+
+function applyLang() {
+  const lang = LANG || 'en';
+  document.documentElement.lang = lang;
+
+  // Auth tabs
+  const tl = el('tab-login');   if(tl) tl.textContent = t('tab-login');
+  const tj = el('tab-join');    if(tj) tj.textContent = t('tab-join');
+  const tf = el('tab-forgot');  if(tf) tf.textContent = t('tab-forgot');
+
+  // Search placeholders
+  const srch = el('srch');    if(srch) srch.placeholder = t('search-ph');
+  const srchm = el('srch-m'); if(srchm) srchm.placeholder = t('search-ph-m');
+
+  // Add button labels
+  const btnAdd = el('btn-add'); if(btnAdd) btnAdd.textContent = t('btn-add-label');
+  const btnAddM = el('btn-add-m');
+  if(btnAddM) btnAddM.innerHTML = `<span class="btn-ico">＋</span><span class="btn-lbl">${lang==='en'?'Add Person':t('btn-add-m-label')}</span>`;
+
+  // FAB title
+  const fab = el('fab-add'); if(fab) { fab.title = t('fab-title'); fab.setAttribute('aria-label', t('fab-title')); }
+
+  // Pending screen
+  const pt = el('pend-t'); if(pt) pt.textContent = t('pend-t');
+  const ps = el('pend-s'); if(ps) ps.textContent = t('pend-s-text');
+
+  // Empty canvas text
+  const emt = document.querySelector('.em-t'); if(emt) emt.textContent = t('em-t');
+  const ems = document.querySelector('.em-s'); if(ems) ems.textContent = t('em-s');
+  const emb = document.querySelector('.em-btn'); if(emb) emb.textContent = t('em-btn');
+
+  // Brand subtitle on lang screen
+  const bs = el('s-lang') && el('s-lang').querySelector('.brand-sub');
+  if(bs && !bs.textContent.includes('Loading')) bs.textContent = t('brand-sub');
+
+  // Language toggle button in header/drawer
+  const lbD = el('btn-lang');   if(lbD) lbD.setAttribute('data-tip', t('lang-btn-label'));
+  const lbM = el('btn-lang-m'); if(lbM) { lbM.querySelector('.btn-lbl') && (lbM.querySelector('.btn-lbl').textContent = t('lang-btn-label').replace('🌐 ','')); }
+}
+
 function setLang(l) {
   LANG = l;
   localStorage.setItem('para_lang', l);
-  // Show immediate visual feedback — user tapped a button, they need to see a response
-  el('s-lang').querySelector('.lang-opts').style.opacity = '0.4';
-  el('s-lang').querySelector('.lang-opts').style.pointerEvents = 'none';
-  const brand = el('s-lang').querySelector('.brand-sub');
-  if (brand) brand.textContent = 'Loading…';
-  boot();
+  applyLang();
+  // If on language screen, proceed to boot
+  const langScreen = el('s-lang');
+  if (langScreen && !langScreen.classList.contains('hide')) {
+    langScreen.querySelector('.lang-opts').style.opacity = '0.4';
+    langScreen.querySelector('.lang-opts').style.pointerEvents = 'none';
+    const brand = langScreen.querySelector('.brand-sub');
+    if (brand) brand.textContent = 'Loading…';
+    boot();
+  }
+  // If already in the app, just apply translations and show toast
+  else {
+    toast(l === 'ta' ? 'மொழி மாற்றப்பட்டது' : l === 'ml' ? 'ഭാഷ മാറ്റി' : 'Language updated');
+  }
+}
+
+function openLangMo() {
+  // Inline language picker — reuses existing modal pattern
+  const mo = document.createElement('div');
+  mo.className = 'mo-ov on'; mo.id = 'lang-mo';
+  const cur = LANG || 'en';
+  mo.innerHTML = `<div class="mo" style="max-width:320px">
+    <div class="mo-hd">
+      <div class="mo-title">🌐 Language / மொழி / ഭാഷ</div>
+      <button class="pan-x" onclick="document.getElementById('lang-mo').remove()">✕</button>
+    </div>
+    <div class="mo-bd" style="padding:14px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${[['en','English','English'],['ta','Tamil','தமிழ்'],['ml','Malayalam','മലയാളം']].map(([code,en,native])=>`
+          <button onclick="setLang('${code}');document.getElementById('lang-mo').remove()"
+            style="padding:14px 16px;border-radius:8px;border:1.5px solid ${cur===code?'var(--gold)':'var(--clay)'};
+            background:${cur===code?'rgba(200,137,58,.12)':'var(--soil)'};
+            color:${cur===code?'var(--gold)':'var(--cream)'};cursor:pointer;
+            font-family:'DM Sans',sans-serif;font-size:14px;text-align:left;
+            display:flex;justify-content:space-between;align-items:center">
+            <span>${en}</span>
+            <span style="color:var(--ink4);font-size:13px">${native}</span>
+            ${cur===code?'<span style="color:var(--gold)">✓</span>':''}
+          </button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
 }
 
 // ══ MULTI-FAMILY SESSION ═══════════════════════════════════════════
@@ -1203,6 +1358,7 @@ let _authUnsub = null; // track the active onAuthStateChanged unsubscriber
 let _bootTimer = null; // fallback timer in case Firebase stalls
 function boot() {
   if (!LANG) { showScreen('s-lang'); return; }
+  applyLang(); // re-apply translations every boot (handles post-login language change)
   // Unsubscribe any previous auth listener before registering a new one.
   // Without this, calling boot() more than once (e.g. after language selection)
   // stacks duplicate listeners — the second one may never fire if Firebase
@@ -1298,9 +1454,8 @@ async function recoverFamiliesFromFirebase(user) {
 }
 
 
-function buildFamilyPicker(families) {
-  el('fp-list').innerHTML = families.map(f => `
-    <div class="fam-row${f.archived?' archived':''}" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
+function famPickerRow(f) {
+  return `<div class="fam-row${f.archived?' archived':''}" onclick='resumeFamily(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
       <div style="font-size:26px">${f.archived?'📦':'🌳'}</div>
       <div class="fam-info">
         <div class="fam-name">${escHtml(f.famKey)}</div>
@@ -1310,8 +1465,31 @@ function buildFamilyPicker(families) {
         <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
         ${f.archived?'<span class="fam-archived-badge">Archived</span>':''}
       </div>
-    </div>`).join('');
+    </div>`;
+}
+
+async function buildFamilyPicker(families) {
+  // Show immediately with cached data
+  el('fp-list').innerHTML = families.map(famPickerRow).join('');
   showScreen('s-family');
+  // Then refresh archived flags from Firebase (cache may be stale)
+  const updated = await Promise.all(families.map(async f => {
+    try {
+      const snap = await get(ref(db, `families/${f.fh}/archived`));
+      const isArchived = snap.exists() && !!snap.val();
+      // Backfill cache so next open is already correct
+      if (isArchived !== !!f.archived) {
+        const s = getSessions();
+        const cached = s.families.find(x => x.fh === f.fh);
+        if (cached) { cached.archived = isArchived; localStorage.setItem('para_v3', JSON.stringify(s)); }
+      }
+      return { ...f, archived: isArchived };
+    } catch(_) { return f; }
+  }));
+  // Re-render with fresh data if anything changed
+  if (updated.some((f,i) => !!f.archived !== !!families[i].archived)) {
+    el('fp-list').innerHTML = updated.map(famPickerRow).join('');
+  }
 }
 
 function openFamilySwitcher() {
@@ -1353,10 +1531,17 @@ async function resumeFamily(fam) {
     }
     CU = { ...fam, uid: fbUser.uid, email: fbUser.email, role: data.role };
     fam.role = data.role;
-    // Load archived flag into CU so can() blocks writes correctly
+    // Load archived flag into BOTH CU and fam so it persists in localStorage
+    // and shows correctly in the family picker on next open.
     try {
       const archSnap = await get(ref(db, `families/${FAM}/archived`));
-      if (archSnap.exists() && archSnap.val()) CU.archived = true;
+      if (archSnap.exists() && archSnap.val()) {
+        CU.archived = true;
+        fam.archived = true;   // ← must be on fam too so saveSession persists it
+      } else {
+        delete CU.archived;
+        delete fam.archived;   // clear stale flag if family was unarchived
+      }
     } catch(_) {}
     saveSession(fam);
 
@@ -1605,7 +1790,6 @@ function stopApprovalWatch() {
 async function fullLogout() {
   clearListeners();
   stopApprovalWatch();
-  if (_authUnsub) { _authUnsub(); _authUnsub = null; }
   if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
   egoId = null; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
@@ -1615,8 +1799,19 @@ async function fullLogout() {
   DB = { people:{}, rels:{} };
   el('nodes-layer').innerHTML = '';
   el('world-svg').innerHTML   = '';
+  // Re-register auth listener BEFORE signing out so the null-user event
+  // is received and drives navigation to the sign-in screen.
+  // Previously we killed _authUnsub first, so the event arrived with no listener.
+  if (_authUnsub) { _authUnsub(); _authUnsub = null; }
+  _authUnsub = onAuthStateChanged(auth, user => {
+    fbUser = user;
+    if (!user) {
+      showScreen('s-auth');
+      switchTab('login');
+      setSyncStatus('off', 'Not signed in');
+    }
+  });
   await signOut(auth);
-  // onAuthStateChanged will fire showScreen('s-auth')
 }
 
 // ══ PERMISSIONS ════════════════════════════════════════════════════
@@ -3348,6 +3543,7 @@ setupSearch('srch','srch-drop');
 setupSearch('srch-m','srch-drop-m');
 applyHeaderH(52);
 applyVP();
+applyLang(); // apply saved language before boot so UI is correct from first render
 boot();
 
 // ── Android PWA nav-bar fix ────────────────────────────────────────
@@ -3683,6 +3879,10 @@ async function archiveFamily() {
     const f = s.families.find(x => x.fh === FAM);
     if (f) { f.archived = true; localStorage.setItem('para_v3', JSON.stringify(s)); }
     if (CU) CU.archived = true;
+    // Update the session entry so family picker shows archived badge immediately
+    const _sa = getSessions();
+    const _fa = _sa.families.find(x => x.fh === FAM);
+    if (_fa) { _fa.archived = true; localStorage.setItem('para_v3', JSON.stringify(_sa)); }
     updatePermUI();
     toast('Family archived — now read-only');
     loadSettingsTab();
@@ -3698,6 +3898,10 @@ async function unarchiveFamily() {
     const f = s.families.find(x => x.fh === FAM);
     if (f) { delete f.archived; localStorage.setItem('para_v3', JSON.stringify(s)); }
     if (CU) delete CU.archived;
+    // Clear archived from session so picker badge removes immediately
+    const _su = getSessions();
+    const _fu = _su.families.find(x => x.fh === FAM);
+    if (_fu) { delete _fu.archived; localStorage.setItem('para_v3', JSON.stringify(_su)); }
     updatePermUI();
     toast('Family restored — editing enabled');
     loadSettingsTab();
@@ -3773,6 +3977,7 @@ Object.assign(window, {
   // App header actions
   autoLayout, fitScreen, openRelMo, openAddMo, openAdminMo,
   toggleMenu, closeMenu, toggleDrawerLabels,
+  openLangMo,
   // Ego view
   toggleViewMode, centreOnEgo, expandPerson,
   // PWA install
@@ -3792,6 +3997,8 @@ Object.assign(window, {
   archiveFamily, unarchiveFamily, onJoinKeyInput,
   // Profile link modal
   openLinkMo, closeLinkMo, confirmLink, clearLink, filterLinkPicker,
+  // Language
+  openLangMo, setLang, applyLang,
   // History modal
   openHistMo, closeHMo,
   // Pending screen

@@ -104,7 +104,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .pend-acts{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
 /* ── APP ── */
-#app{position:fixed;inset:0;display:none;flex-direction:column}
+#app{position:fixed;inset:0;display:none;flex-direction:column;
+  /* On Android PWA, inset:0 extends behind the nav bar.
+     --app-h is set by JS visualViewport listener to the true usable height.
+     dvh (dynamic viewport height) is the CSS-native equivalent and is the primary fix.
+     The var(--app-h) is the JS fallback for older Android Chrome. */
+  height:var(--app-h, 100dvh);}
 #app.show{display:flex}
 #hdr{background:var(--bark);border-bottom:1px solid var(--clay);
   position:relative;z-index:200;flex-shrink:0;touch-action:auto;
@@ -3344,6 +3349,22 @@ setupSearch('srch-m','srch-drop-m');
 applyHeaderH(52);
 applyVP();
 boot();
+
+// ── Android PWA nav-bar fix ────────────────────────────────────────
+// In Android standalone mode, window.innerHeight includes the system
+// nav bar but the nav bar is drawn on top of the app. visualViewport
+// reports the true usable height. We set --app-h so #app never extends
+// behind the nav bar, keeping zoom/FAB/sync controls fully visible.
+function _applyVisualH() {
+  const vvh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  document.documentElement.style.setProperty('--app-h', Math.round(vvh) + 'px');
+}
+_applyVisualH();
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', _applyVisualH);
+  window.visualViewport.addEventListener('scroll', _applyVisualH);
+}
+window.addEventListener('resize', _applyVisualH);
 
 // ══ ADMIN TABS ════════════════════════════════════════════════════
 let _adminTab = 'members';

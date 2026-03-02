@@ -4,6 +4,7 @@
   "description": "Your family lineage, shared securely across generations",
   "start_url": "./index.html",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#1a0f00",
   "theme_color": "#c8893a",

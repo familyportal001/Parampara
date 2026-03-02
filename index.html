@@ -293,6 +293,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .e-parent{fill:none;stroke:rgba(155,122,80,.55);stroke-width:1.8}
 .e-partner{fill:none;stroke:rgba(200,137,58,.65);stroke-width:1.8;stroke-dasharray:6,3}
 .e-sibling{fill:none;stroke:rgba(92,171,106,.45);stroke-width:1.5;stroke-dasharray:2,6}
+/* ── Connection highlight (on card select) ── */
+/* Connected cards glow */
+.card.conn-lit{border-color:rgba(200,137,58,.75);box-shadow:0 0 0 1.5px rgba(200,137,58,.4),0 6px 22px var(--shadow);z-index:15;transform:translateY(-1px)}
+/* Unconnected cards and lines fade back */
+.card.conn-fade{opacity:.28;transition:opacity .18s,border-color .18s}
+path.conn-fade{opacity:.1;transition:opacity .18s}
+/* Highlighted edges — each type keeps its colour but brighter and thicker */
+path.edge-lit.e-parent {stroke:rgba(200,160,90,.95);stroke-width:2.5;opacity:1}
+path.edge-lit.e-partner{stroke:rgba(200,137,58,.95);stroke-width:2.5;opacity:1}
+path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;stroke-dasharray:3,5}
 
 /* ── EGO VIEW ── */
 /* View toggle button active state */
@@ -3382,7 +3392,11 @@ function renderCard(id,gen){
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
-  card.className=`card g${gen}${selId===id?' sel':''}${id===pivotId?' ego':''}${viewMode==='ego'&&!egoNeighbourhood.has(id)&&!pendingPids.has(id)&&(pivotId||egoId)?' dimmed':''}`;
+  // Preserve connection-highlight classes that may have been set by selectPerson
+  const connCls = selId && selId !== id
+    ? (card.classList.contains('conn-lit') ? ' conn-lit' : card.classList.contains('conn-fade') ? ' conn-fade' : '')
+    : '';
+  card.className=`card g${gen}${selId===id?' sel':''}${id===pivotId?' ego':''}${viewMode==='ego'&&!egoNeighbourhood.has(id)&&!pendingPids.has(id)&&(pivotId||egoId)?' dimmed':''}${connCls}`;
   card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">`
@@ -3446,6 +3460,9 @@ function redrawLines(){
     const key=[r.from,r.to].sort().join('-')+r.type;
     if(r.type==='Partner'&&drawn.has(key))return; drawn.add(key);
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    // Tag with endpoints so selectPerson can query connected edges
+    path.dataset.from = r.from;
+    path.dataset.to   = r.to;
     if(r.type==='Parent'){
       const s=cBot(a),e=cTop(b),my=(s.y+e.y)/2;
       path.setAttribute('d',`M${s.x},${s.y} C${s.x},${my} ${e.x},${my} ${e.x},${e.y}`);
@@ -3461,6 +3478,14 @@ function redrawLines(){
     }
     wsvg.appendChild(path);
   });
+  // If a card is selected, reapply edge highlights since innerHTML was wiped
+  if (selId) {
+    wsvg.querySelectorAll('path').forEach(p => {
+      const from = p.dataset.from, to = p.dataset.to;
+      if (from === selId || to === selId) p.classList.add('edge-lit');
+      else                                p.classList.add('conn-fade');
+    });
+  }
 }
 
 // ══ AUTO LAYOUT ════════════════════════════════════════════════════
@@ -3501,8 +3526,50 @@ async function autoLayout(){
 
 // ══ SELECT + PANEL ═════════════════════════════════════════════════
 let selId=null;
-function selectPerson(id){ selId=id; nodesL.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.id===id)); showPanel(id); }
-function showPanel(id){
+
+function selectPerson(id){
+  selId = id;
+  _applyConnectionHighlight(id);
+  showPanel(id);
+}
+
+// Apply .sel on the selected card, .conn-lit on connected cards,
+// .conn-fade on everything else, and matching classes on SVG edges.
+function _applyConnectionHighlight(id) {
+  // Build set of directly connected pids
+  const connected = new Set();
+  Object.values(DB.rels).forEach(r => {
+    if (r.from === id) connected.add(r.to);
+    if (r.to   === id) connected.add(r.from);
+  });
+
+  // Cards
+  nodesL.querySelectorAll('.card').forEach(c => {
+    const pid = c.dataset.id;
+    c.classList.remove('sel','conn-lit','conn-fade');
+    if (pid === id)              c.classList.add('sel');
+    else if (connected.has(pid)) c.classList.add('conn-lit');
+    else                         c.classList.add('conn-fade');
+  });
+
+  // SVG edges
+  wsvg.querySelectorAll('path').forEach(p => {
+    const from = p.dataset.from, to = p.dataset.to;
+    p.classList.remove('edge-lit','conn-fade');
+    if (from === id || to === id) p.classList.add('edge-lit');
+    else                          p.classList.add('conn-fade');
+  });
+}
+
+function closePanel(){
+  el('panel').classList.remove('open');
+  selId = null;
+  // Clear all highlight classes
+  nodesL.querySelectorAll('.card').forEach(c =>
+    c.classList.remove('sel','conn-lit','conn-fade'));
+  wsvg.querySelectorAll('path').forEach(p =>
+    p.classList.remove('edge-lit','conn-fade'));
+}function showPanel(id){
   const p=DB.people[id]; if(!p)return;
   el('pan-title').textContent=fullName(p);
   el('pan-sub').textContent=(p.dod?'✦ '+t('deceased'):'◉ '+t('living'))+(p.gender?` · ${p.gender==='Male'?t('gMale'):p.gender==='Female'?t('gFemale'):t('gOther')}`:'');
@@ -3560,7 +3627,6 @@ function showPanel(id){
     ${canDel  ?`<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>`:''}`;
   el('panel').classList.add('open');
 }
-function closePanel(){ el('panel').classList.remove('open'); selId=null; nodesL.querySelectorAll('.card').forEach(c=>c.classList.remove('sel')); }
 wrap.addEventListener('click',e=>{ if(e.target.closest('.card')||pan.moved)return; closePanel(); });
 
 // ══ PERSON FORM ════════════════════════════════════════════════════
@@ -5059,6 +5125,19 @@ Object.assign(window, {
   rfiSearch, rfiClearSlot, runRelFinder,
   // Pivot navigation
   setPivot, navigateBack,
+});
+
+// DB and selId need proper getter/setter descriptors so tests (and devtools)
+// can read/write the module-scoped variables through window.
+// Object.assign copies values, not descriptors, so we use defineProperty.
+Object.defineProperty(window, 'DB', {
+  get() { return DB; },
+  set(v) { DB = v; },
+  configurable: true,
+});
+Object.defineProperty(window, 'selId', {
+  get() { return selId; },
+  configurable: true,
 });
 
 </script>

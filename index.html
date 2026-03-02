@@ -2736,6 +2736,8 @@ async function expandPerson(pid) {
         if (c) c.classList.add('new-node');
       });
       applyDimming();
+      // Badges for already-cached cards were rebuilt by renderCard() above.
+      // Only fetch index for the newly loaded people.
       updateAllExpandBadges();
       if (newPids.length) toast(`+${newPids.length} person${newPids.length > 1 ? 's' : ''} loaded`);
       else toast('All relatives already loaded');
@@ -2814,44 +2816,30 @@ function applyDimming() {
 // ── Expand badges ─────────────────────────────────────────────────
 async function updateAllExpandBadges() {
   if (viewMode !== 'ego') return;
-  // PE1 — parallel fetches, not serial — avoids 15 sequential Firebase reads per render
-  await Promise.all(Object.keys(DB.people).map(pid => updateExpandBadge(pid)));
+  // Only fetch personRels for cards whose knownRels is NOT yet cached.
+  // Cards that are already cached had their badge rebuilt synchronously
+  // inside renderCard() — no async work needed for them.
+  const uncached = Object.keys(DB.people).filter(pid => !knownRels[pid]);
+  if (!uncached.length) return;
+  await Promise.all(uncached.map(pid => fetchAndShowBadge(pid)));
 }
 
-async function updateExpandBadge(pid) {
+// Fetch rel index for one person, cache it, then add badge if needed.
+// Only called for people not yet in knownRels (e.g. newly expanded nodes).
+async function fetchAndShowBadge(pid) {
   if (viewMode !== 'ego') return;
   const card = nodesL.querySelector(`.card[data-id="${pid}"]`);
   if (!card) return;
-
-  // Remove existing badge
-  const existing = card.querySelector('.card-expand');
-  if (existing) existing.remove();
-
-  // Count known rels vs loaded rels for this person
-  let knownCount = 0;
-  if (knownRels[pid]) {
-    knownCount = knownRels[pid].size;
-  } else {
-    // Fetch the index once (lightweight — just keys)
-    try {
-      const snap = await get(ref(db, `families/${FAM}/personRels/${pid}`));
-      if (snap.exists()) {
-        knownRels[pid] = new Set(Object.keys(snap.val()));
-        knownCount = knownRels[pid].size;
-      }
-    } catch { return; }
-  }
-
-  const loadedCount = [...(knownRels[pid]||[])].filter(rid => loadedRids.has(rid)).length;
-  const unloaded = knownCount - loadedCount;
-
-  if (unloaded > 0) {
-    const badge = document.createElement('div');
-    badge.className = 'card-expand';
-    badge.textContent = `+${unloaded} more`;
-    badge.addEventListener('click', e => { e.stopPropagation(); expandPerson(pid); });
-    card.appendChild(badge);
-  }
+  try {
+    const snap = await get(ref(db, `families/${FAM}/personRels/${pid}`));
+    if (!snap.exists()) return;
+    knownRels[pid] = new Set(Object.keys(snap.val()));
+    // Re-render this single card now that knownRels is populated.
+    // renderCard will inline the badge from the freshly-cached data.
+    const memo = {};
+    Object.keys(DB.people).forEach(id => getGen(id, memo));
+    renderCard(pid, (memo[pid] || 0) % 6);
+  } catch { /* non-critical */ }
 }
 
 // ── Centre viewport on ego ────────────────────────────────────────
@@ -3029,14 +3017,24 @@ function renderCard(id,gen){
     :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
   // "you" badge: show if this person is linked to the current user
   const isMe = fbUser && (p.linkedUid === fbUser.uid || id === egoId);
+  // Inline badge from cache — sync, no Firebase read needed for known cards.
+  // unloaded = total rels in index minus how many are in DB.rels right now.
+  let badgeHtml = '';
+  if (viewMode === 'ego' && knownRels[id]) {
+    const knownCount = knownRels[id].size;
+    const loadedCount = [...knownRels[id]].filter(rid => loadedRids.has(rid)).length;
+    const unloaded = knownCount - loadedCount;
+    if (unloaded > 0) {
+      badgeHtml = `<div class="card-expand" onclick="event.stopPropagation();expandPerson('${id}')">+${unloaded} more</div>`;
+    }
+  }
   card.innerHTML=`
     <div class="card-stripe"></div>
     <div class="card-av ${avCls}">${av}</div>
     <div class="card-name">${escHtml(fullName(p))}</div>
     <div class="card-meta">${escHtml(lifeSpan(p)||p.occupation||'')}</div>
-    ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}`;
-  // Re-attach expand badge is handled by updateAllExpandBadges() called after rel changes
-  // Not called per-renderCard to avoid N async Firebase reads per render cycle
+    ${isMe?'<div class="card-badge badge-you" style="position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:8px;background:rgba(200,137,58,.2);color:var(--gold);border:1px solid rgba(200,137,58,.3);font-weight:600">you</div>':''}
+    ${badgeHtml}`;
 }
 function reposCard(id){
   const card=nodesL.querySelector(`.card[data-id="${id}"]`);
@@ -3108,7 +3106,11 @@ async function autoLayout(){
     });
   });
   await update(ref(db),updates);
-  render(); setTimeout(fitScreen,50); toast('Layout applied');
+  render();
+  // Re-run badge update after layout — render() wipes and rebuilds cards from
+  // knownRels cache (sync for cached, async fetch for uncached).
+  if (viewMode === 'ego') updateAllExpandBadges();
+  setTimeout(fitScreen,50); toast('Layout applied');
 }
 
 // ══ SELECT + PANEL ═════════════════════════════════════════════════

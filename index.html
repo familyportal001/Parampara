@@ -573,6 +573,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #install-bar.show{display:flex}
 .ib-btn{background:var(--gold);color:var(--ink);border:none;padding:6px 14px;
   border-radius:var(--r);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* ── Pivot breadcrumb bar ── */
+#pivot-bar{
+  width:100%;
+  background:var(--bark);border-bottom:1px solid var(--clay);
+  padding:0 12px;height:0;          /* collapsed by default */
+  display:flex;align-items:center;
+  overflow:hidden;                  /* height:0 hides content */
+  flex-shrink:0;
+  transition:height .15s;
+  overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none}
+#pivot-bar::-webkit-scrollbar{display:none}
+#pivot-bar.show{height:36px}
+.pb-back-btn{
+  display:flex;align-items:center;gap:4px;
+  background:rgba(200,137,58,.1);border:1px solid rgba(200,137,58,.25);
+  color:var(--gold);font-size:11px;font-family:'DM Sans',sans-serif;
+  padding:4px 10px;border-radius:12px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;flex-shrink:0;margin-right:8px}
+.pb-back-btn:hover{background:rgba(200,137,58,.2);border-color:var(--gold)}
+.pb-crumb{
+  display:flex;align-items:center;gap:0;
+  font-size:11px;color:var(--ink4);
+  white-space:nowrap;flex-shrink:0;min-width:0}
+.pb-crumb-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--copper);font-size:11px;font-family:'DM Sans',sans-serif;
+  padding:3px 5px;border-radius:3px;transition:all .15s;white-space:nowrap;max-width:120px;
+  overflow:hidden;text-overflow:ellipsis}
+.pb-crumb-btn:hover{background:var(--soil);color:var(--gold)}
+.pb-sep{color:var(--clay);font-size:10px;padding:0 3px;user-select:none;flex-shrink:0}
+.pb-crumb-current{
+  font-size:11px;color:var(--gold2);font-weight:500;
+  padding:3px 5px;white-space:nowrap;max-width:140px;
+  overflow:hidden;text-overflow:ellipsis}
 .ib-x{background:none;border:none;color:var(--ink4);font-size:18px;cursor:pointer;
   margin-left:auto;padding:0 4px;line-height:1}
 
@@ -1023,6 +1060,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     </div>
   </div>
   <div id="menu-backdrop" onclick="closeMenu()"></div>
+  <!-- Pivot breadcrumb — flex sibling of canvas-wrap so it pushes canvas down naturally -->
+  <div id="pivot-bar"></div>
   <div id="canvas-wrap">
     <div id="world">
       <svg id="world-svg" width="1" height="1"></svg>
@@ -1864,9 +1903,10 @@ function openFamilySwitcher() {
   clearListeners();
   DB = { people:{}, rels:{} };
   // Reset ego state
-  egoId = null; viewMode = 'full';
+  egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
   knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
+  renderPivotBar();
   // Reset selection state so stale panel doesn't persist into next family
   selId = null;
   el('panel').classList.remove('open');
@@ -2157,9 +2197,10 @@ async function fullLogout() {
   clearListeners();
   stopApprovalWatch();
   if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
-  egoId = null; viewMode = 'full';
+  egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
   knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
+  renderPivotBar();
   _relA = null; _relB = null;
   CU = null; FAM = null;
   DB = { people:{}, rels:{} };
@@ -2252,28 +2293,35 @@ function startSync() {
   });
 }
 
-// Ego-centric initial fetch: only ego + depth-1 neighbourhood.
-async function startEgoSync(pivotId) {
+// Ego-centric initial fetch: only pivot + depth-1 neighbourhood.
+// fetchPid is the person whose neighbourhood to load — egoId on first load,
+// or any other pid when the user pivots to explore someone else's view.
+async function startEgoSync(fetchPid) {
   clearListeners();
   DB = { people:{}, rels:{} };
   loadedPids.clear();
   loadedRids.clear();
   setSyncStatus('off', 'Loading your tree…');
+  // Set the module-level pivot so all downstream functions (dimming, centre,
+  // neighbourhood computation) know who the current focal person is.
+  pivotId = fetchPid;
+  renderPivotBar();
   try {
-    // 1. Fetch ego person
-    const egoSnap = await get(ref(db, `families/${FAM}/people/${pivotId}`));
+    // 1. Fetch pivot person
+    const egoSnap = await get(ref(db, `families/${FAM}/people/${fetchPid}`));
     if (!egoSnap.exists() || egoSnap.val().deleted) {
       toast('Profile not found — loading full tree.');
-      egoId = null; viewMode = 'full';
+      egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
+      renderPivotBar();
       startSync(); return;
     }
-    DB.people[pivotId] = egoSnap.val();
-    loadedPids.add(pivotId);
+    DB.people[fetchPid] = egoSnap.val();
+    loadedPids.add(fetchPid);
 
-    // 2. Fetch ego rel index
-    const idxSnap = await get(ref(db, `families/${FAM}/personRels/${pivotId}`));
+    // 2. Fetch pivot rel index
+    const idxSnap = await get(ref(db, `families/${FAM}/personRels/${fetchPid}`));
     const relIds = idxSnap.exists() ? Object.keys(idxSnap.val()) : [];
-    knownRels[pivotId] = new Set(relIds);
+    knownRels[fetchPid] = new Set(relIds);
 
     // 3. Fetch rels
     await Promise.all(relIds.map(async rid => {
@@ -2284,18 +2332,17 @@ async function startEgoSync(pivotId) {
     // 4. Collect connected pids
     const connectedPids = new Set();
     Object.values(DB.rels).forEach(r => { connectedPids.add(r.from); connectedPids.add(r.to); });
-    connectedPids.delete(pivotId);
+    connectedPids.delete(fetchPid);
 
     // 5. Siblings via shared parent
     const parentIds = Object.values(DB.rels)
-      .filter(r => r.to === pivotId && r.type === 'Parent').map(r => r.from);
+      .filter(r => r.to === fetchPid && r.type === 'Parent').map(r => r.from);
     const sibRelIds = new Set();
     await Promise.all(parentIds.map(async parentId => {
       const pIdx = await get(ref(db, `families/${FAM}/personRels/${parentId}`));
       if (pIdx.exists()) {
         const rids = Object.keys(pIdx.val());
         rids.forEach(rid => sibRelIds.add(rid));
-        // Cache while we have it — avoids redundant fetch in fetchAndShowBadge
         knownRels[parentId] = new Set(rids);
       }
     }));
@@ -2304,15 +2351,11 @@ async function startEgoSync(pivotId) {
       if (rs.exists()) { const r = rs.val(); if (!r.deleted) { DB.rels[rid] = r; loadedRids.add(rid); } }
     }));
     Object.values(DB.rels).forEach(r => {
-      if (parentIds.includes(r.from) && r.type === 'Parent' && r.to !== pivotId)
+      if (parentIds.includes(r.from) && r.type === 'Parent' && r.to !== fetchPid)
         connectedPids.add(r.to);
     });
 
-    // 6. Fetch connected people + their rel index in parallel.
-    // personRels/pid is lightweight (keys only) and must be fetched for every
-    // visible card so renderCard can inline the badge synchronously.
-    // Without it, knownRels[pid] is undefined and the badge is skipped —
-    // this is why parent cards showed no badge (their index was never fetched).
+    // 6. Fetch connected people + their rel index in parallel
     await Promise.all([...connectedPids].map(async p => {
       if (loadedPids.has(p)) return;
       const [ps, pIdx] = await Promise.all([
@@ -2323,7 +2366,6 @@ async function startEgoSync(pivotId) {
         const person = ps.val();
         if (!person.deleted) { DB.people[p] = person; loadedPids.add(p); }
       }
-      // Populate knownRels even if person fetch failed — badge needs this
       knownRels[p] = pIdx.exists() ? new Set(Object.keys(pIdx.val())) : new Set();
     }));
 
@@ -2331,18 +2373,14 @@ async function startEgoSync(pivotId) {
     setupEgoListeners();
     setSyncStatus('ok', 'Synced ✓');
     render();
-    buildSearchCache(); // build full name index in background
+    buildSearchCache();
 
-    // 8. Ego layout + visuals after render
+    // 8. Layout + visuals after render
     setTimeout(async () => {
-      applyEgoLayout(pivotId);
+      applyEgoLayout(fetchPid);
       computeEgoNeighbourhood();
       applyDimming();
       centreOnEgo();
-      // Refresh badge counts for every visible card by re-fetching each
-      // person's rel index. This is cheap (keys-only reads) and ensures
-      // badges are accurate even if knownRels was populated from stale or
-      // partial data during the initial sync steps.
       const pids = Object.keys(DB.people);
       await Promise.all(pids.map(async pid => {
         try {
@@ -2350,7 +2388,6 @@ async function startEgoSync(pivotId) {
           knownRels[pid] = snap.exists() ? new Set(Object.keys(snap.val())) : new Set();
         } catch { /* non-critical */ }
       }));
-      // Re-render all cards now that knownRels is fully accurate
       const memo = {};
       pids.forEach(id => getGen(id, memo));
       pids.forEach(pid => renderCard(pid, (memo[pid] || 0) % 6));
@@ -2359,9 +2396,9 @@ async function startEgoSync(pivotId) {
   } catch(e) {
     console.error('startEgoSync', e);
     toast('Error loading tree — falling back to full view.');
-    egoId = null;
-    viewMode = 'full';
-    startSync(); // single call — do not call setViewMode which would call startSync again
+    egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
+    renderPivotBar();
+    startSync();
   }
 }
 
@@ -2760,7 +2797,9 @@ async function ndEnd(){
 
 // ══ EGO VIEW ENGINE ════════════════════════════════════════════════
 // State
-let egoId      = null;           // pid of logged-in user's linked profile
+let egoId      = null;           // pid of logged-in user's linked profile (never changes during session)
+let pivotId    = null;           // pid currently centred on — equals egoId unless exploring someone else
+let pivotStack = [];             // back-navigation stack: [{pid, name}, …] oldest-first
 let viewMode   = 'full';         // 'ego' | 'full'
 let loadedPids = new Set();      // which person nodes are in DB.people
 let loadedRids = new Set();      // which rel nodes are in DB.rels
@@ -2808,14 +2847,12 @@ function initEgoView(linkedProfileId) {
 
   const hasLink = !!linkedProfileId;
 
-  // Show/hide view toggle + centre-me buttons
   ['btn-view-toggle','btn-view-toggle-m','btn-centre-me','btn-centre-me-m']
     .forEach(id => { const b = el(id); if (b) b.style.display = hasLink ? '' : 'none'; });
 
   if (!hasLink) {
-    // No linked profile — full tree stream for everyone
-    egoId = null;
-    viewMode = 'full';
+    egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
+    renderPivotBar();
     ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
       const b = el(id); if (b) b.textContent = '\uD83D\uDC64 My View';
     });
@@ -2824,13 +2861,13 @@ function initEgoView(linkedProfileId) {
   }
 
   egoId = linkedProfileId;
+  pivotId = linkedProfileId;  // start pivoted on yourself
+  pivotStack = [];
   viewMode = 'ego';
   ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
     const b = el(id); if (b) b.textContent = '\uD83C\uDF33 Full Tree';
   });
   el('unlinked-prompt').classList.add('hide');
-
-  // Ego-centric fetch — avoids streaming the entire tree
   startEgoSync(linkedProfileId);
 }
 
@@ -2903,7 +2940,10 @@ function setViewMode(mode) {
 
   if (isEgo && egoId) {
     el('unlinked-prompt').classList.add('hide');
-    // Re-sync with ego fetch if switching from full tree
+    // Always reset pivot to self when manually switching back to ego view
+    pivotId = egoId;
+    pivotStack = [];
+    renderPivotBar();
     if (prev === 'full') {
       startEgoSync(egoId);
     } else {
@@ -2915,7 +2955,9 @@ function setViewMode(mode) {
   } else if (isEgo && !egoId) {
     el('unlinked-prompt').classList.remove('hide');
   } else {
-    // Switching to full tree — stream everything
+    // Switching to full tree — clear pivot state and stream everything
+    pivotId = null; pivotStack = [];
+    renderPivotBar();
     el('unlinked-prompt').classList.add('hide');
     egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
     nodesL.querySelectorAll('.card').forEach(c => {
@@ -2932,10 +2974,11 @@ function toggleViewMode() {
 }
 
 // ── Neighbourhood computation ─────────────────────────────────────
-// Returns the set of pids in ego's depth-1 neighbourhood:
-// ego + parents + children + partners + siblings (via shared parent)
-function computeEgoNeighbourhood(pivotId) {
-  const pid = pivotId || egoId;
+// Computes the depth-1 neighbourhood of the current pivot (or an
+// optionally supplied overridePid — used only for transient queries).
+// Result is always stored in egoNeighbourhood so applyDimming works.
+function computeEgoNeighbourhood(overridePid) {
+  const pid = overridePid || pivotId || egoId;
   if (!pid || !DB.people[pid]) return;
 
   const rels = Object.values(DB.rels);
@@ -2961,10 +3004,7 @@ function computeEgoNeighbourhood(pivotId) {
   rels.filter(r => (r.from === pid || r.to === pid) && r.type === 'Sibling')
     .forEach(r => nbh.add(r.from === pid ? r.to : r.from));
 
-  if (!pivotId) {
-    // This is the primary ego neighbourhood
-    egoNeighbourhood = nbh;
-  }
+  egoNeighbourhood = nbh;
   return nbh;
 }
 
@@ -3125,15 +3165,17 @@ function positionNewNodes(pivotId, newPids) {
 }
 
 // ── Dimming ───────────────────────────────────────────────────────
+// Cards in the current pivot's neighbourhood are undimmed.
+// The .ego class (golden ring) follows pivotId so the focal person is
+// always visually anchored — but the "you" text badge in renderCard
+// stays tied to egoId so it doesn't follow pivoting.
 function applyDimming() {
   if (viewMode !== 'ego') return;
   nodesL.querySelectorAll('.card').forEach(c => {
     const pid = c.dataset.id;
-    // pendingPids: newly added nodes with no rels yet — show undimmed so
-    // the user can see and interact with what they just created
     const inNbh = egoNeighbourhood.has(pid) || pendingPids.has(pid);
     c.classList.toggle('dimmed', !inNbh);
-    c.classList.toggle('ego', pid === egoId);
+    c.classList.toggle('ego', pid === pivotId);
   });
 }
 
@@ -3166,10 +3208,13 @@ async function fetchAndShowBadge(pid) {
   } catch { /* non-critical */ }
 }
 
-// ── Centre viewport on ego ────────────────────────────────────────
+// ── Centre viewport on current pivot ─────────────────────────────
+// In normal ego view this is your own card. When exploring someone
+// else's neighbourhood it centres on the current pivot person.
 function centreOnEgo() {
-  if (!egoId || !DB.people[egoId]) return;
-  const p = DB.people[egoId];
+  const target = pivotId || egoId;
+  if (!target || !DB.people[target]) return;
+  const p = DB.people[target];
   const r = wrap.getBoundingClientRect();
   vp.x = r.width / 2 - (p.x || 0) * vp.s - (158 / 2) * vp.s;
   vp.y = r.height / 2 - (p.y || 0) * vp.s - (92 / 2) * vp.s;
@@ -3248,7 +3293,10 @@ async function clearLink() {
   try {
     await set(ref(db, `families/${FAM}/members/${_linkTargetUid}/linkedProfileId`), null);
     if (oldPid) await set(ref(db, `families/${FAM}/people/${oldPid}/linkedUid`), null);
-    if (_linkTargetUid === fbUser.uid) { egoId = null; setViewMode('full'); }
+    if (_linkTargetUid === fbUser.uid) {
+      egoId = null; pivotId = null; pivotStack = [];
+      setViewMode('full');
+    }
     toast('Profile link removed');
     closeLinkMo();
     setTimeout(loadMembers, 300);
@@ -3334,12 +3382,12 @@ function renderCard(id,gen){
       card.addEventListener('touchend',up,{passive:true});
     },{passive:true});
   }
-  card.className=`card g${gen}${selId===id?' sel':''}${id===egoId?' ego':''}${viewMode==='ego'&&!egoNeighbourhood.has(id)&&!pendingPids.has(id)&&egoId?' dimmed':''}`;
+  card.className=`card g${gen}${selId===id?' sel':''}${id===pivotId?' ego':''}${viewMode==='ego'&&!egoNeighbourhood.has(id)&&!pendingPids.has(id)&&(pivotId||egoId)?' dimmed':''}`;
   card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">`
     :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
-  // "you" badge: show if this person is linked to the current user
+  // "you" badge: always tied to the user's own linked profile (egoId), not the pivot
   const isMe = fbUser && (p.linkedUid === fbUser.uid || id === egoId);
   // Badge: count neighbours not yet visible on canvas.
   // A rel can be in loadedRids but point to a person not in DB.people
@@ -3821,17 +3869,17 @@ function setupSearch(inputId,dropId){
   si.addEventListener('input',()=>{
     const q=si.value.toLowerCase().trim();
     if(!q){sd.classList.remove('on');return;}
-    // Search against full searchCache (all people) — not just DB.people (neighbourhood only)
     const hits = searchCacheQuery(q);
     if(!hits.length){sd.classList.remove('on');return;}
     sd.innerHTML=hits.map(h=>{
-      // Show extra detail from DB.people if already loaded
       const loaded = DB.people[h.pid];
       const detail = loaded ? escHtml(lifeSpan(loaded)||loaded.occupation||'') : escHtml(h.dob||h.gender||'');
-      const notLoaded = !DB.people[h.pid] && viewMode==='ego';
+      // In ego mode, people outside the neighbourhood can be pivoted to
+      const outsideNbh = viewMode==='ego' && !egoNeighbourhood.has(h.pid);
+      const hint = outsideNbh ? ' · view their tree' : '';
       return `<div class="sd-row" data-id="${h.pid}">
         <b>${escHtml((h.first+' '+h.last).trim())}</b>
-        <small>${detail}${notLoaded?' · tap to load':''}</small>
+        <small>${detail}${escHtml(hint)}</small>
       </div>`;
     }).join('');
     sd.querySelectorAll('.sd-row').forEach(row=>{
@@ -3839,9 +3887,13 @@ function setupSearch(inputId,dropId){
         e.stopPropagation();e.preventDefault();
         const pid=row.dataset.id;
         si.value='';sd.classList.remove('on');
-        // If not yet loaded into DB.people, fetch from Firebase first
-        if(!DB.people[pid]) await loadPersonIntoView(pid);
-        jumpTo(pid);
+        if(viewMode==='ego' && !egoNeighbourhood.has(pid)){
+          // Person is outside current neighbourhood — pivot to their view
+          await setPivot(pid);
+        } else {
+          if(!DB.people[pid]) await loadPersonIntoView(pid);
+          jumpTo(pid);
+        }
       };
       row.addEventListener('click',jump);
       row.addEventListener('touchend',e=>{ e.preventDefault(); jump(e); });
@@ -4868,6 +4920,102 @@ async function runRelFinder() {
   document.getElementById('rfi-results').innerHTML = html;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// PIVOT NAVIGATION — explore any family member's neighbourhood
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Push the current pivot onto the back-stack and load pid's neighbourhood.
+// Safe to call even if pid is already the current pivot (no-op).
+async function setPivot(pid) {
+  if (!pid || !FAM) return;
+  if (pid === pivotId) { jumpTo(pid); return; }
+
+  // Navigating back to home (egoId) — clear the entire stack cleanly
+  if (pid === egoId) {
+    pivotStack = [];
+    await startEgoSync(egoId);
+    return;
+  }
+
+  // If the target is already somewhere in the back-stack (e.g. user clicked
+  // an intermediate breadcrumb), trim the stack back to just before that
+  // entry rather than pushing the current pivot on top — which would create
+  // duplicates and an infinite back-navigation loop.
+  const existingIdx = pivotStack.findIndex(e => e.pid === pid);
+  if (existingIdx !== -1) {
+    pivotStack.splice(existingIdx);
+    await startEgoSync(pid);
+    return;
+  }
+
+  // Resolve display name — try DB.people first, fall back to searchCache
+  let name = '';
+  const cached = DB.people[pid];
+  if (cached) {
+    name = fullName(cached);
+  } else {
+    const sc = searchCache.get(pid);
+    name = sc ? `${sc.first} ${sc.last}`.trim() : pid;
+  }
+
+  // Push current pivot onto the back-stack before loading the new one
+  if (pivotId) {
+    const curName = DB.people[pivotId] ? fullName(DB.people[pivotId]) : pivotId;
+    pivotStack.push({ pid: pivotId, name: curName });
+  }
+
+  // startEgoSync sets module-level pivotId and calls renderPivotBar
+  await startEgoSync(pid);
+}
+
+// Pop the back-stack and return to the previous pivot's neighbourhood.
+async function navigateBack() {
+  if (!pivotStack.length) return;
+  const prev = pivotStack.pop();
+  // Bypass setPivot (which would push onto the stack again) — go directly
+  await startEgoSync(prev.pid);
+}
+
+// Render the breadcrumb strip above the canvas.
+// Visible only in ego mode when the stack is non-empty (i.e. we've pivoted
+// away from the user's own profile).
+function renderPivotBar() {
+  const bar = el('pivot-bar');
+  if (!bar) return;
+
+  const show = viewMode === 'ego' && pivotStack.length > 0;
+  bar.classList.toggle('show', show);
+
+  if (!show) { bar.innerHTML = ''; return; }
+
+  // Build: ← Back  |  🏠 › [A] › [B] › Current
+  const backEntry  = pivotStack[pivotStack.length - 1];
+
+  let html = `<button class="pb-back-btn" onclick="navigateBack()">← ${escHtml(backEntry.name)}</button>`;
+
+  html += `<div class="pb-crumb">`;
+
+  // Home node — always the user's own linked profile
+  const homeName = egoId && DB.people[egoId] ? fullName(DB.people[egoId]) : 'My View';
+  html += `<button class="pb-crumb-btn" onclick="setPivot('${escHtml(egoId || '')}')" title="${escHtml(homeName)}">🏠</button>`;
+
+  // Intermediate crumbs — everything in the stack except the home entry
+  pivotStack.forEach((entry) => {
+    if (entry.pid === egoId) return; // home already shown above
+    html += `<span class="pb-sep">›</span>`;
+    html += `<button class="pb-crumb-btn" onclick="setPivot('${escHtml(entry.pid)}')" title="${escHtml(entry.name)}">${escHtml(entry.name)}</button>`;
+  });
+
+  // Current pivot (non-clickable — you're already here)
+  const curName = pivotId && DB.people[pivotId] ? fullName(DB.people[pivotId]) : '';
+  if (curName) {
+    html += `<span class="pb-sep">›</span><span class="pb-crumb-current">${escHtml(curName)}</span>`;
+  }
+
+  html += `</div>`;
+  bar.innerHTML = html;
+}
+
 // ══ EXPOSE TO GLOBAL SCOPE (required because onclick= runs outside module scope) ══
 Object.assign(window, {
   // Language & boot
@@ -4909,6 +5057,8 @@ Object.assign(window, {
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
   rfiSearch, rfiClearSlot, runRelFinder,
+  // Pivot navigation
+  setPivot, navigateBack,
 });
 
 </script>

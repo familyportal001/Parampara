@@ -4390,11 +4390,16 @@ async function onJoinKeyInput() {
 // RELATIONSHIP FINDER — Core Logic
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _rfiA = null; // { pid, name }
-let _rfiB = null; // { pid, name }
+let _rfiA = null;        // { pid, name }
+let _rfiB = null;        // { pid, name }
+let _rfiFullRels = null; // full rels graph fetched on open — { rid: relObj }
+let _rfiPeopleCache = {};// pid → person data — merged from DB.people + any fetched for path display
 
 function openRelFinderMo(preIdA) {
   _rfiA = null; _rfiB = null;
+  _rfiFullRels = null;
+  _rfiPeopleCache = { ...DB.people };
+
   // If called from a person's panel, pre-fill slot A
   if (preIdA && DB.people[preIdA]) {
     _rfiA = { pid: preIdA, name: fullName(DB.people[preIdA]) };
@@ -4403,6 +4408,7 @@ function openRelFinderMo(preIdA) {
   } else {
     rfiReset();
   }
+
   document.getElementById('rfi-results').innerHTML = `
     <div class="rfi-state">
       <div class="rfi-state-ico">🌳</div>
@@ -4410,6 +4416,31 @@ function openRelFinderMo(preIdA) {
       <div class="rfi-state-s">Choose Person A and Person B, then tap "Find Connection".</div>
     </div>`;
   document.getElementById('rel-finder-mo').classList.add('on');
+
+  // ── Option B: fetch the full rels collection once in the background ──
+  // DB.rels only contains the loaded neighbourhood in ego mode, so BFS
+  // would silently fail for any connection that crosses an unloaded branch.
+  // relsRef(FAM) is a shallow read of {rid:{from,to,type}} — no photos,
+  // no biographies — so it's fast even for large families.
+  _rfiFetchFullRels();
+}
+
+async function _rfiFetchFullRels() {
+  if (!FAM) return;
+  try {
+    const snap = await get(relsRef(FAM));
+    _rfiFullRels = {};
+    if (snap.exists()) {
+      snap.forEach(child => {
+        const r = child.val();
+        if (!r.deleted) _rfiFullRels[child.key] = r;
+      });
+    }
+  } catch(e) {
+    // Non-fatal: fall back to DB.rels if fetch fails
+    console.warn('rel-finder: full rels fetch failed, falling back to DB.rels', e);
+    _rfiFullRels = null;
+  }
 }
 
 function closeRelFinderMo() {
@@ -4430,7 +4461,7 @@ function rfiSearch(slot, q) {
 
   const hits = [];
   searchCache.forEach((p, pid) => {
-    const name = `${p.first} ${p.last}`.toLowerCase();
+    const name = `${p.first} ${p.last}`.trim().toLowerCase();
     if (name.includes(lq)) hits.push({ pid, ...p });
   });
   if (!hits.length) { drop.classList.remove('on'); return; }
@@ -4469,9 +4500,8 @@ function rfiRenderChip(slot) {
     inp.value = '';
     return;
   }
-  const p = DB.people[sel.pid] || {};
-  const ini = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
-  const avClass = p.gender === 'Female' ? 'rfi-node-av' : p.gender === 'Male' ? 'rfi-node-av' : 'rfi-node-av';
+  const p = _rfiPeopleCache[sel.pid] || {};
+  const ini = ((p.first||sel.name||'?')[0] + (p.last||'')[0]).toUpperCase();
   chip.innerHTML = `
     <div class="rfi-chip">
       <div class="rfi-chip-av">${ini}</div>
@@ -4501,12 +4531,20 @@ function rfiUpdateBtn() {
 }
 
 // ══ BFS: find shortest path between two people ══════════════════════════════
-// Graph is undirected: parent/child edges are bidirectional.
-// Each step records: { pid, via: relId, direction: 'up'|'down'|'partner'|'sibling' }
+// Uses _rfiFullRels (full family rels fetched on modal open) so it works in
+// ego mode where DB.rels only contains the loaded neighbourhood.
+// Falls back to DB.rels if the fetch has not completed or failed.
+//
+// Direction encoding on each path step:
+//   'up'      — we moved to a parent (the step node IS the parent)
+//   'down'    — we moved to a child  (the step node IS the child)
+//   'partner' — lateral partner hop
+//   'sibling' — lateral sibling hop
 function bfsPath(startId, endId) {
   if (startId === endId) return [{ pid: startId, via: null, direction: null }];
 
-  const rels = Object.values(DB.rels);
+  // Use the full rels graph if available, otherwise fall back to DB.rels
+  const rels = Object.values(_rfiFullRels || DB.rels);
 
   // Build adjacency: pid → [ { pid, type, direction } ]
   const adj = {};
@@ -4518,9 +4556,9 @@ function bfsPath(startId, endId) {
   rels.forEach(r => {
     if (r.deleted) return;
     if (r.type === 'Parent') {
-      // from is parent of to
-      addEdge(r.from, r.to, 'Parent', 'down');  // parent→child
-      addEdge(r.to, r.from, 'Parent', 'up');     // child→parent
+      // r.from is parent, r.to is child
+      addEdge(r.from, r.to, 'Parent', 'down'); // traversing parent→child means stepping down
+      addEdge(r.to, r.from, 'Parent', 'up');   // traversing child→parent means stepping up
     } else if (r.type === 'Partner') {
       addEdge(r.from, r.to, 'Partner', 'partner');
       addEdge(r.to, r.from, 'Partner', 'partner');
@@ -4530,15 +4568,14 @@ function bfsPath(startId, endId) {
     }
   });
 
-  // BFS
+  // BFS — record full path so we can describe every hop
   const visited = new Set([startId]);
   const queue = [[ { pid: startId, via: null, direction: null } ]];
 
   while (queue.length) {
     const path = queue.shift();
     const cur = path[path.length - 1].pid;
-    const neighbours = adj[cur] || [];
-    for (const nb of neighbours) {
+    for (const nb of (adj[cur] || [])) {
       if (visited.has(nb.pid)) continue;
       visited.add(nb.pid);
       const newPath = [...path, { pid: nb.pid, via: nb.type, direction: nb.direction }];
@@ -4546,34 +4583,32 @@ function bfsPath(startId, endId) {
       queue.push(newPath);
     }
   }
-  return null; // no connection
+  return null; // no connection found
 }
 
 // ══ Relationship Naming Engine ══════════════════════════════════════════════
-// Translates a chain of BFS steps into a human-readable relationship label.
-// Strategy: count net generations up (↑) and down (↓) from A's perspective.
-//   - Pure up: ancestor
-//   - Pure down: descendant
-//   - Up then down: cousins / aunt / uncle
-//   - Partner link: spouse
-//   - Sibling link: sibling
-
+// Translates a BFS path into a human-readable relationship label.
+// Uses _rfiPeopleCache so it works even for nodes not in DB.people.
+//
+// Direction semantics (matches bfsPath encoding):
+//   'up'   on step N → step N node is the PARENT of step N-1 node
+//   'down' on step N → step N node is the CHILD  of step N-1 node
 function describeRelationship(path, pidA, pidB) {
   if (!path || path.length < 2) return { label: 'Same person', degree: '' };
 
-  const genderB = (DB.people[pidB] || {}).gender || '';
+  const genderB = (_rfiPeopleCache[pidB] || {}).gender || '';
   const isFem = genderB === 'Female';
   const isMal = genderB === 'Male';
 
-  // Analyse the step directions
-  const steps = path.slice(1).map(s => s.direction); // exclude start node
+  // steps = directions on nodes 1…N (node 0 is the start, has no direction)
+  const steps = path.slice(1).map(s => s.direction);
 
-  // ── Partner (1-hop) ────────────────────────────────────────────────
+  // ── Partner (1-hop) ──────────────────────────────────────────────
   if (steps.length === 1 && steps[0] === 'partner') {
     return { label: isFem ? 'Wife / Partner' : isMal ? 'Husband / Partner' : 'Spouse / Partner', degree: '1 step away' };
   }
 
-  // ── Sibling (1-hop via sibling rel, or 2-hop via shared parent) ────
+  // ── Sibling (direct rel or 2-hop via shared parent) ──────────────
   if (steps.length === 1 && steps[0] === 'sibling') {
     return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '1 step away' };
   }
@@ -4581,76 +4616,98 @@ function describeRelationship(path, pidA, pidB) {
     return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '2 steps away' };
   }
 
-  // ── Count genuine up/down steps (ignore partner hops) ──────────────
+  // ── Count directional steps ───────────────────────────────────────
   let up = 0, down = 0, partnerHops = 0, sibHops = 0;
   steps.forEach(d => {
-    if (d === 'up')      up++;
-    else if (d === 'down') down++;
+    if (d === 'up')           up++;
+    else if (d === 'down')    down++;
     else if (d === 'partner') partnerHops++;
     else if (d === 'sibling') sibHops++;
   });
 
-  // ── Direct ancestor ────────────────────────────────────────────────
-  if (up > 0 && down === 0 && partnerHops === 0) {
-    if (up === 1) return { label: isFem ? 'Mother' : isMal ? 'Father' : 'Parent', degree: '1 generation up' };
-    if (up === 2) return { label: isFem ? 'Grandmother' : isMal ? 'Grandfather' : 'Grandparent', degree: '2 generations up' };
+  // ── Direct ancestor ───────────────────────────────────────────────
+  if (up > 0 && down === 0 && partnerHops === 0 && sibHops === 0) {
+    if (up === 1) return { label: isFem ? 'Mother'            : isMal ? 'Father'            : 'Parent',      degree: '1 generation up' };
+    if (up === 2) return { label: isFem ? 'Grandmother'       : isMal ? 'Grandfather'       : 'Grandparent', degree: '2 generations up' };
     if (up === 3) return { label: isFem ? 'Great-Grandmother' : isMal ? 'Great-Grandfather' : 'Great-Grandparent', degree: '3 generations up' };
     return { label: `${ordinal(up-1)} Great-${isFem?'Grandmother':isMal?'Grandfather':'Grandparent'}`, degree: `${up} generations up` };
   }
 
-  // ── Direct descendant ──────────────────────────────────────────────
-  if (down > 0 && up === 0 && partnerHops === 0) {
-    if (down === 1) return { label: isFem ? 'Daughter' : isMal ? 'Son' : 'Child', degree: '1 generation down' };
-    if (down === 2) return { label: isFem ? 'Granddaughter' : isMal ? 'Grandson' : 'Grandchild', degree: '2 generations down' };
+  // ── Direct descendant ─────────────────────────────────────────────
+  if (down > 0 && up === 0 && partnerHops === 0 && sibHops === 0) {
+    if (down === 1) return { label: isFem ? 'Daughter'            : isMal ? 'Son'            : 'Child',      degree: '1 generation down' };
+    if (down === 2) return { label: isFem ? 'Granddaughter'       : isMal ? 'Grandson'       : 'Grandchild', degree: '2 generations down' };
     if (down === 3) return { label: isFem ? 'Great-Granddaughter' : isMal ? 'Great-Grandson' : 'Great-Grandchild', degree: '3 generations down' };
     return { label: `${ordinal(down-1)} Great-${isFem?'Granddaughter':isMal?'Grandson':'Grandchild'}`, degree: `${down} generations down` };
   }
 
-  // ── Aunt / Uncle (parent's sibling) ─────────────────────────────────
+  // ── Aunt / Uncle ──────────────────────────────────────────────────
   if (up === 2 && down === 1 && partnerHops === 0) {
-    return { label: isFem ? 'Aunt' : isMal ? 'Uncle' : 'Aunt/Uncle', degree: `${steps.length} steps away` };
+    return { label: isFem ? 'Aunt'  : isMal ? 'Uncle'  : 'Aunt/Uncle',    degree: `${steps.length} steps away` };
   }
   // ── Niece / Nephew ────────────────────────────────────────────────
   if (up === 1 && down === 2 && partnerHops === 0) {
-    return { label: isFem ? 'Niece' : isMal ? 'Nephew' : 'Niece/Nephew', degree: `${steps.length} steps away` };
+    return { label: isFem ? 'Niece' : isMal ? 'Nephew' : 'Niece/Nephew',  degree: `${steps.length} steps away` };
   }
 
   // ── Great Aunt / Uncle ────────────────────────────────────────────
-  if (up === 3 && down === 1) {
-    return { label: isFem ? 'Great-Aunt' : isMal ? 'Great-Uncle' : 'Great-Aunt/Uncle', degree: `${steps.length} steps` };
+  if (up === 3 && down === 1 && partnerHops === 0) {
+    return { label: isFem ? 'Great-Aunt'  : isMal ? 'Great-Uncle'  : 'Great-Aunt/Uncle',   degree: `${steps.length} steps` };
   }
-  if (up === 1 && down === 3) {
+  if (up === 1 && down === 3 && partnerHops === 0) {
     return { label: isFem ? 'Grand-Niece' : isMal ? 'Grand-Nephew' : 'Grand-Niece/Nephew', degree: `${steps.length} steps` };
   }
 
-  // ── Cousins ────────────────────────────────────────────────────────
-  // up and down both >= 2 (share a common ancestor)
-  if (up >= 2 && down >= 2) {
+  // ── Cousins ───────────────────────────────────────────────────────
+  if (up >= 2 && down >= 2 && partnerHops === 0) {
     const cousinDegree = Math.min(up, down) - 1;
     const removal = Math.abs(up - down);
     let label;
-    if (cousinDegree === 1 && removal === 0) label = '1st Cousin';
-    else if (cousinDegree === 2 && removal === 0) label = '2nd Cousin';
-    else if (cousinDegree === 3 && removal === 0) label = '3rd Cousin';
-    else if (cousinDegree >= 4 && removal === 0) label = `${ordinal(cousinDegree)} Cousin`;
-    else {
-      const deg = cousinDegree === 1 ? '1st' : cousinDegree === 2 ? '2nd' : cousinDegree === 3 ? '3rd' : `${cousinDegree}th`;
-      const rem = removal === 1 ? 'once' : removal === 2 ? 'twice' : `${removal}×`;
-      label = `${deg} Cousin ${rem} removed`;
+    if (removal === 0) {
+      label = cousinDegree <= 3
+        ? `${ordinal(cousinDegree)} Cousin`
+        : `${ordinal(cousinDegree)} Cousin`;
+    } else {
+      const rem = removal === 1 ? 'once' : removal === 2 ? 'twice' : `${removal}× removed`;
+      label = `${ordinal(cousinDegree)} Cousin ${rem} removed`;
     }
     return { label, degree: `${up} up, ${down} down` };
   }
 
-  // ── Partner-adjacent (in-law style) ────────────────────────────────
+  // ── In-law relationships (exactly one partner hop) ────────────────
+  // Check step sequence to distinguish e.g. parent-in-law vs sibling-in-law
   if (partnerHops === 1) {
-    // Partner's parent / child
-    if (up === 1) return { label: isFem ? 'Mother-in-law' : isMal ? 'Father-in-law' : 'Parent-in-law', degree: 'via partner' };
-    if (down === 1) return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
-    if (sibHops === 1 || (up === 2 && down === 1)) return { label: isFem ? 'Sister-in-law' : isMal ? 'Brother-in-law' : 'Sibling-in-law', degree: 'via partner' };
+    const partnerPos = steps.indexOf('partner');
+    const stepsBeforePartner = steps.slice(0, partnerPos);
+    const stepsAfterPartner  = steps.slice(partnerPos + 1);
+    const upBefore   = stepsBeforePartner.filter(d => d === 'up').length;
+    const downBefore = stepsBeforePartner.filter(d => d === 'down').length;
+    const upAfter    = stepsAfterPartner.filter(d => d === 'up').length;
+    const downAfter  = stepsAfterPartner.filter(d => d === 'down').length;
+
+    // Parent-in-law: go to partner then up 1
+    if (upBefore === 0 && downBefore === 0 && upAfter === 1 && downAfter === 0) {
+      return { label: isFem ? 'Mother-in-law' : isMal ? 'Father-in-law' : 'Parent-in-law', degree: 'via partner' };
+    }
+    // Child-in-law: go up to child's partner (i.e. down 1 then partner, or partner then down)
+    if (upBefore === 0 && downBefore === 1 && upAfter === 0 && downAfter === 0) {
+      return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
+    }
+    if (upBefore === 0 && downBefore === 0 && upAfter === 0 && downAfter === 1) {
+      return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
+    }
+    // Sibling-in-law: partner then up+down (partner's sibling) OR sibling's partner
+    const hasSibPattern =
+      (stepsAfterPartner.length === 2 && upAfter === 1 && downAfter === 1) ||
+      (stepsBeforePartner.length === 2 && upBefore === 1 && downBefore === 1) ||
+      stepsBeforePartner.includes('sibling') || stepsAfterPartner.includes('sibling');
+    if (hasSibPattern) {
+      return { label: isFem ? 'Sister-in-law' : isMal ? 'Brother-in-law' : 'Sibling-in-law', degree: 'via partner' };
+    }
     return { label: 'Relative by marriage', degree: `${steps.length} steps via partner` };
   }
 
-  // ── Fallback ───────────────────────────────────────────────────────
+  // ── Fallback ──────────────────────────────────────────────────────
   return {
     label: 'Distant Relative',
     degree: `${steps.length} step${steps.length !== 1 ? 's' : ''} apart (${up} up, ${down} down)`
@@ -4663,29 +4720,30 @@ function ordinal(n) {
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
 
-// ══ Connector label for each step ═══════════════════════════════════════════
-function stepLabel(step, personPid) {
-  const p = DB.people[personPid] || {};
-  const gender = p.gender || '';
-  const isFem = gender === 'Female';
-  const isMal = gender === 'Male';
+// ══ Connector label for each step ════════════════════════════════════════════
+// currentPid   — the node we are currently rendering
+// nextDirection — the direction encoded on the NEXT step node:
+//   'down' means the next node is the CHILD  of current → current is the parent
+//   'up'   means the next node is the PARENT of current → current is the child
+function stepLabel(currentPid, nextDirection) {
+  const p = _rfiPeopleCache[currentPid] || {};
+  const isFem = p.gender === 'Female';
+  const isMal = p.gender === 'Male';
 
-  if (step.direction === 'up') {
-    if (isFem) return 'mother of';
-    if (isMal) return 'father of';
-    return 'parent of';
+  if (nextDirection === 'down') {
+    // We are about to step down: current node is the parent
+    return isFem ? 'mother of' : isMal ? 'father of' : 'parent of';
   }
-  if (step.direction === 'down') {
-    if (isFem) return 'daughter of';
-    if (isMal) return 'son of';
-    return 'child of';
+  if (nextDirection === 'up') {
+    // We are about to step up: current node is the child
+    return isFem ? 'daughter of' : isMal ? 'son of' : 'child of';
   }
-  if (step.direction === 'partner') return 'partner of';
-  if (step.direction === 'sibling') return 'sibling of';
+  if (nextDirection === 'partner') return 'partner of';
+  if (nextDirection === 'sibling') return 'sibling of';
   return 'related to';
 }
 
-// ══ Main find function ═══════════════════════════════════════════════════════
+// ══ Main find function ════════════════════════════════════════════════════════
 async function runRelFinder() {
   if (!_rfiA || !_rfiB) return;
   if (_rfiA.pid === _rfiB.pid) {
@@ -4696,20 +4754,25 @@ async function runRelFinder() {
     return;
   }
 
-  // Show loading
+  // Show loading state
   document.getElementById('rfi-results').innerHTML = `
     <div class="rfi-state">
       <div class="rfi-state-ico"><span class="rfi-spin">⏳</span></div>
       <div class="rfi-state-t">Searching connections…</div>
     </div>`;
 
-  // In a real app, we might need to load people from Firebase first.
-  // For now, use what's in DB. Slight async to let UI update.
-  await new Promise(r => setTimeout(r, 200));
+  // If the background rels fetch hasn't finished yet, wait for it.
+  // We poll briefly rather than blocking the UI thread.
+  if (_rfiFullRels === null && FAM) {
+    for (let i = 0; i < 20 && _rfiFullRels === null; i++) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
 
-  const path = bfsPath(_rfiA.pid, _rfiB.pid);
+  // ── Forward path: A → B ───────────────────────────────────────────
+  const pathAB = bfsPath(_rfiA.pid, _rfiB.pid);
 
-  if (!path) {
+  if (!pathAB) {
     document.getElementById('rfi-results').innerHTML = `
       <div class="rfi-no-path">
         <div class="rfi-no-path-ico">🔍</div>
@@ -4722,24 +4785,47 @@ async function runRelFinder() {
     return;
   }
 
-  const rel = describeRelationship(path, _rfiA.pid, _rfiB.pid);
-  const inverseRel = describeRelationship([...path].reverse(), _rfiB.pid, _rfiA.pid);
+  // ── Inverse path: B → A (fresh BFS — not a reversal of pathAB) ───
+  // Reversing pathAB would keep the original traversal direction values
+  // on each node, making them semantically wrong for the inverse reading.
+  const pathBA = bfsPath(_rfiB.pid, _rfiA.pid);
 
-  // Render
+  const rel        = describeRelationship(pathAB, _rfiA.pid, _rfiB.pid);
+  const inverseRel = pathBA ? describeRelationship(pathBA, _rfiB.pid, _rfiA.pid) : null;
+
+  // ── Fetch person data for any path node not yet in the people cache ─
+  // (Path nodes can be outside DB.people in ego mode)
+  const missingPids = pathAB
+    .map(s => s.pid)
+    .filter(pid => !_rfiPeopleCache[pid]);
+  if (missingPids.length) {
+    await Promise.all(missingPids.map(async pid => {
+      try {
+        const snap = await get(ref(db, `families/${FAM}/people/${pid}`));
+        if (snap.exists()) _rfiPeopleCache[pid] = snap.val();
+      } catch(_) { /* non-critical — node will render with initials only */ }
+    }));
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
+  const inverseNote = (inverseRel && inverseRel.label !== rel.label)
+    ? `<div style="font-size:11px;color:var(--ink4);margin-top:6px;font-style:italic">↔ ${escHtml(_rfiA.name)} is ${escHtml(_rfiB.name)}'s ${escHtml(inverseRel.label)}</div>`
+    : '';
+
   let html = `
     <div class="rfi-rel-banner">
       <div class="rfi-rel-label">${escHtml(_rfiB.name)} is ${escHtml(_rfiA.name)}'s<br><span style="font-size:28px">${escHtml(rel.label)}</span></div>
-      <div class="rfi-rel-degree">${escHtml(rel.degree)} · ${path.length - 1} step${path.length > 2 ? 's' : ''} between them</div>
-      ${inverseRel.label !== rel.label ? `<div style="font-size:11px;color:var(--ink4);margin-top:6px;font-style:italic">↔ ${escHtml(_rfiA.name)} is ${escHtml(_rfiB.name)}'s ${escHtml(inverseRel.label)}</div>` : ''}
+      <div class="rfi-rel-degree">${escHtml(rel.degree)} · ${pathAB.length - 1} step${pathAB.length - 1 !== 1 ? 's' : ''} between them</div>
+      ${inverseNote}
     </div>
-    <div class="rfi-path-title">Connection path (${path.length} ${path.length === 1 ? 'person' : 'people'})</div>
+    <div class="rfi-path-title">Connection path (${pathAB.length} ${pathAB.length === 1 ? 'person' : 'people'})</div>
     <div class="rfi-path-chain">`;
 
-  path.forEach((step, i) => {
-    const p = DB.people[step.pid] || {};
-    const isA = step.pid === _rfiA.pid;
-    const isB = step.pid === _rfiB.pid;
-    const ini = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
+  pathAB.forEach((step, i) => {
+    const p    = _rfiPeopleCache[step.pid] || {};
+    const isA  = step.pid === _rfiA.pid;
+    const isB  = step.pid === _rfiB.pid;
+    const ini  = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
     const avBg = p.gender === 'Female'
       ? 'background:linear-gradient(135deg,#3a1525,#251020)'
       : p.gender === 'Male'
@@ -4756,7 +4842,7 @@ async function runRelFinder() {
         <div class="rfi-node-av ${isA||isB?'ego':''}" style="${avBg}">${ini}</div>
         <div class="rfi-node-info">
           <div class="rfi-node-name">
-            ${escHtml(fullName(p))}
+            ${escHtml(fullName(p) || step.pid)}
             ${isA ? '<span class="rfi-node-you">Person A</span>' : ''}
             ${isB ? '<span class="rfi-node-you">Person B</span>' : ''}
           </div>
@@ -4764,14 +4850,16 @@ async function runRelFinder() {
         </div>
       </div>`;
 
-    // Connector between this node and next
-    if (i < path.length - 1) {
-      const nextStep = path[i + 1];
-      const connLabel = stepLabel(nextStep, step.pid);
+    // Connector arrow between this node and the next
+    if (i < pathAB.length - 1) {
+      const nextStep = pathAB[i + 1];
+      // Pass current pid + the direction encoded on nextStep
+      // (nextStep.direction describes HOW we get from current to next)
+      const connLabel = stepLabel(step.pid, nextStep.direction);
       html += `
         <div class="rfi-connector">
           <div class="rfi-conn-line"></div>
-          <div class="rfi-conn-label">${escHtml(fullName(p))} is ${connLabel} ↓</div>
+          <div class="rfi-conn-label">${escHtml(fullName(p) || step.pid)} is ${connLabel} ↓</div>
         </div>`;
     }
   });

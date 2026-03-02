@@ -994,7 +994,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         <span class="btn-ico">⛓</span><span class="btn-lbl" data-i18n="relationships">Relationships</span>
       </button>
       <button class="hbtn" onclick="openRelFinderMo();closeMenu()">
-        <span class="btn-ico">🔍</span><span class="btn-lbl" data-i18n="findRelation">Find Relation</span>
+        <span class="btn-ico">🔍</span><span class="btn-lbl" data-i18n="findRelation2">Find Relation</span>
       </button>
       <button class="hbtn" onclick="autoLayout();closeMenu()">
         <span class="btn-ico">⚡</span><span class="btn-lbl" data-i18n="autoLayout">Auto Layout</span>
@@ -1496,7 +1496,7 @@ const STRINGS = {
     emptyBody:'Start by adding your first family member',
     addFirst:'＋ Add First Person',
     // App header & drawer
-    addPerson:'Add Person', relationships:'Relationships',
+    addPerson:'Add Person', relationships:'Relationships', findRelation2:'Find Relation',
     autoLayout:'Auto Layout', fitScreen:'Fit Screen',
     centreMe:'Centre Me', fullTree:'Full Tree',
     adminPanel:'Admin', language:'Language',
@@ -1514,10 +1514,10 @@ const STRINGS = {
     save:'Save', cancel:'Cancel', delete:'Delete Person', done:'Done',
     addRel:'Add Link',
     // Panel
-    edit:'Edit', history:'History', relationships2:'Relationships', findRelation:'Find Relationship',
+    edit:'Edit', history:'History', relationships2:'Relationships', findRelation:'Find Relation',
     parents:'Parents', children:'Children', partners:'Partners', siblings:'Siblings',
     noneRecorded:'None recorded', expand:'Show more',
-    addBtn:'＋ Add', relationships2:'⛓ Relationships', findRelation:'🔍 Find Relationship',
+    addBtn:'＋ Add', relationships2:'⛓ Relationships', findRelation:'🔍 Find Relation',
     pNat:'Nationality', pBp:'Birthplace', pLoc:'Location', pEdu:'Education',
     addMember:'Add Family Member', editDash:'Edit —',
     forgotNote:"Enter your email address and we'll send you a password reset link instantly.",
@@ -1543,7 +1543,7 @@ const STRINGS = {
     emptyTitle:'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
     emptyBody:'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
     addFirst:'＋ முதலில் சேர்க்க',
-    addPerson:'நபர் சேர்க்க', relationships:'உறவுகள்',
+    addPerson:'நபர் சேர்க்க', relationships:'உறவுகள்', findRelation2:'உறவுமுறை',
     autoLayout:'தானியங்கி அமைப்பு', fitScreen:'திரையில் பொருத்து',
     centreMe:'என்னை மையப்படுத்து', fullTree:'முழு மரம்',
     adminPanel:'நிர்வாகி', language:'மொழி',
@@ -1556,10 +1556,10 @@ const STRINGS = {
     gMale:'ஆண்', gFemale:'பெண்', gOther:'பிற/தெரியாத',
     save:'சேமி', cancel:'ரத்துசெய்', delete:'நபரை நீக்கு', done:'முடிந்தது',
     addRel:'இணைப்பு சேர்',
-    edit:'திருத்து', history:'வரலாறு', relationships2:'உறவுகள்', findRelation:'உறவுமுறை தேடு',
+    edit:'திருத்து', history:'வரலாறு', relationships2:'உறவுகள்', findRelation:'உறவுமுறை',
     parents:'பெற்றோர்', children:'குழந்தைகள்', partners:'துணைவர்', siblings:'உடன்பிறப்பு',
     noneRecorded:'பதிவு இல்லை', expand:'மேலும் காட்டு',
-    addBtn:'＋ சேர்', relationships2:'⛓ உறவுகள்', findRelation:'🔍 உறவுமுறை தேடு',
+    addBtn:'＋ சேர்', relationships2:'⛓ உறவுகள்', findRelation:'🔍 உறவுமுறை',
     pNat:'தேசியம்', pBp:'பிறந்த இடம்', pLoc:'இருப்பிடம்', pEdu:'கல்வி',
     addMember:'குடும்ப உறுப்பினர் சேர்க்க', editDash:'திருத்து —',
     forgotNote:'உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடுங்கள், மீட்டமைப்பு இணைப்பை அனுப்புவோம்.',
@@ -1585,7 +1585,7 @@ const STRINGS = {
     emptyTitle:'നിങ്ങളുടെ കുടുംബ വൃക്ഷം കാത്തിരിക്കുന്നു',
     emptyBody:'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
     addFirst:'＋ ആദ്യം ചേർക്കുക',
-    addPerson:'ആളെ ചേർക്കുക', relationships:'ബന്ധങ്ങൾ',
+    addPerson:'ആളെ ചേർക്കുക', relationships:'ബന്ധങ്ങൾ', findRelation2:'ബന്ധം',
     autoLayout:'ഓട്ടോ ലേഔട്ട്', fitScreen:'സ്ക്രീനിൽ ഒതുക്കുക',
     centreMe:'എന്നെ കേന്ദ്രീകരിക്കുക', fullTree:'പൂർണ്ണ വൃക്ഷം',
     adminPanel:'അഡ്മിൻ', language:'ഭാഷ',
@@ -1598,10 +1598,10 @@ const STRINGS = {
     gMale:'പുരുഷൻ', gFemale:'സ്ത്രീ', gOther:'മറ്റ്/അജ്ഞാതം',
     save:'സേവ്', cancel:'റദ്ദാക്കുക', delete:'ആളെ നീക്കം ചെയ്യുക', done:'പൂർത്തിയായി',
     addRel:'ലിങ്ക് ചേർക്കുക',
-    edit:'എഡിറ്റ്', history:'ചരിത്രം', relationships2:'ബന്ധങ്ങൾ', findRelation:'ബന്ധം കണ്ടെത്തുക',
+    edit:'എഡിറ്റ്', history:'ചരിത്രം', relationships2:'ബന്ധങ്ങൾ', findRelation:'ബന്ധം',
     parents:'മാതാപിതാക്കൾ', children:'കുട്ടികൾ', partners:'പങ്കാളികൾ', siblings:'സഹോദരങ്ങൾ',
     noneRecorded:'രേഖപ്പെടുത്തിയിട്ടില്ല', expand:'കൂടുതൽ കാണിക്കുക',
-    addBtn:'＋ ചേർക്കുക', relationships2:'⛓ ബന്ധങ്ങൾ', findRelation:'🔍 ബന്ധം കണ്ടെത്തുക',
+    addBtn:'＋ ചേർക്കുക', relationships2:'⛓ ബന്ധങ്ങൾ', findRelation:'🔍 ബന്ധം',
     pNat:'ദേശീയത', pBp:'ജന്മസ്ഥലം', pLoc:'സ്ഥലം', pEdu:'വിദ്യാഭ്യാസം',
     addMember:'കുടുംബ അംഗത്തെ ചേർക്കുക', editDash:'എഡിറ്റ് —',
     forgotNote:'നിങ്ങളുടെ ഇമെയിൽ നൽകൂ, ഞങ്ങൾ ഒരു റീസെറ്റ് ലിങ്ക് അയക്കും.',

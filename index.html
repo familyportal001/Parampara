@@ -2006,7 +2006,12 @@ async function startEgoSync(pivotId) {
     const sibRelIds = new Set();
     await Promise.all(parentIds.map(async parentId => {
       const pIdx = await get(ref(db, `families/${FAM}/personRels/${parentId}`));
-      if (pIdx.exists()) Object.keys(pIdx.val()).forEach(rid => sibRelIds.add(rid));
+      if (pIdx.exists()) {
+        const rids = Object.keys(pIdx.val());
+        rids.forEach(rid => sibRelIds.add(rid));
+        // Cache while we have it — avoids redundant fetch in fetchAndShowBadge
+        knownRels[parentId] = new Set(rids);
+      }
     }));
     await Promise.all([...sibRelIds].filter(rid => !loadedRids.has(rid)).map(async rid => {
       const rs = await get(ref(db, `families/${FAM}/rels/${rid}`));
@@ -2017,11 +2022,23 @@ async function startEgoSync(pivotId) {
         connectedPids.add(r.to);
     });
 
-    // 6. Fetch connected people
+    // 6. Fetch connected people + their rel index in parallel.
+    // personRels/pid is lightweight (keys only) and must be fetched for every
+    // visible card so renderCard can inline the badge synchronously.
+    // Without it, knownRels[pid] is undefined and the badge is skipped —
+    // this is why parent cards showed no badge (their index was never fetched).
     await Promise.all([...connectedPids].map(async p => {
       if (loadedPids.has(p)) return;
-      const ps = await get(ref(db, `families/${FAM}/people/${p}`));
-      if (ps.exists()) { const person = ps.val(); if (!person.deleted) { DB.people[p] = person; loadedPids.add(p); } }
+      const [ps, pIdx] = await Promise.all([
+        get(ref(db, `families/${FAM}/people/${p}`)),
+        get(ref(db, `families/${FAM}/personRels/${p}`)),
+      ]);
+      if (ps.exists()) {
+        const person = ps.val();
+        if (!person.deleted) { DB.people[p] = person; loadedPids.add(p); }
+      }
+      // Populate knownRels even if person fetch failed — badge needs this
+      knownRels[p] = pIdx.exists() ? new Set(Object.keys(pIdx.val())) : new Set();
     }));
 
     // 7. Live watchers for loaded nodes
@@ -2031,12 +2048,26 @@ async function startEgoSync(pivotId) {
     buildSearchCache(); // build full name index in background
 
     // 8. Ego layout + visuals after render
-    setTimeout(() => {
+    setTimeout(async () => {
       applyEgoLayout(pivotId);
       computeEgoNeighbourhood();
       applyDimming();
-      updateAllExpandBadges();
       centreOnEgo();
+      // Refresh badge counts for every visible card by re-fetching each
+      // person's rel index. This is cheap (keys-only reads) and ensures
+      // badges are accurate even if knownRels was populated from stale or
+      // partial data during the initial sync steps.
+      const pids = Object.keys(DB.people);
+      await Promise.all(pids.map(async pid => {
+        try {
+          const snap = await get(ref(db, `families/${FAM}/personRels/${pid}`));
+          knownRels[pid] = snap.exists() ? new Set(Object.keys(snap.val())) : new Set();
+        } catch { /* non-critical */ }
+      }));
+      // Re-render all cards now that knownRels is fully accurate
+      const memo = {};
+      pids.forEach(id => getGen(id, memo));
+      pids.forEach(pid => renderCard(pid, (memo[pid] || 0) % 6));
     }, 120);
 
   } catch(e) {
@@ -2696,11 +2727,16 @@ async function expandPerson(pid) {
       if (r) { connectedPids.add(r.from); connectedPids.add(r.to); }
     });
 
-    // 4. Fetch missing people and start watching them
+    // 4. Fetch missing people + their rel index, and start watching them.
+    // Fetching personRels in parallel populates knownRels so renderCard
+    // can inline each badge synchronously — no separate async pass needed.
     const missingPids = [...connectedPids].filter(p => !loadedPids.has(p));
     const newPids = [];
     await Promise.all(missingPids.map(async p => {
-      const pSnap = await get(ref(db, `families/${FAM}/people/${p}`));
+      const [pSnap, pIdx] = await Promise.all([
+        get(ref(db, `families/${FAM}/people/${p}`)),
+        get(ref(db, `families/${FAM}/personRels/${p}`)),
+      ]);
       if (pSnap.exists()) {
         const person = pSnap.val();
         if (!person.deleted) {
@@ -2720,6 +2756,8 @@ async function expandPerson(pid) {
           }
         }
       }
+      // Always cache the rel index — badge needs it even if person fetch fails
+      knownRels[p] = pIdx.exists() ? new Set(Object.keys(pIdx.val())) : new Set();
     }));
 
     // 5. Position new nodes around pivot (outward growth)
@@ -3017,13 +3055,27 @@ function renderCard(id,gen){
     :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
   // "you" badge: show if this person is linked to the current user
   const isMe = fbUser && (p.linkedUid === fbUser.uid || id === egoId);
-  // Inline badge from cache — sync, no Firebase read needed for known cards.
-  // unloaded = total rels in index minus how many are in DB.rels right now.
+  // Badge: count neighbours not yet visible on canvas.
+  // A rel can be in loadedRids but point to a person not in DB.people
+  // (e.g. parent's rels to grandparents are loaded in startEgoSync step 5,
+  // but the grandparent people are never fetched). So we count by missing
+  // people, not missing rels — this gives the correct "+N more" number.
   let badgeHtml = '';
   if (viewMode === 'ego' && knownRels[id]) {
-    const knownCount = knownRels[id].size;
-    const loadedCount = [...knownRels[id]].filter(rid => loadedRids.has(rid)).length;
-    const unloaded = knownCount - loadedCount;
+    // For each known rel: check whether the other person is already on canvas.
+    // Three states per rel:
+    //   (a) rel in DB.rels and other person in DB.people → fully visible, don't count
+    //   (b) rel in DB.rels but other person missing from DB.people → hidden person, count
+    //   (c) rel not yet in DB.rels → unknown, count as 1
+    const hiddenPeople = new Set();
+    let phantomRels = 0;
+    [...knownRels[id]].forEach(rid => {
+      const r = DB.rels[rid];
+      if (!r) { phantomRels++; return; }
+      const otherId = r.from === id ? r.to : r.from;
+      if (!DB.people[otherId]) hiddenPeople.add(otherId);
+    });
+    const unloaded = hiddenPeople.size + phantomRels;
     if (unloaded > 0) {
       badgeHtml = `<div class="card-expand" onclick="event.stopPropagation();expandPerson('${id}')">+${unloaded} more</div>`;
     }

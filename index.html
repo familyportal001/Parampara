@@ -628,8 +628,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <div style="font-size:13px;color:var(--ink4);margin-bottom:24px">Choose a family tree</div>
   <div class="fp-list" id="fp-list"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-auth');switchTab('join')">＋ Join Another Family</button>
-    <button class="btn btn-ghost btn-sm" onclick="fullLogout()">Sign Out All</button>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-auth');switchTab('join')" data-i18n="joinAnother">＋ Join Another Family</button>
+    <button class="btn btn-ghost btn-sm" onclick="fullLogout()" data-i18n="signOutAll">Sign Out All</button>
   </div>
 </div>
 
@@ -646,19 +646,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
     <!-- LOGIN -->
     <div class="asec on" id="asec-login">
-      <div class="fg"><label class="fl">Email</label>
-        <input class="fi" id="l-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
-      <div class="fg"><label class="fl">Password</label>
-        <input class="fi" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="fg"><label class="fl" data-i18n="email">Email</label>
+        <input class="fi" id="l-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
+      <div class="fg"><label class="fl" data-i18n="password">Password</label>
+        <input class="fi" id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
       <div class="aerr" id="l-err"></div>
-      <button class="btn btn-gold" onclick="doLogin()">Sign In</button>
+      <button class="btn btn-gold" onclick="doLogin()" data-i18n="signIn">Sign In</button>
     </div>
 
     <!-- JOIN -->
     <div class="asec" id="asec-join">
       <div class="fg">
-        <label class="fl">Family Secret Key</label>
-        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" autocomplete="off"
+        <label class="fl" data-i18n="familyKey">Family Secret Key</label>
+        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" data-i18n-ph="familyKeyPh" autocomplete="off"
           oninput="onJoinKeyInput()">
       </div>
       <!-- New-group warning — shown only when key resolves to no existing family -->
@@ -672,30 +672,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
         </label>
       </div>
       <div class="fi-row">
-        <div class="fg"><label class="fl">First Name</label>
-          <input class="fi" id="j-first" type="text" placeholder="First"></div>
-        <div class="fg"><label class="fl">Last Name</label>
-          <input class="fi" id="j-last" type="text" placeholder="Last"></div>
+        <div class="fg"><label class="fl" data-i18n="firstName">First Name</label>
+          <input class="fi" id="j-first" type="text" placeholder="First" data-i18n-ph="firstPh"></div>
+        <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
+          <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
       </div>
-      <div class="fg"><label class="fl">Email Address</label>
-        <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
-      <div class="fg"><label class="fl">Password <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
-        <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+      <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
+        <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
+      <div class="fg"><label class="fl" data-i18n="password">Password<small> style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
+        <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
       <div class="aerr" id="j-err"></div>
       <button class="btn btn-gold" onclick="doJoin()" data-i18n="requestAccess">Request Access</button>
-      <div class="anote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
+      <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
     </div>
 
     <!-- FORGOT -->
     <div class="asec" id="asec-forgot">
       <div style="font-size:13px;color:var(--ink4);line-height:1.65;margin-bottom:14px">
-        Enter your email address and we'll send you a password reset link instantly.
+        <span data-i18n="forgotNote">Enter your email address and we'll send you a password reset link instantly.</span>
       </div>
       <div class="fg"><label class="fl">Email Address</label>
-        <input class="fi" id="f-email" type="email" autocomplete="email" placeholder="your@email.com"></div>
+        <input class="fi" id="f-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
       <div class="aerr" id="f-err"></div>
-      <button class="btn btn-gold" onclick="doForgot()">Send Reset Email</button>
-      <button class="btn btn-ghost" onclick="switchTab('login')" style="margin-top:8px;font-size:12px;padding:8px">← Back to Sign In</button>
+      <button class="btn btn-gold" onclick="doForgot()" data-i18n="sendReset">Send Reset Email</button>
+      <button class="btn btn-ghost" onclick="switchTab('login')" style="margin-top:8px;font-size:12px;padding:8px" data-i18n="backToSignIn">← Back to Sign In</button>
     </div>
   </div>
 </div>
@@ -703,12 +703,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 <!-- PENDING -->
 <div class="screen hide" id="s-pending" style="text-align:center">
   <div class="pend-ico">⏳</div>
-  <div class="pend-t"><span id="pend-t-text">Awaiting Approval</span></div>
-  <div class="pend-s" id="pend-s">Your request has been sent to the family admin. You can view the tree once approved.</div>
+  <div class="pend-t"><span id="pend-t-text" data-i18n="pendingTitle">Awaiting Approval</span></div>
+  <div class="pend-s" id="pend-s" data-i18n="pendingBody">Your request has been sent to the family admin. You can view the tree once approved.</div>
   <div class="pend-acts">
-    <button class="btn btn-ghost btn-sm" onclick="checkApproval()">Check Status</button>
-    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-family')">Switch Family</button>
-    <button class="btn btn-ghost btn-sm" onclick="fullLogout()">Sign Out</button>
+    <button class="btn btn-ghost btn-sm" onclick="checkApproval()" data-i18n="checkStatus">Check Status</button>
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('s-family')" data-i18n="switchFamily">Switch Family</button>
+    <button class="btn btn-ghost btn-sm" onclick="fullLogout()" data-i18n="signOut">Sign Out</button>
   </div>
 </div>
 
@@ -725,26 +725,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     <div id="hdr-row">
       <div class="app-logo" onclick="openFamilySwitcher()" title="Switch family">Parampara</div>
       <div id="srch-wrap">
-        <input id="srch" type="text" placeholder="Search…" autocomplete="off">
+        <input id="srch" type="text" placeholder="Search…" data-i18n-ph="searchPh" autocomplete="off">
         <div id="srch-drop"></div>
       </div>
       <div class="hgap"></div>
       <span id="desktop-acts" style="display:contents">
         <!-- View group -->
-        <button class="hbtn icon" onclick="autoLayout()" data-tip="Auto Layout">⚡</button>
-        <button class="hbtn icon" onclick="fitScreen()" data-tip="Fit to Screen">⊡</button>
-        <button class="hbtn icon" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" data-tip="Centre on Me">◎</button>
-        <button class="hbtn icon" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none" data-tip="Toggle View">🌳</button>
+        <button class="hbtn icon" onclick="autoLayout()" data-tip="Auto Layout" data-i18n-tip="autoLayout">⚡</button>
+        <button class="hbtn icon" onclick="fitScreen()" data-tip="Fit to Screen" data-i18n-tip="fitScreen">⊡</button>
+        <button class="hbtn icon" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" data-tip="Centre on Me" data-i18n-tip="centreMe">◎</button>
+        <button class="hbtn icon" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none" data-tip="Toggle View" data-i18n-tip="toggleView">🌳</button>
         <div class="hbtn-sep"></div>
         <!-- Action group -->
-        <button class="hbtn" onclick="openRelMo()">⛓ Relationships</button>
-        <button class="hbtn primary" onclick="openAddMo()" id="btn-add">＋ Add</button>
+        <button class="hbtn" onclick="openRelMo()" data-i18n="relationships2">⛓ Relationships</button>
+        <button class="hbtn primary" onclick="openAddMo()" id="btn-add" data-i18n="addBtn">＋ Add</button>
         <div class="hbtn-sep"></div>
         <!-- Account group -->
-        <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel">👑</button>
-        <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language">🌐</button>
-        <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family">⇄</button>
-        <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out">⏻</button>
+        <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel" data-i18n-tip="adminPanel">👑</button>
+        <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
+        <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
+        <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
     </div>
@@ -753,7 +753,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <div id="menu-drawer">
     <div id="drawer-head">
       <div id="srch-wrap-m">
-        <input id="srch-m" type="text" placeholder="Search…" autocomplete="off">
+        <input id="srch-m" type="text" placeholder="Search…" data-i18n-ph="searchPh" autocomplete="off">
         <div id="srch-drop-m"></div>
       </div>
       <button id="drawer-label-tog" onclick="toggleDrawerLabels()" title="Toggle labels">≡</button>
@@ -761,37 +761,34 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     </div>
     <div class="mob-grid">
       <button class="hbtn primary" onclick="openAddMo();closeMenu()" id="btn-add-m">
-        <span class="btn-ico">＋</span><span class="btn-lbl">Add Person</span>
+        <span class="btn-ico">＋</span><span class="btn-lbl" data-i18n="addPerson">Add Person</span>
       </button>
       <button class="hbtn" onclick="openRelMo();closeMenu()">
-        <span class="btn-ico">⛓</span><span class="btn-lbl">Relationships</span>
+        <span class="btn-ico">⛓</span><span class="btn-lbl" data-i18n="relationships">Relationships</span>
       </button>
       <button class="hbtn" onclick="autoLayout();closeMenu()">
-        <span class="btn-ico">⚡</span><span class="btn-lbl">Auto Layout</span>
+        <span class="btn-ico">⚡</span><span class="btn-lbl" data-i18n="autoLayout">Auto Layout</span>
       </button>
       <button class="hbtn" onclick="fitScreen();closeMenu()">
-        <span class="btn-ico">⊡</span><span class="btn-lbl">Fit Screen</span>
+        <span class="btn-ico">⊡</span><span class="btn-lbl" data-i18n="fitScreen">Fit Screen</span>
       </button>
       <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">
-        <span class="btn-ico">◎</span><span class="btn-lbl">Centre Me</span>
+        <span class="btn-ico">◎</span><span class="btn-lbl" data-i18n="centreMe">Centre Me</span>
       </button>
       <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">
-        <span class="btn-ico">🌳</span><span class="btn-lbl">Full Tree</span>
+        <span class="btn-ico">🌳</span><span class="btn-lbl" data-i18n="fullTree">Full Tree</span>
       </button>
       <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">
-        <span class="btn-ico">👑</span><span class="btn-lbl">Admin</span>
+        <span class="btn-ico">👑</span><span class="btn-lbl" data-i18n="adminPanel">Admin</span>
       </button>
       <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">
-        <span class="btn-ico">⇄</span><span class="btn-lbl">Switch Family</span>
+        <span class="btn-ico">⇄</span><span class="btn-lbl" data-i18n="switchFamily">Switch Family</span>
       </button>
-      <button class="hbtn" onclick="openLangMo();closeMenu()">
+      <button class="hbtn" id="btn-lang-m" onclick="openLangMo();closeMenu()">
         <span class="btn-ico">🌐</span><span class="btn-lbl" data-i18n="language">Language</span>
       </button>
       <button class="hbtn" onclick="fullLogout();closeMenu()">
         <span class="btn-ico">⏻</span><span class="btn-lbl" data-i18n="signOut">Sign Out</span>
-      </button>
-      <button class="hbtn" id="btn-lang-m" onclick="openLangMo();closeMenu()">
-        <span class="btn-ico">🌐</span><span class="btn-lbl">Language</span>
       </button>
     </div>
   </div>
@@ -803,9 +800,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     </div>
     <div id="empty">
       <div class="em-ico">🌳</div>
-      <div class="em-t" style="font-family:'Crimson Pro',serif">Your family tree awaits</div>
-      <div class="em-s">Start by adding your first family member</div>
-      <button class="em-btn" onclick="openAddMo()">＋ Add First Person</button>
+      <div class="em-t" style="font-family:'Crimson Pro',serif" data-i18n="emptyTitle">Your family tree awaits</div>
+      <div class="em-s" data-i18n="emptyBody">Start by adding your first family member</div>
+      <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
     </div>
     <!-- Shown in ego view when user has no linked profile -->
     <div id="unlinked-prompt" class="hide">
@@ -831,8 +828,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
     <div class="legend-title">Legend</div>
     <div class="legend-section">Lines</div>
     <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,6 20,6 26,6" stroke="rgba(155,122,80,.75)" stroke-width="2" fill="none"/></svg><span>Parent – child</span></div>
-    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,2 20,2 26,6" stroke="rgba(200,137,58,.85)" stroke-width="2" stroke-dasharray="5,3" fill="none"/></svg><span>Partners</span></div>
-    <div class="legend-row"><svg width="28" height="12"><line x1="2" y1="6" x2="26" y2="6" stroke="rgba(92,171,106,.75)" stroke-width="1.5" stroke-dasharray="2,5"/></svg><span>Siblings</span></div>
+    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,2 20,2 26,6" stroke="rgba(200,137,58,.85)" stroke-width="2" stroke-dasharray="5,3" fill="none"/></svg><span data-i18n="partners">Partners</span></div>
+    <div class="legend-row"><svg width="28" height="12"><line x1="2" y1="6" x2="26" y2="6" stroke="rgba(92,171,106,.75)" stroke-width="1.5" stroke-dasharray="2,5"/></svg><span data-i18n="siblings">Siblings</span></div>
     <div class="legend-section" style="margin-top:8px">Card stripe = generation</div>
     <div class="legend-gens">
       <div class="legend-gen" style="background:var(--copper)"></div>
@@ -862,20 +859,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   <div class="mo">
     <div class="mo-hd"><div class="mo-title" id="pmo-title">Add Person</div><button class="pan-x" onclick="closePMo()">✕</button></div>
     <div class="mo-bd" id="pmo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closePMo()">Cancel</button><button class="hbtn primary" onclick="savePerson()">Save</button></div>
+    <div class="mo-ft"><button class="hbtn" onclick="closePMo()" data-i18n="cancel">Cancel</button><button class="hbtn primary" onclick="savePerson()" data-i18n="save">Save</button></div>
   </div>
 </div>
 <div class="mo-ov" id="rel-mo">
   <div class="mo">
-    <div class="mo-hd"><div class="mo-title">Manage Relationships</div><button class="pan-x" onclick="closeRMo()">✕</button></div>
+    <div class="mo-hd"><div class="mo-title" data-i18n="manageRel">Manage Relationships</div><button class="pan-x" onclick="closeRMo()">✕</button></div>
     <div class="mo-bd" id="rmo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closeRMo()">Done</button><button class="hbtn primary" onclick="addRel()">Add Link</button></div>
+    <div class="mo-ft"><button class="hbtn" onclick="closeRMo()" data-i18n="done">Done</button><button class="hbtn primary" onclick="addRel()" data-i18n="addRel">Add Link</button></div>
   </div>
 </div>
 <div class="mo-ov" id="admin-mo">
   <div class="mo" style="max-width:560px">
     <div class="mo-hd">
-      <div class="mo-title">Admin Panel</div>
+      <div class="mo-title" data-i18n="adminPanel2">Admin Panel</div>
       <button class="pan-x" onclick="closeAMo()">✕</button>
     </div>
     <!-- Admin tabs -->
@@ -885,14 +882,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <button class="adm-tab" id="adm-tab-settings" onclick="switchAdminTab('settings')">⚙️ Settings</button>
     </div>
     <div class="mo-bd" id="amo-bd"></div>
-    <div class="mo-ft" id="amo-ft"><button class="hbtn" onclick="closeAMo()">Close</button></div>
+    <div class="mo-ft" id="amo-ft"><button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button></div>
   </div>
 </div>
 <div class="mo-ov" id="hist-mo">
   <div class="mo">
-    <div class="mo-hd"><div class="mo-title">Edit History</div><button class="pan-x" onclick="closeHMo()">✕</button></div>
+    <div class="mo-hd"><div class="mo-title" data-i18n="editHistory">Edit History</div><button class="pan-x" onclick="closeHMo()">✕</button></div>
     <div class="mo-bd" id="hmo-bd"></div>
-    <div class="mo-ft"><button class="hbtn" onclick="closeHMo()">Close</button></div>
+    <div class="mo-ft"><button class="hbtn" onclick="closeHMo()" data-i18n="done">Close</button></div>
   </div>
 </div>
 <!-- Link member to profile modal -->
@@ -906,7 +903,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
       <div style="font-size:12px;color:var(--ink3);margin-bottom:12px" id="link-mo-sub">
         Select the person in the family tree that this member corresponds to.
       </div>
-      <input class="fi" id="link-search" type="text" placeholder="Search by name…"
+      <input class="fi" id="link-search" type="text" placeholder="Search by name…" data-i18n-ph="searchPh"
         oninput="filterLinkPicker(this.value)" style="margin-bottom:10px">
       <div id="link-picker-list"></div>
     </div>
@@ -1185,128 +1182,211 @@ function showApp(linkedProfileId) {
 }
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
+// Architecture: every translatable element in HTML carries data-i18n="key"
+// (text content) or data-i18n-ph="key" (placeholder) or data-i18n-tip="key"
+// (data-tip tooltip). applyLang() does a single querySelectorAll pass —
+// no per-element imperative code needed when adding new strings.
+
 let LANG = localStorage.getItem('para_lang') || '';
 
-// Translation strings — keys are UI element IDs or logical names.
-// Only strings that meaningfully differ between languages are included;
-// everything else falls back to English.
 const STRINGS = {
   en: {
-    'brand-sub':        'Your family lineage',
-    'tab-login':        'Sign In',
-    'tab-join':         'Join Family',
-    'tab-forgot':       'Forgot?',
-    'btn-add-label':    '＋ Add',
-    'btn-add-m-label':  'Add Person',
-    'fab-title':        'Add Person',
-    'rel-btn-label':    '⛓ Relationships',
-    'search-ph':        'Search…',
-    'search-ph-m':      'Search…',
-    'pend-t':           'Awaiting Approval',
-    'pend-s-text':      'Your request has been sent to the family admin. You can view the tree once approved.',
-    'lang-btn-label':   '🌐 Language',
-    'em-t':             'Your family tree awaits',
-    'em-s':             'Start by adding your first family member',
-    'em-btn':           '＋ Add First Person',
+    // Auth
+    signIn:'Sign In', joinFamily:'Join Family', forgot:'Forgot?',
+    email:'Email', password:'Password', emailAddress:'Email Address',
+    familyKey:'Family Secret Key', firstName:'First Name', lastName:'Last Name',
+    emailPh:'your@email.com', searchPh:'Search…', familyKeyPh:'e.g. KRISHNAN-2024',
+    firstPh:'First', lastPh:'Last',
+    requestAccess:'Request Access', sendReset:'Send Reset Email',
+    backToSignIn:'← Back to Sign In',
+    joinNote:'An admin will approve your request. Get the Family Secret Key from an existing member.',
+    forgotNote:"Enter your email address and we'll send you a password reset link instantly.",
+    // Pending
+    pendingTitle:'Awaiting Approval',
+    pendingBody:'Your request has been sent to the family admin. You can view the tree once approved.',
+    checkStatus:'Check Status', switchFamily:'Switch Family', signOut:'Sign Out',
+    // Empty canvas
+    emptyTitle:'Your family tree awaits',
+    emptyBody:'Start by adding your first family member',
+    addFirst:'＋ Add First Person',
+    // App header & drawer
+    addPerson:'Add Person', relationships:'Relationships',
+    autoLayout:'Auto Layout', fitScreen:'Fit Screen',
+    centreMe:'Centre Me', fullTree:'Full Tree',
+    adminPanel:'Admin', language:'Language',
+    // Header tooltips
+    toggleView:'Toggle View',
+    // Modal titles
+    manageRel:'Manage Relationships', editHistory:'Edit History',
+    // Brand
+    brandSub:'Your family lineage',
+    // Person form labels (generated dynamically — translated via t())
+    pFirst:'First Name', pLast:'Last Name', pDob:'Date of Birth',
+    pDod:'Date of Death', pGender:'Gender', pOccupation:'Occupation',
+    pNotes:'Notes', pPhoto:'Photo URL',
+    gMale:'Male', gFemale:'Female', gOther:'Other/Unknown',
+    save:'Save', cancel:'Cancel', delete:'Delete Person', done:'Done',
+    addRel:'Add Link',
+    // Panel
+    edit:'Edit', history:'History', relationships2:'Relationships',
+    parents:'Parents', children:'Children', partners:'Partners', siblings:'Siblings',
+    noneRecorded:'None recorded', expand:'Show more',
+    addBtn:'＋ Add', relationships2:'⛓ Relationships',
+    pNat:'Nationality', pBp:'Birthplace', pLoc:'Location', pEdu:'Education',
+    addMember:'Add Family Member', editDash:'Edit —',
+    forgotNote:"Enter your email address and we'll send you a password reset link instantly.",
+    passPh:'••••••••', joinAnother:'＋ Join Another Family', signOutAll:'Sign Out All',
+    adminPanel2:'Admin Panel', personalInfo:'Personal Information', biography:'Biography',
+    auditTrail:'Audit Trail', deceased:'Deceased', living:'Living',
+    added:'added', lastEdited:'last edited', relLink:'Link',
+    noHistory:'No history recorded yet', noDetails:'No details recorded',
   },
   ta: {
-    'brand-sub':        'உங்கள் குடும்ப வரலாறு',
-    'tab-login':        'உள்நுழை',
-    'tab-join':         'குடும்பம் சேர்',
-    'tab-forgot':       'மறந்தீர்களா?',
-    'btn-add-label':    '＋ சேர்',
-    'btn-add-m-label':  'நபர் சேர்க்க',
-    'fab-title':        'நபர் சேர்க்க',
-    'rel-btn-label':    '⛓ உறவுகள்',
-    'search-ph':        'தேட…',
-    'search-ph-m':      'தேட…',
-    'pend-t':           'அனுமதி காத்திருக்கிறது',
-    'pend-s-text':      'உங்கள் கோரிக்கை குடும்ப நிர்வாகிக்கு அனுப்பப்பட்டது. அனுமதிக்கப்பட்ட பிறகு மரத்தை பார்க்கலாம்.',
-    'lang-btn-label':   '🌐 மொழி',
-    'em-t':             'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
-    'em-s':             'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
-    'em-btn':           '＋ முதலில் சேர்க்க',
+    signIn:'உள்நுழை', joinFamily:'குடும்பம் சேர்', forgot:'மறந்தீர்களா?',
+    email:'மின்னஞ்சல்', password:'கடவுச்சொல்', emailAddress:'மின்னஞ்சல் முகவரி',
+    familyKey:'குடும்ப ரகசிய திறவுகோல்', firstName:'முதல் பெயர்', lastName:'கடைசி பெயர்',
+    emailPh:'உங்கள்@மின்னஞ்சல்.com', searchPh:'தேட…', familyKeyPh:'எ.கா. KRISHNAN-2024',
+    firstPh:'முதல்', lastPh:'கடைசி',
+    requestAccess:'அணுகல் கோரிக்கை', sendReset:'மீட்டமை மின்னஞ்சல் அனுப்பு',
+    backToSignIn:'← உள்நுழைவுக்கு திரும்பு',
+    joinNote:'நிர்வாகி உங்கள் கோரிக்கையை அனுமதிப்பார். குடும்ப ரகசிய திறவுகோலை ஒரு உறுப்பினரிடம் பெறவும்.',
+    forgotNote:'உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடுங்கள், மீட்டமைப்பு இணைப்பை அனுப்புவோம்.',
+    pendingTitle:'அனுமதி காத்திருக்கிறது',
+    pendingBody:'உங்கள் கோரிக்கை குடும்ப நிர்வாகிக்கு அனுப்பப்பட்டது. அனுமதிக்கப்பட்ட பிறகு மரத்தை பார்க்கலாம்.',
+    checkStatus:'நிலை சரிபார்', switchFamily:'குடும்பம் மாற்று', signOut:'வெளியேறு',
+    emptyTitle:'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
+    emptyBody:'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
+    addFirst:'＋ முதலில் சேர்க்க',
+    addPerson:'நபர் சேர்க்க', relationships:'உறவுகள்',
+    autoLayout:'தானியங்கி அமைப்பு', fitScreen:'திரையில் பொருத்து',
+    centreMe:'என்னை மையப்படுத்து', fullTree:'முழு மரம்',
+    adminPanel:'நிர்வாகி', language:'மொழி',
+    toggleView:'காட்சி மாற்று',
+    manageRel:'உறவுகள் நிர்வகி', editHistory:'திருத்த வரலாறு',
+    brandSub:'உங்கள் குடும்ப வரலாறு',
+    pFirst:'முதல் பெயர்', pLast:'கடைசி பெயர்', pDob:'பிறந்த தேதி',
+    pDod:'இறந்த தேதி', pGender:'பாலினம்', pOccupation:'தொழில்',
+    pNotes:'குறிப்புகள்', pPhoto:'புகைப்பட URL',
+    gMale:'ஆண்', gFemale:'பெண்', gOther:'பிற/தெரியாத',
+    save:'சேமி', cancel:'ரத்துசெய்', delete:'நபரை நீக்கு', done:'முடிந்தது',
+    addRel:'இணைப்பு சேர்',
+    edit:'திருத்து', history:'வரலாறு', relationships2:'உறவுகள்',
+    parents:'பெற்றோர்', children:'குழந்தைகள்', partners:'துணைவர்', siblings:'உடன்பிறப்பு',
+    noneRecorded:'பதிவு இல்லை', expand:'மேலும் காட்டு',
+    addBtn:'＋ சேர்', relationships2:'⛓ உறவுகள்',
+    pNat:'தேசியம்', pBp:'பிறந்த இடம்', pLoc:'இருப்பிடம்', pEdu:'கல்வி',
+    addMember:'குடும்ப உறுப்பினர் சேர்க்க', editDash:'திருத்து —',
+    forgotNote:'உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடுங்கள், மீட்டமைப்பு இணைப்பை அனுப்புவோம்.',
+    passPh:'••••••••', joinAnother:'＋ வேறொரு குடும்பம் சேர்', signOutAll:'அனைத்தையும் வெளியேறு',
+    adminPanel2:'நிர்வாக குழு', personalInfo:'தனிப்பட்ட தகவல்', biography:'சுயவரலாறு',
+    auditTrail:'தணிக்கை தடம்', deceased:'மறைந்தவர்', living:'வாழ்கிறார்',
+    added:'சேர்க்கப்பட்டது', lastEdited:'கடைசியாக திருத்தப்பட்டது', relLink:'இணைப்பு',
+    noHistory:'வரலாறு எதுவும் பதிவு இல்லை', noDetails:'விவரங்கள் இல்லை',
   },
   ml: {
-    'brand-sub':        'നിങ്ങളുടെ കുടുംബ ചരിത്രം',
-    'tab-login':        'സൈൻ ഇൻ',
-    'tab-join':         'കുടുംബം ചേരുക',
-    'tab-forgot':       'മറന്നോ?',
-    'btn-add-label':    '＋ ചേർക്കുക',
-    'btn-add-m-label':  'ആളെ ചേർക്കുക',
-    'fab-title':        'ആളെ ചേർക്കുക',
-    'rel-btn-label':    '⛓ ബന്ധങ്ങൾ',
-    'search-ph':        'തിരയുക…',
-    'search-ph-m':      'തിരയുക…',
-    'pend-t':           'അംഗീകാരം കാത്തിരിക്കുന്നു',
-    'pend-s-text':      'നിങ്ങളുടെ അഭ്യർത്ഥന കുടുംബ അഡ്മിൻ‌ക്ക് അയച്ചു. അംഗീകരിച്ചതിനുശേഷം ട്രീ കാണാം.',
-    'lang-btn-label':   '🌐 ഭാഷ',
-    'em-t':             'നിങ്ങളുടെ കുടുംബ വൃക്ഷം കാത്തിരിക്കുന്നു',
-    'em-s':             'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
-    'em-btn':           '＋ ആദ്യം ചേർക്കുക',
+    signIn:'സൈൻ ഇൻ', joinFamily:'കുടുംബം ചേരുക', forgot:'മറന്നോ?',
+    email:'ഇമെയിൽ', password:'പാസ്‌വേഡ്', emailAddress:'ഇമെയിൽ വിലാസം',
+    familyKey:'കുടുംബ രഹസ്യ കീ', firstName:'പേരിന്റെ ആദ്യഭാഗം', lastName:'പേരിന്റെ അവസാനഭാഗം',
+    emailPh:'നിങ്ങളുടെ@ഇമെയിൽ.com', searchPh:'തിരയുക…', familyKeyPh:'ഉദാ: KRISHNAN-2024',
+    firstPh:'ആദ്യം', lastPh:'അവസാനം',
+    requestAccess:'ആക്‌സസ് അഭ്യർത്ഥിക്കുക', sendReset:'റീസെറ്റ് ഇമെയിൽ അയക്കുക',
+    backToSignIn:'← സൈൻ ഇൻ-ലേക്ക് തിരിക',
+    joinNote:'അഡ്മിൻ നിങ്ങളുടെ അഭ്യർത്ഥന അംഗീകരിക്കും. ഒരു അംഗത്തിൽ നിന്ന് കുടുംബ കീ നേടുക.',
+    forgotNote:'നിങ്ങളുടെ ഇമെയിൽ നൽകൂ, ഞങ്ങൾ ഒരു റീസെറ്റ് ലിങ്ക് അയക്കും.',
+    pendingTitle:'അംഗീകാരം കാത്തിരിക്കുന്നു',
+    pendingBody:'നിങ്ങളുടെ അഭ്യർത്ഥന കുടുംബ അഡ്മിൻ‌ക്ക് അയച്ചു. അംഗീകരിച്ചതിനുശേഷം ട്രീ കാണാം.',
+    checkStatus:'നില പരിശോധിക്കുക', switchFamily:'കുടുംബം മാറ്റുക', signOut:'സൈൻ ഔട്ട്',
+    emptyTitle:'നിങ്ങളുടെ കുടുംബ വൃക്ഷം കാത്തിരിക്കുന്നു',
+    emptyBody:'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
+    addFirst:'＋ ആദ്യം ചേർക്കുക',
+    addPerson:'ആളെ ചേർക്കുക', relationships:'ബന്ധങ്ങൾ',
+    autoLayout:'ഓട്ടോ ലേഔട്ട്', fitScreen:'സ്ക്രീനിൽ ഒതുക്കുക',
+    centreMe:'എന്നെ കേന്ദ്രീകരിക്കുക', fullTree:'പൂർണ്ണ വൃക്ഷം',
+    adminPanel:'അഡ്മിൻ', language:'ഭാഷ',
+    toggleView:'കാഴ്ച മാറ്റുക',
+    manageRel:'ബന്ധങ്ങൾ നിയന്ത്രിക്കുക', editHistory:'എഡിറ്റ് ചരിത്രം',
+    brandSub:'നിങ്ങളുടെ കുടുംബ ചരിത്രം',
+    pFirst:'ആദ്യ നാമം', pLast:'അവസാന നാമം', pDob:'ജനന തീയതി',
+    pDod:'മരണ തീയതി', pGender:'ലിംഗം', pOccupation:'തൊഴിൽ',
+    pNotes:'കുറിപ്പുകൾ', pPhoto:'ഫോട്ടോ URL',
+    gMale:'പുരുഷൻ', gFemale:'സ്ത്രീ', gOther:'മറ്റ്/അജ്ഞാതം',
+    save:'സേവ്', cancel:'റദ്ദാക്കുക', delete:'ആളെ നീക്കം ചെയ്യുക', done:'പൂർത്തിയായി',
+    addRel:'ലിങ്ക് ചേർക്കുക',
+    edit:'എഡിറ്റ്', history:'ചരിത്രം', relationships2:'ബന്ധങ്ങൾ',
+    parents:'മാതാപിതാക്കൾ', children:'കുട്ടികൾ', partners:'പങ്കാളികൾ', siblings:'സഹോദരങ്ങൾ',
+    noneRecorded:'രേഖപ്പെടുത്തിയിട്ടില്ല', expand:'കൂടുതൽ കാണിക്കുക',
+    addBtn:'＋ ചേർക്കുക', relationships2:'⛓ ബന്ധങ്ങൾ',
+    pNat:'ദേശീയത', pBp:'ജന്മസ്ഥലം', pLoc:'സ്ഥലം', pEdu:'വിദ്യാഭ്യാസം',
+    addMember:'കുടുംബ അംഗത്തെ ചേർക്കുക', editDash:'എഡിറ്റ് —',
+    forgotNote:'നിങ്ങളുടെ ഇമെയിൽ നൽകൂ, ഞങ്ങൾ ഒരു റീസെറ്റ് ലിങ്ക് അയക്കും.',
+    passPh:'••••••••', joinAnother:'＋ മറ്റൊരു കുടുംബം ചേരുക', signOutAll:'എല്ലാം സൈൻ ഔട്ട്',
+    adminPanel2:'അഡ്മിൻ പാനൽ', personalInfo:'വ്യക്തിഗത വിവരങ്ങൾ', biography:'ജീവചരിത്രം',
+    auditTrail:'ഓഡിറ്റ് ട്രെയ്ൽ', deceased:'മരിച്ചു', living:'ജീവിച്ചിരിക്കുന്നു',
+    added:'ചേർത്തു', lastEdited:'അവസാനം എഡിറ്റ് ചെയ്തു', relLink:'ലിങ്ക്',
+    noHistory:'ചരിത്രം ഒന്നും രേഖപ്പെടുത്തിയിട്ടില്ല', noDetails:'വിശദാംശങ്ങൾ ഇല്ല',
   }
 };
 
+// t(key) — look up a translation, fall back to English, then the key itself
 function t(key) {
   const lang = LANG || 'en';
-  return (STRINGS[lang] && STRINGS[lang][key]) || (STRINGS.en && STRINGS.en[key]) || key;
+  return (STRINGS[lang] && STRINGS[lang][key] !== undefined ? STRINGS[lang][key] : null)
+      || (STRINGS.en[key] !== undefined ? STRINGS.en[key] : key);
 }
 
-function applyLang() {
+// applyLang(root?) — scan root (or whole document) for data-i18n* attributes.
+// Call with a container element to translate freshly injected modal HTML.
+// Call with no args (or document) to translate the whole page.
+function applyLang(root) {
   const lang = LANG || 'en';
-  document.documentElement.lang = lang;
+  const R = root || document;
+  if (R === document) document.documentElement.lang = lang;
 
-  // Auth tabs
-  const tl = el('tab-login');   if(tl) tl.textContent = t('tab-login');
-  const tj = el('tab-join');    if(tj) tj.textContent = t('tab-join');
-  const tf = el('tab-forgot');  if(tf) tf.textContent = t('tab-forgot');
+  // Text content
+  R.querySelectorAll('[data-i18n]').forEach(node => {
+    const val = t(node.dataset.i18n);
+    // Only overwrite text — don't destroy child elements like icons
+    if (node.children.length === 0) {
+      node.textContent = val;
+    } else {
+      // Has child elements — only update a single leading text node if present
+      const first = node.childNodes[0];
+      if (first && first.nodeType === 3) first.textContent = val;
+    }
+  });
 
-  // Search placeholders
-  const srch = el('srch');    if(srch) srch.placeholder = t('search-ph');
-  const srchm = el('srch-m'); if(srchm) srchm.placeholder = t('search-ph-m');
+  // Placeholders
+  R.querySelectorAll('[data-i18n-ph]').forEach(node => {
+    node.placeholder = t(node.dataset.i18nPh);
+  });
 
-  // Add button labels
-  const btnAdd = el('btn-add'); if(btnAdd) btnAdd.textContent = t('btn-add-label');
-  const btnAddM = el('btn-add-m');
-  if(btnAddM) btnAddM.innerHTML = `<span class="btn-ico">＋</span><span class="btn-lbl">${lang==='en'?'Add Person':t('btn-add-m-label')}</span>`;
+  // data-tip tooltips (desktop hover labels)
+  R.querySelectorAll('[data-i18n-tip]').forEach(node => {
+    node.setAttribute('data-tip', t(node.dataset.i18nTip));
+  });
 
-  // FAB title
-  const fab = el('fab-add'); if(fab) { fab.title = t('fab-title'); fab.setAttribute('aria-label', t('fab-title')); }
-
-  // Pending screen
-  const pt = el('pend-t'); if(pt) pt.textContent = t('pend-t');
-  const ps = el('pend-s'); if(ps) ps.textContent = t('pend-s-text');
-
-  // Empty canvas text
-  const emt = document.querySelector('.em-t'); if(emt) emt.textContent = t('em-t');
-  const ems = document.querySelector('.em-s'); if(ems) ems.textContent = t('em-s');
-  const emb = document.querySelector('.em-btn'); if(emb) emb.textContent = t('em-btn');
-
-  // Brand subtitle on lang screen
-  const bs = el('s-lang') && el('s-lang').querySelector('.brand-sub');
-  if(bs && !bs.textContent.includes('Loading')) bs.textContent = t('brand-sub');
-
-  // Language toggle button in header/drawer
-  const lbD = el('btn-lang');   if(lbD) lbD.setAttribute('data-tip', t('lang-btn-label'));
-  const lbM = el('btn-lang-m'); if(lbM) { lbM.querySelector('.btn-lbl') && (lbM.querySelector('.btn-lbl').textContent = t('lang-btn-label').replace('🌐 ','')); }
+  // FAB — no text content, so handled explicitly
+  if (R === document) {
+    const fab = document.getElementById('fab-add');
+    if (fab) { fab.title = t('addPerson'); fab.setAttribute('aria-label', t('addPerson')); }
+    const bs = document.querySelector('#s-lang .brand-sub');
+    if (bs && !bs.textContent.includes('…')) bs.textContent = t('brandSub');
+  }
 }
 
 function setLang(l) {
   LANG = l;
   localStorage.setItem('para_lang', l);
   applyLang();
-  // If on language screen, proceed to boot
-  const langScreen = el('s-lang');
+  const langScreen = document.getElementById('s-lang');
   if (langScreen && !langScreen.classList.contains('hide')) {
     langScreen.querySelector('.lang-opts').style.opacity = '0.4';
     langScreen.querySelector('.lang-opts').style.pointerEvents = 'none';
     const brand = langScreen.querySelector('.brand-sub');
-    if (brand) brand.textContent = 'Loading…';
+    if (brand) brand.textContent = '…';
     boot();
-  }
-  // If already in the app, just apply translations and show toast
-  else {
-    toast(l === 'ta' ? 'மொழி மாற்றப்பட்டது' : l === 'ml' ? 'ഭാഷ മാറ്റി' : 'Language updated');
+  } else {
+    toast(l==='ta'?'மொழி மாற்றப்பட்டது':l==='ml'?'ഭാഷ മാറ്റി':'Language updated');
   }
 }
 
@@ -2141,7 +2221,7 @@ function openAdminMo() {
     if (btn) btn.classList.toggle('on', t==='members');
   });
   el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   el('admin-mo').classList.add('on');
   loadMembers();
 }
@@ -2185,6 +2265,7 @@ async function loadMembers() {
   } catch(e) {
     el('amo-bd').innerHTML = `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;
   }
+  applyLang(el('admin-mo')); // translate any data-i18n inside the modal
 }
 
 function memberRow(m, isPending) {
@@ -3036,20 +3117,20 @@ function selectPerson(id){ selId=id; nodesL.querySelectorAll('.card').forEach(c=
 function showPanel(id){
   const p=DB.people[id]; if(!p)return;
   el('pan-title').textContent=fullName(p);
-  el('pan-sub').textContent=(p.dod?'✦ Deceased':'◉ Living')+(p.gender?` · ${p.gender}`:'');
+  el('pan-sub').textContent=(p.dod?'✦ '+t('deceased'):'◉ '+t('living'))+(p.gender?` · ${p.gender==='Male'?t('gMale'):p.gender==='Female'?t('gFemale'):t('gOther')}`:'');
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<div class="pf-av"><img src="${escHtml(p.photo)}" alt=""></div>`
     :`<div class="pf-av ${avCls}" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
 
   const rows=[
-    ['📅','Date of Birth',p.dob],['✝','Date of Death',p.dod],
-    ['📍','Birthplace',p.birthplace],['🏠','Location',p.location],
-    ['💼','Occupation',p.occupation],['🎓','Education',p.education],
-    ['🌍','Nationality',p.nationality],
+    ['📅',t('pDob'),p.dob],['✝',t('pDod'),p.dod],
+    ['📍',t('pBp'),p.birthplace],['🏠',t('pLoc'),p.location],
+    ['💼',t('pOccupation'),p.occupation],['🎓',t('pEdu'),p.education],
+    ['🌍',t('pNat'),p.nationality],
   ].filter(([,,val])=>val);
   const infoHtml=rows.length
     ?rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(val)}</span></div>`).join('')
-    :`<div class="no-rel">No details recorded</div>`;
+    :`<div class="no-rel">${t('noneRecorded')}</div>`;
 
   const rels=Object.values(DB.rels);
   const parents  =rels.filter(r=>r.to===id&&r.type==='Parent').map(r=>({id:r.from,role:'Parent'}));
@@ -3072,22 +3153,22 @@ function showPanel(id){
     }</div></div>`;
   }
 
-  const audit=`<div class="audit-row"><span class="audit-who">➕ ${escHtml(p.addedByName||'?')}</span><span class="audit-what">added</span><span class="audit-when">${fmtD(p.addedAt)}</span></div>
-    ${p.editedAt?`<div class="audit-row"><span class="audit-who">✎ ${escHtml(p.editedByName||'?')}</span><span class="audit-what">last edited</span><span class="audit-when">${fmtDT(p.editedAt)}</span></div>`:''}`;
+  const audit=`<div class="audit-row"><span class="audit-who">➕ ${escHtml(p.addedByName||'?')}</span><span class="audit-what">${t('added')}</span><span class="audit-when">${fmtD(p.addedAt)}</span></div>
+    ${p.editedAt?`<div class="audit-row"><span class="audit-who">✎ ${escHtml(p.editedByName||'?')}</span><span class="audit-what">${t('lastEdited')}</span><span class="audit-when">${fmtDT(p.editedAt)}</span></div>`:''}`;
 
   el('pan-bd').innerHTML=`${av}
     <div class="pf-name">${escHtml(fullName(p))}</div>
     <div class="pf-dates">${lifeSpan(p)||'&nbsp;'}</div>
-    <div class="sec"><div class="sec-t">Personal Information</div>${infoHtml}</div>
-    ${p.notes?`<div class="sec"><div class="sec-t">Biography</div><div class="notes-box">${escHtml(p.notes)}</div></div>`:''}
-    ${chipG('Parents',parents)}${chipG('Partners / Spouse',partners)}${chipG('Children',children)}${chipG('Siblings',siblings)}
-    <div class="sec"><div class="sec-t">Audit Trail</div>${audit}</div>`;
+    <div class="sec"><div class="sec-t">${t('personalInfo')}</div>${infoHtml}</div>
+    ${p.notes?`<div class="sec"><div class="sec-t">${t('biography')}</div><div class="notes-box">${escHtml(p.notes)}</div></div>`:''}
+    ${chipG(t('parents'),parents)}${chipG(t('partners'),partners)}${chipG(t('children'),children)}${chipG(t('siblings'),siblings)}
+    <div class="sec"><div class="sec-t">${t('auditTrail')}</div>${audit}</div>`;
 
   const canEd=canEditPerson(p),canDel=can('delete'),canLink=can('add');
   el('pan-ft').innerHTML=`
-    ${canEd  ?`<button class="pan-btn"     onclick="openEditMo('${id}')">✎ Edit</button>`:''}
-    ${canLink ?`<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ Link</button>`:''}
-    <button class="pan-btn" onclick="openHistMo('${id}')">📜 History</button>
+    ${canEd  ?`<button class="pan-btn"     onclick="openEditMo('${id}')">✎ ${t('edit')}</button>`:''}
+    ${canLink ?`<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ ${t('relLink')}</button>`:''}
+    <button class="pan-btn" onclick="openHistMo('${id}')">📜 ${t('history')}</button>
     ${canDel  ?`<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>`:''}`;
   el('panel').classList.add('open');
 }
@@ -3097,31 +3178,31 @@ wrap.addEventListener('click',e=>{ if(e.target.closest('.card')||pan.moved)retur
 // ══ PERSON FORM ════════════════════════════════════════════════════
 function personForm(p={}){ return `
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">First Name *</label><input class="pfi" id="pf-first" value="${escHtml(p.first||'')}"></div>
-    <div class="pfg"><label class="pfl">Last Name</label><input class="pfi" id="pf-last" value="${escHtml(p.last||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pFirst')} *</label><input class="pfi" id="pf-first" value="${escHtml(p.first||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pLast')}</label><input class="pfi" id="pf-last" value="${escHtml(p.last||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Gender</label><select class="pfs" id="pf-gender"><option value="">—</option><option${p.gender==='Male'?' selected':''}>Male</option><option${p.gender==='Female'?' selected':''}>Female</option><option${p.gender==='Other'?' selected':''}>Other</option></select></div>
-    <div class="pfg"><label class="pfl">Nationality</label><input class="pfi" id="pf-nat" value="${escHtml(p.nationality||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pGender')}</label><select class="pfs" id="pf-gender"><option value="">—</option><option${p.gender==='Male'?' selected':''}>${t('gMale')}</option><option${p.gender==='Female'?' selected':''}>${t('gFemale')}</option><option${p.gender==='Other'?' selected':''}>${t('gOther')}</option></select></div>
+    <div class="pfg"><label class="pfl">${t('pNat')}</label><input class="pfi" id="pf-nat" value="${escHtml(p.nationality||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Date of Birth</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}"></div>
-    <div class="pfg"><label class="pfl">Date of Death</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}"></div>
+    <div class="pfg"><label class="pfl">${t('pDob')}</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}"></div>
+    <div class="pfg"><label class="pfl">${t('pDod')}</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Birthplace</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
-    <div class="pfg"><label class="pfl">Location</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pBp')}</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pLoc')}</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">Occupation</label><input class="pfi" id="pf-occ" value="${escHtml(p.occupation||'')}"></div>
-    <div class="pfg"><label class="pfl">Education</label><input class="pfi" id="pf-edu" value="${escHtml(p.education||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pOccupation')}</label><input class="pfi" id="pf-occ" value="${escHtml(p.occupation||'')}"></div>
+    <div class="pfg"><label class="pfl">${t('pEdu')}</label><input class="pfi" id="pf-edu" value="${escHtml(p.education||'')}"></div>
   </div>
-  <div class="pfg"><label class="pfl">Photo URL</label><input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}"></div>
-  <div class="pfg"><label class="pfl">Biography / Notes</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
+  <div class="pfg"><label class="pfl">${t('pPhoto')}</label><input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}"></div>
+  <div class="pfg"><label class="pfl">${t('pNotes')}</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
 
 let editId=null;
-function openAddMo(){  if(!can('add')){toast('No permission');return;} editId=null; el('pmo-title').textContent='Add Family Member'; el('pmo-bd').innerHTML=personForm(); el('person-mo').classList.add('on'); }
-function openEditMo(id){ if(!canEditPerson(DB.people[id])){toast('No permission');return;} editId=id; el('pmo-title').textContent='Edit — '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
+function openAddMo(){  if(!can('add')){toast('No permission');return;} editId=null; el('pmo-title').textContent=t('addMember'); el('pmo-bd').innerHTML=personForm(); el('person-mo').classList.add('on'); }
+function openEditMo(id){ if(!canEditPerson(DB.people[id])){toast('No permission');return;} editId=id; el('pmo-title').textContent=t('editDash')+' '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
 function closePMo(){ el('person-mo').classList.remove('on'); }
 function pv(id){ return (el(id)||{}).value||''; }
 
@@ -3379,7 +3460,7 @@ async function openHistMo(id){
   el('hmo-bd').innerHTML='<div style="color:var(--ink3);font-size:12px">Loading…</div>';
   el('hist-mo').classList.add('on');
   const entries=await getHistory(id);
-  if(!entries.length){el('hmo-bd').innerHTML='<div class="no-rel">No history recorded yet</div>';return;}
+  if(!entries.length){el('hmo-bd').innerHTML=`<div class="no-rel">${t('noHistory')}</div>`;return;}
   el('hmo-bd').innerHTML=entries.map(e=>{
     const ch=JSON.parse(e.changes||'{}');
     const cHtml=Object.entries(ch).map(([k,{from:f,to:t}])=>`<div style="font-size:11px;color:var(--ink3);margin-top:3px"><b>${k}:</b> ${escHtml(f||'—')} → ${escHtml(t||'—')}</div>`).join('');
@@ -3582,7 +3663,7 @@ function openAdminMo_new() {
     if (btn) btn.classList.toggle('on', t==='members');
   });
   el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   el('admin-mo').classList.add('on');
   loadMembers();
 }
@@ -3592,7 +3673,7 @@ let _impMode = 'people';   // 'people' | 'rels'
 let _impRows = [];         // parsed CSV rows ready to import
 
 function loadImportTab() {
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   el('amo-bd').innerHTML = `
     <div class="imp-step on" id="imp-step-1">
       <div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.65">
@@ -3909,7 +3990,7 @@ async function unarchiveFamily() {
 }
 
 function loadSettingsTab() {
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()">Close</button>';
+  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   const isArchived = CU && CU.archived;
   el('amo-bd').innerHTML = `
     <div class="sec-t">Family Tree Status</div>
@@ -3998,7 +4079,7 @@ Object.assign(window, {
   // Profile link modal
   openLinkMo, closeLinkMo, confirmLink, clearLink, filterLinkPicker,
   // Language
-  openLangMo, setLang, applyLang,
+  setLang, applyLang,
   // History modal
   openHistMo, closeHMo,
   // Pending screen

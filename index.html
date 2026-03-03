@@ -655,6 +655,242 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   .pan-ft{padding-bottom:calc(12px + var(--sab))}
 }
 
+/* ══ MOBILE TAB SHELL (≤720px only) ══════════════════════════════════ */
+
+/* Tab strip — sits just below the header as a flex child of #app */
+#mob-tabs{
+  display:none;               /* hidden on desktop */
+  flex-shrink:0;
+  background:var(--bark);
+  border-bottom:1px solid var(--clay);
+  z-index:190;
+}
+.mob-tab{
+  flex:1;padding:0;height:44px;
+  background:none;border:none;
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;
+  letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink4);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;transition:color .15s;border-bottom:2px solid transparent;
+  -webkit-tap-highlight-color:transparent}
+.mob-tab .mt-ico{font-size:18px;line-height:1}
+.mob-tab .mt-lbl{font-size:9px;letter-spacing:.07em}
+.mob-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* Tree view wrapper — groups pivot-bar + canvas-wrap */
+#mob-tree-view{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  min-height:0;  /* critical: allows flex child to shrink below content size */
+}
+/* On mobile, tree-view and other tab views start hidden — JS switchMobTab controls visibility */
+@media(max-width:720px){
+  #mob-tree-view{display:none}
+}
+
+/* People list view */
+#mob-people{
+  display:none;flex-direction:column;
+  flex:1;overflow:hidden;min-height:0;
+  background:var(--night)}
+
+/* Me tab view */
+#mob-me{
+  display:none;flex-direction:column;
+  flex:1;overflow:hidden;min-height:0;
+  background:var(--night)}
+
+/* Full-screen person detail (mobile) */
+#mob-detail{
+  display:none;flex-direction:column;
+  position:fixed;
+  top:0;left:0;right:0;
+  bottom:0;
+  background:var(--panel);
+  z-index:260;  /* above header (200) and panel (150) */
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#mob-detail.open{transform:translateX(0)}
+#mob-detail.open{display:flex}
+#mob-det-hd{
+  display:flex;align-items:center;
+  background:var(--parch2);
+  border-bottom:1px solid var(--border);
+  padding:0 8px;
+  min-height:calc(52px + var(--sat));flex-shrink:0;
+  padding-top:calc(8px + var(--sat))}
+#mob-det-back{
+  background:none;border:none;color:var(--copper);
+  font-size:22px;cursor:pointer;padding:8px;
+  min-width:44px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent}
+#mob-det-title{
+  flex:1;font-family:'Crimson Pro',serif;font-size:18px;
+  font-weight:600;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding:0 8px}
+#mob-det-actions{display:flex;gap:4px;flex-shrink:0}
+.mob-det-act{
+  background:none;border:1px solid rgba(200,137,58,.3);
+  color:var(--gold);font-size:11px;font-weight:500;
+  padding:6px 10px;border-radius:var(--r);cursor:pointer;
+  min-height:36px;display:flex;align-items:center;
+  -webkit-tap-highlight-color:transparent}
+#mob-det-bd{flex:1;overflow-y:auto;overscroll-behavior:contain;
+  padding:16px 18px;color:var(--ink);background:var(--panel)}
+#mob-det-ft{
+  display:flex;gap:6px;padding:12px 18px;
+  padding-bottom:calc(12px + var(--sab));
+  border-top:1px solid var(--border);
+  flex-shrink:0;background:var(--panel);flex-wrap:wrap}
+
+/* People list */
+#mob-people-search{
+  padding:10px 12px;border-bottom:1px solid var(--clay);
+  background:var(--bark);flex-shrink:0}
+#mob-srch{
+  width:100%;background:var(--soil);
+  border:1px solid rgba(200,137,58,.25);
+  color:var(--cream);font-family:'DM Sans',sans-serif;
+  font-size:15px;padding:9px 10px 9px 32px;
+  border-radius:8px;outline:none;
+  -webkit-user-select:text;user-select:text}
+#mob-srch::placeholder{color:var(--ink4)}
+#mob-srch:focus{border-color:var(--gold)}
+#mob-people-search-wrap{position:relative}
+#mob-people-search-wrap::before{
+  content:'⌕';position:absolute;left:10px;top:50%;
+  transform:translateY(-50%);color:var(--copper);
+  font-size:16px;pointer-events:none}
+#mob-srch-drop{
+  position:absolute;top:calc(100% + 2px);left:0;right:0;
+  background:var(--bark);border:1px solid var(--clay);
+  border-radius:var(--r);z-index:400;
+  display:none;max-height:200px;overflow-y:auto;
+  box-shadow:0 4px 16px var(--shadow)}
+#mob-srch-drop.on{display:block}
+#mob-gen-filters{
+  display:flex;gap:6px;padding:8px 12px;
+  overflow-x:auto;scrollbar-width:none;
+  border-bottom:1px solid var(--clay);
+  flex-shrink:0;background:var(--bark)}
+#mob-gen-filters::-webkit-scrollbar{display:none}
+.mgf-chip{
+  background:var(--soil);border:1px solid var(--clay);
+  color:var(--ink4);font-size:10px;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:5px 12px;border-radius:10px;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:all .15s;-webkit-tap-highlight-color:transparent}
+.mgf-chip.on{
+  background:rgba(200,137,58,.15);
+  border-color:var(--gold);color:var(--gold)}
+#mob-people-list{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.mpl-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid rgba(74,46,16,.3);
+  cursor:pointer;transition:background .12s;
+  -webkit-tap-highlight-color:transparent;
+  min-height:64px}
+.mpl-row:active{background:var(--soil)}
+.mpl-av{
+  width:44px;height:44px;border-radius:50%;
+  flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:16px;font-weight:600;
+  color:var(--cream);overflow:hidden;border:2px solid var(--clay)}
+.mpl-av img{width:100%;height:100%;object-fit:cover}
+.mpl-av.av-m{background:linear-gradient(135deg,#1a3050,#0e2035)}
+.mpl-av.av-f{background:linear-gradient(135deg,#3a1525,#251020)}
+.mpl-av.av-o{background:linear-gradient(135deg,#1a3020,#102015)}
+.mpl-body{flex:1;min-width:0}
+.mpl-name{
+  font-family:'Crimson Pro',serif;font-size:15px;
+  font-weight:600;color:var(--cream);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpl-sub{font-size:11px;color:var(--ink4);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpl-rel{
+  font-size:10px;color:var(--copper);margin-top:3px;
+  font-style:italic}
+.mpl-arrow{color:var(--clay);font-size:14px;flex-shrink:0}
+
+/* Me tab */
+#mob-me-inner{
+  flex:1;overflow-y:auto;overscroll-behavior:contain;
+  padding:20px 16px}
+.mob-me-card{
+  background:var(--bark);border:1px solid var(--clay);
+  border-radius:12px;padding:20px;margin-bottom:16px;
+  text-align:center}
+.mob-me-av{
+  width:72px;height:72px;border-radius:50%;
+  margin:0 auto 12px;display:flex;
+  align-items:center;justify-content:center;
+  font-size:26px;border:3px solid var(--gold);
+  overflow:hidden;background:var(--parch2)}
+.mob-me-av img{width:100%;height:100%;object-fit:cover}
+.mob-me-name{font-family:'Crimson Pro',serif;font-size:22px;
+  font-weight:600;color:var(--cream);margin-bottom:4px}
+.mob-me-sub{font-size:12px;color:var(--ink4)}
+.mob-me-tree-btn{
+  margin-top:14px;padding:10px 24px;
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r);
+  font-family:'DM Sans',sans-serif;font-size:12px;
+  font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mob-me-sect{margin-bottom:16px}
+.mob-me-sect-t{
+  font-size:9px;text-transform:uppercase;letter-spacing:.11em;
+  color:var(--copper);font-weight:600;margin-bottom:8px;
+  padding-bottom:5px;border-bottom:1px solid var(--clay)}
+.mob-me-chips{display:flex;flex-wrap:wrap;gap:6px}
+.mob-me-chip{
+  background:var(--soil);border:1px solid var(--clay);
+  border-radius:4px;padding:8px 12px;
+  font-size:12px;cursor:pointer;color:var(--cream);
+  display:flex;flex-direction:column;min-height:40px;
+  justify-content:center;transition:all .14s;
+  -webkit-tap-highlight-color:transparent}
+.mob-me-chip:active{border-color:var(--gold);background:var(--bark)}
+.mob-me-chip small{font-size:9px;color:var(--ink4);
+  text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.mob-me-unlinked{
+  text-align:center;padding:40px 20px;color:var(--ink4)}
+.mob-me-unlinked-ico{font-size:48px;margin-bottom:12px;opacity:.4}
+.mob-me-unlinked-t{font-family:'Crimson Pro',serif;font-size:20px;
+  color:var(--ink3);margin-bottom:8px}
+.mob-me-unlinked-s{font-size:13px;line-height:1.65;max-width:260px;margin:0 auto}
+
+/* On mobile: hide the desktop panel and FAB (detail view takes over) */
+@media(max-width:720px){
+  #mob-tabs{display:flex}
+  #panel{display:none!important}
+  #fab-add{display:none!important}
+  #zoom-ctl{bottom:calc(12px + var(--sab));right:calc(10px + var(--sar))}
+  #sync-bar{bottom:calc(12px + var(--sab))}
+  #canvas-legend{bottom:calc(12px + var(--sab))}
+}
+/* Tree-tab FAB — floats over canvas on mobile */
+#mob-tree-fab{
+  display:none;  /* shown only inside mob-tree-view via JS/CSS */
+  position:absolute;bottom:calc(72px + var(--sab));right:calc(14px + var(--sar));
+  z-index:102;width:50px;height:50px;border-radius:50%;
+  background:var(--gold);color:var(--ink);border:none;cursor:pointer;
+  font-size:22px;font-weight:300;line-height:1;
+  box-shadow:0 4px 16px rgba(200,137,58,.45),0 2px 6px rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+  -webkit-tap-highlight-color:transparent}
+#mob-tree-fab:active{transform:scale(.92)}
+@media(max-width:720px){
+  #mob-tree-fab{display:flex}
+}
+@media(min-width:721px){
+  #mob-tree-fab{display:none!important}
+}
+
 
 /* Relationship Finder modal overlay */
 #rel-finder-mo {
@@ -1070,27 +1306,77 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     </div>
   </div>
   <div id="menu-backdrop" onclick="closeMenu()"></div>
-  <!-- Pivot breadcrumb — flex sibling of canvas-wrap so it pushes canvas down naturally -->
-  <div id="pivot-bar"></div>
-  <div id="canvas-wrap">
-    <div id="world">
-      <svg id="world-svg" width="1" height="1"></svg>
-      <div id="nodes-layer"></div>
-    </div>
-    <div id="empty">
-      <div class="em-ico">🌳</div>
-      <div class="em-t" style="font-family:'Crimson Pro',serif" data-i18n="emptyTitle">Your family tree awaits</div>
-      <div class="em-s" data-i18n="emptyBody">Start by adding your first family member</div>
-      <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
-    </div>
-    <!-- Shown in ego view when user has no linked profile -->
-    <div id="unlinked-prompt" class="hide">
-      <div class="up-ico">👤</div>
-      <div class="up-t">Profile not linked</div>
-      <div class="up-s" id="unlinked-msg">Ask your admin to link your account to a person in the tree. Then you'll see your personal family view here.</div>
+
+  <!-- ── Mobile tab strip (hidden on desktop via CSS) ── -->
+  <div id="mob-tabs">
+    <button class="mob-tab on" id="mtab-people" onclick="switchMobTab('people')">
+      <span class="mt-ico">👥</span><span class="mt-lbl">People</span>
+    </button>
+    <button class="mob-tab" id="mtab-tree" onclick="switchMobTab('tree')">
+      <span class="mt-ico">🌳</span><span class="mt-lbl">Tree</span>
+    </button>
+    <button class="mob-tab" id="mtab-me" onclick="switchMobTab('me')">
+      <span class="mt-ico">👤</span><span class="mt-lbl">Me</span>
+    </button>
+  </div>
+
+  <!-- ── Tree tab view: wraps pivot-bar + canvas so they can be shown/hidden together ── -->
+  <div id="mob-tree-view">
+  <!-- Small FAB inside tree tab so users can add people while browsing the tree -->
+  <button id="mob-tree-fab" onclick="openAddMo()" aria-label="Add person">＋</button>
+    <!-- Pivot breadcrumb — flex sibling of canvas-wrap so it pushes canvas down naturally -->
+    <div id="pivot-bar"></div>
+    <div id="canvas-wrap">
+      <div id="world">
+        <svg id="world-svg" width="1" height="1"></svg>
+        <div id="nodes-layer"></div>
+      </div>
+      <div id="empty">
+        <div class="em-ico">🌳</div>
+        <div class="em-t" style="font-family:'Crimson Pro',serif" data-i18n="emptyTitle">Your family tree awaits</div>
+        <div class="em-s" data-i18n="emptyBody">Start by adding your first family member</div>
+        <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
+      </div>
+      <!-- Shown in ego view when user has no linked profile -->
+      <div id="unlinked-prompt" class="hide">
+        <div class="up-ico">👤</div>
+        <div class="up-t">Profile not linked</div>
+        <div class="up-s" id="unlinked-msg">Ask your admin to link your account to a person in the tree. Then you'll see your personal family view here.</div>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- ── People tab view ── -->
+  <div id="mob-people">
+    <div id="mob-people-search">
+      <div id="mob-people-search-wrap">
+        <input id="mob-srch" type="text" placeholder="Search people…" autocomplete="off">
+        <div id="mob-srch-drop"></div>
+      </div>
+    </div>
+    <div id="mob-gen-filters">
+      <button class="mgf-chip on" data-gen="all" onclick="setMobGenFilter('all')">All</button>
+    </div>
+    <div id="mob-people-list"></div>
+  </div>
+
+  <!-- ── Me tab view ── -->
+  <div id="mob-me">
+    <div id="mob-me-inner"></div>
+  </div>
+
+  <!-- ── Full-screen person detail (mobile only, replaces panel) ── -->
+  <div id="mob-detail">
+    <div id="mob-det-hd">
+      <button id="mob-det-back" onclick="closeMobDetail()">‹</button>
+      <div id="mob-det-title">—</div>
+      <div id="mob-det-actions"></div>
+    </div>
+    <div id="mob-det-bd"></div>
+    <div id="mob-det-ft"></div>
+  </div>
+
+</div><!-- /#app -->
 
 <button id="fab-add" onclick="openAddMo()" aria-label="Add person" title="Add Person">＋</button>
 <div id="zoom-ctl">
@@ -1514,6 +1800,8 @@ function showApp(linkedProfileId) {
   applyHeaderH(52);
   // Pass linkedProfileId so initEgoView doesn't need another Firebase read
   initEgoView(linkedProfileId);
+  // Initialise mobile shell once we know we're in the app
+  initMobileShell();
 }
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
@@ -1914,6 +2202,7 @@ function openFamilySwitcher() {
   DB = { people:{}, rels:{} };
   // Reset ego state
   egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
+  _mobRelLabels = {}; _mobDetailStack = []; // clear mobile caches on family switch
   loadedPids.clear(); loadedRids.clear();
   knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
   renderPivotBar();
@@ -2802,7 +3091,7 @@ async function ndEnd(){
     await set(ref(db,`families/${FAM}/people/${id}/x`),DB.people[id].x);
     await set(ref(db,`families/${FAM}/people/${id}/y`),DB.people[id].y);
   }
-  if(!moved&&id) selectPerson(id);
+  if(!moved&&id) selectPersonRouted(id);
 }
 
 // ══ EGO VIEW ENGINE ════════════════════════════════════════════════
@@ -3372,6 +3661,8 @@ function render(){
   if(viewMode==='ego'){ applyDimming(); }
   // Note: updateAllExpandBadges() is NOT called here — it fires async Firebase reads
   // and is called explicitly only when rels change (addRel, removeRel, expandPerson).
+  // Refresh mobile views so People list and Me tab stay in sync with DB changes.
+  refreshMobViews();
 }
 function renderCard(id,gen){
   const p=DB.people[id];
@@ -5082,7 +5373,501 @@ function renderPivotBar() {
   bar.innerHTML = html;
 }
 
-// ══ EXPOSE TO GLOBAL SCOPE (required because onclick= runs outside module scope) ══
+// ══ MOBILE TAB SHELL ══════════════════════════════════════════════════
+// Activated on ≤720px. Manages three tabs: People, Tree, Me.
+// Desktop (>720px) never touches any of this — the tab strip is
+// display:none and selectPerson/closePanel work as before.
+
+function isMobile() { return window.innerWidth <= 720; }
+
+// ── Active mobile tab state ──────────────────────────────────────────
+let _mobTab = 'people';   // 'people' | 'tree' | 'me'
+
+function switchMobTab(tab) {
+  if (!isMobile()) return;
+  _mobTab = tab;
+
+  // Tab buttons
+  ['people','tree','me'].forEach(t => {
+    const btn = el('mtab-' + t);
+    if (btn) btn.classList.toggle('on', t === tab);
+  });
+
+  // Views: tree lives in mob-tree-view; others in their own divs
+  const treeView   = el('mob-tree-view');
+  const peopleView = el('mob-people');
+  const meView     = el('mob-me');
+
+  if (treeView) {
+    treeView.style.display   = tab === 'tree'   ? 'flex' : 'none';
+  }
+  if (peopleView) {
+    peopleView.style.display = tab === 'people' ? 'flex' : 'none';
+  }
+  if (meView) {
+    meView.style.display     = tab === 'me'     ? 'flex' : 'none';
+  }
+
+  // Lazy-render the newly-visible tab
+  if (tab === 'people') renderMobPeople();
+  if (tab === 'me')     renderMobMe();
+}
+
+// Called after DB loads so mobile views start populated.
+// Also hooked into scheduleRender so list refreshes on any tree change.
+function refreshMobViews() {
+  if (!isMobile()) return;
+  // Cancel any in-flight label job — DB may have changed
+  if (_mobRelLabelJob) { cancelIdleCallback(_mobRelLabelJob); _mobRelLabelJob = null; }
+  if (_mobTab === 'people') renderMobPeople();
+  if (_mobTab === 'me')     renderMobMe();
+}
+
+// ── Mobile person detail (replaces desktop panel on mobile) ──────────
+let _mobDetailStack = [];   // navigation history: array of person IDs
+
+function showMobDetail(id, fromChip = false) {
+  if (!isMobile()) { selectPerson(id); return; }
+  const det = el('mob-detail');
+  if (!det) return;
+
+  // If opened fresh (not via a chip inside detail), reset the stack
+  if (!fromChip) _mobDetailStack = [];
+  // Push to nav stack (for back button)
+  if (_mobDetailStack[_mobDetailStack.length - 1] !== id) {
+    _mobDetailStack.push(id);
+  }
+
+  _renderMobDetail(id);
+  det.style.display = 'flex';
+  // Force reflow so transition fires
+  det.getBoundingClientRect();
+  det.classList.add('open');
+}
+
+function closeMobDetail() {
+  _mobDetailStack.pop();
+  const prev = _mobDetailStack[_mobDetailStack.length - 1];
+
+  if (prev) {
+    // Navigate back to previous person without re-pushing
+    _renderMobDetail(prev);
+  } else {
+    // Stack empty — close the panel entirely
+    const det = el('mob-detail');
+    if (!det) return;
+    det.classList.remove('open');
+    setTimeout(() => {
+      if (!det.classList.contains('open')) det.style.display = 'none';
+    }, 300);
+  }
+}
+
+function _renderMobDetail(id) {
+  const p = DB.people[id];
+  if (!p) return;
+  const det = el('mob-detail');
+  if (!det) return;
+
+  // Header
+  el('mob-det-title').textContent = fullName(p);
+
+  // Action buttons in header (Edit shortcut)
+  const canEd = canEditPerson(p);
+  el('mob-det-actions').innerHTML = canEd
+    ? `<button class="mob-det-act" onclick="openEditMo('${id}')">✎ Edit</button>`
+    : '';
+
+  // Body — reuse the same content generation as the desktop panel
+  const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
+  const av = p.photo
+    ? `<div class="pf-av"><img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'"></div>`
+    : `<div class="pf-av ${avCls}" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
+
+  const rows = [
+    ['📅', t('pDob'),        p.dob],
+    ['✝',  t('pDod'),        p.dod],
+    ['📍', t('pBp'),         p.birthplace],
+    ['🏠', t('pLoc'),        p.location],
+    ['💼', t('pOccupation'), p.occupation],
+    ['🎓', t('pEdu'),        p.education],
+    ['🌍', t('pNat'),        p.nationality],
+  ].filter(([,,v]) => v);
+
+  const infoHtml = rows.length
+    ? rows.map(([ico,k,v]) =>
+        `<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(v)}</span></div>`
+      ).join('')
+    : `<div class="no-rel">${t('noneRecorded')}</div>`;
+
+  const rels = Object.values(DB.rels);
+  const parents  = rels.filter(r => r.to===id && r.type==='Parent').map(r => ({id:r.from, role:t('parents').replace(/s$/,'')}));
+  const children = rels.filter(r => r.from===id && r.type==='Parent').map(r => ({id:r.to, role:t('children').replace(/s$/,'')}));
+  const partners = rels.filter(r => (r.from===id||r.to===id) && r.type==='Partner')
+                       .map(r => ({id: r.from===id ? r.to : r.from, role:t('partners').replace(/s$/,'')}));
+  const sibIds = [...new Set([
+    ...rels.filter(r => r.from===id && r.type==='Sibling').map(r => r.to),
+    ...rels.filter(r => r.to===id   && r.type==='Sibling').map(r => r.from),
+    ...parents.flatMap(({id:pid}) =>
+      rels.filter(r => r.from===pid && r.type==='Parent' && r.to!==id).map(r => r.to))
+  ])];
+  const siblings = sibIds.map(sid => ({id:sid, role:t('siblings').replace(/s$/,'')}));
+
+  function chipGroup(title, items) {
+    const loaded = items.filter(it => DB.people[it.id]);
+    if (!loaded.length) return '';
+    return `<div class="sec"><div class="sec-t">${title} (${loaded.length})</div>
+      <div class="chips">${loaded.map(it =>
+        `<div class="chip" onclick="showMobDetail('${it.id}', true)">
+          <span>${escHtml(fullName(DB.people[it.id]))}</span>
+          <small>${it.role} →</small>
+        </div>`).join('')}
+      </div></div>`;
+  }
+
+  const audit = `
+    <div class="audit-row">
+      <span class="audit-who">➕ ${escHtml(p.addedByName||'?')}</span>
+      <span class="audit-what">${t('added')}</span>
+      <span class="audit-when">${fmtD(p.addedAt)}</span>
+    </div>
+    ${p.editedAt ? `<div class="audit-row">
+      <span class="audit-who">✎ ${escHtml(p.editedByName||'?')}</span>
+      <span class="audit-what">${t('lastEdited')}</span>
+      <span class="audit-when">${fmtDT(p.editedAt)}</span>
+    </div>` : ''}`;
+
+  el('mob-det-bd').innerHTML = `
+    ${av}
+    <div class="pf-name">${escHtml(fullName(p))}</div>
+    <div class="pf-dates">${lifeSpan(p)||'&nbsp;'}</div>
+    <div class="sec"><div class="sec-t">${t('personalInfo')}</div>${infoHtml}</div>
+    ${p.notes ? `<div class="sec"><div class="sec-t">${t('biography')}</div>
+      <div class="notes-box">${escHtml(p.notes)}</div></div>` : ''}
+    ${chipGroup(t('parents'),  parents)}
+    ${chipGroup(t('partners'), partners)}
+    ${chipGroup(t('children'), children)}
+    ${chipGroup(t('siblings'), siblings)}
+    <div class="sec"><div class="sec-t">${t('auditTrail')}</div>${audit}</div>`;
+
+  // Footer actions
+  const canDel  = can('delete');
+  const canLink = can('add');
+  el('mob-det-ft').innerHTML = `
+    ${canEd   ? `<button class="pan-btn"     onclick="openEditMo('${id}')">✎ ${t('edit')}</button>` : ''}
+    ${canLink ? `<button class="pan-btn pri" onclick="openRelMo('${id}')">⛓ ${t('relLink')}</button>` : ''}
+    <button class="pan-btn" onclick="openHistMo('${id}')">📜 ${t('history')}</button>
+    ${canDel  ? `<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>` : ''}`;
+}
+
+// ── People list tab ──────────────────────────────────────────────────
+let _mobGenFilter = 'all';
+let _mobRelLabels = {};    // pid → label string (filled lazily)
+let _mobRelLabelJob = null;
+
+function setMobGenFilter(gen) {
+  _mobGenFilter = gen;
+  el('mob-gen-filters').querySelectorAll('.mgf-chip').forEach(c =>
+    c.classList.toggle('on', c.dataset.gen === gen));
+  _renderMobPeopleList();
+}
+
+function renderMobPeople() {
+  if (!el('mob-people')) return;
+
+  // Build generation filter chips from what's actually loaded
+  const memo = {};
+  Object.keys(DB.people).forEach(id => getGen(id, memo));
+  const gens = [...new Set(Object.values(memo).map(g => Math.round(g)))].sort((a,b) => a-b);
+
+  const filtersEl = el('mob-gen-filters');
+  // Only rebuild chips if set of generations has changed
+  const existing = [...filtersEl.querySelectorAll('.mgf-chip[data-gen]')]
+    .map(c => c.dataset.gen).filter(g => g !== 'all');
+  const changed = JSON.stringify(existing) !== JSON.stringify(gens.map(String));
+  if (changed) {
+    filtersEl.innerHTML = `<button class="mgf-chip${_mobGenFilter==='all'?' on':''}" data-gen="all" onclick="setMobGenFilter('all')">All</button>`;
+    gens.forEach(g => {
+      const on = _mobGenFilter === String(g) ? ' on' : '';
+      filtersEl.innerHTML += `<button class="mgf-chip${on}" data-gen="${g}" onclick="setMobGenFilter('${g}')">Gen ${g}</button>`;
+    });
+  }
+
+  _renderMobPeopleList();
+  _startRelLabelJob();
+}
+
+function _renderMobPeopleList() {
+  const listEl = el('mob-people-list');
+  if (!listEl) return;
+
+  // Sort alphabetically
+  const ids = Object.keys(DB.people).sort((a, b) => {
+    const na = fullName(DB.people[a]).toLowerCase();
+    const nb = fullName(DB.people[b]).toLowerCase();
+    return na < nb ? -1 : na > nb ? 1 : 0;
+  });
+
+  // Filter by generation
+  const memo = {};
+  ids.forEach(id => getGen(id, memo));
+  const filtered = _mobGenFilter === 'all'
+    ? ids
+    : ids.filter(id => String(Math.round(memo[id] || 0)) === _mobGenFilter);
+
+  if (!filtered.length) {
+    listEl.innerHTML = `<div style="padding:32px 20px;text-align:center;color:var(--ink4);font-size:13px">No people found</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(id => {
+    const p = DB.people[id];
+    const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
+    const avContent = p.photo
+      ? `<img src="${escHtml(p.photo)}" alt="" onerror="this.parentNode.className='mpl-av ${avCls}';this.remove()">`
+      : `${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}`;
+    const sub = [lifeSpan(p), p.occupation].filter(Boolean).join(' · ') || '';
+    const relLabel = _mobRelLabels[id] || '';
+    return `<div class="mpl-row" onclick="showMobDetail('${id}')">
+      <div class="mpl-av ${p.photo ? '' : avCls}">${avContent}</div>
+      <div class="mpl-body">
+        <div class="mpl-name">${escHtml(fullName(p))}</div>
+        ${sub ? `<div class="mpl-sub">${escHtml(sub)}</div>` : ''}
+        ${relLabel ? `<div class="mpl-rel" id="mpl-rel-${id}">${escHtml(relLabel)}</div>`
+                   : `<div class="mpl-rel" id="mpl-rel-${id}"></div>`}
+      </div>
+      <span class="mpl-arrow">›</span>
+    </div>`;
+  }).join('');
+}
+
+// Lazy relationship label computation using requestIdleCallback
+function _startRelLabelJob() {
+  if (!isMobile() || !egoId) return;
+  if (_mobRelLabelJob) return;  // already running
+
+  const ids = Object.keys(DB.people).filter(id => id !== egoId && !_mobRelLabels[id]);
+  if (!ids.length) return;
+
+  let i = 0;
+  function processNext(deadline) {
+    while (i < ids.length && (deadline.timeRemaining() > 2 || deadline.didTimeout)) {
+      const id = ids[i++];
+      const label = _computeRelLabel(id);
+      if (label) {
+        _mobRelLabels[id] = label;
+        // Patch just the label cell — no full re-render needed
+        const cell = document.getElementById('mpl-rel-' + id);
+        if (cell) cell.textContent = label;
+      }
+    }
+    if (i < ids.length) {
+      _mobRelLabelJob = requestIdleCallback(processNext, { timeout: 500 });
+    } else {
+      _mobRelLabelJob = null;
+    }
+  }
+
+  _mobRelLabelJob = requestIdleCallback(processNext, { timeout: 500 });
+}
+
+// Simple 2-hop relationship label (covers 90% of useful cases without
+// running the full BFS finder for every person on list render).
+function _computeRelLabel(id) {
+  if (!egoId || id === egoId) return '';
+  const rels = Object.values(DB.rels);
+
+  // Direct parent
+  if (rels.some(r => r.from === egoId && r.to === id && r.type === 'Parent')) return 'Child';
+  if (rels.some(r => r.from === id   && r.to === egoId && r.type === 'Parent')) return 'Parent';
+  // Direct partner
+  if (rels.some(r => (r.from===egoId||r.to===egoId) && (r.from===id||r.to===id) && r.type==='Partner')) return 'Partner';
+  // Sibling (shared parent)
+  const egoParents = rels.filter(r => r.to===egoId && r.type==='Parent').map(r => r.from);
+  const idParents  = rels.filter(r => r.to===id    && r.type==='Parent').map(r => r.from);
+  if (egoParents.some(p => idParents.includes(p))) return 'Sibling';
+  // Grandparent / grandchild
+  const egoChildren = rels.filter(r => r.from===egoId && r.type==='Parent').map(r => r.to);
+  if (egoParents.some(gp =>
+    rels.some(r => r.from===gp && r.to===id && r.type==='Parent'))) return 'Grandparent';
+  if (egoChildren.some(ch =>
+    rels.some(r => r.from===id && r.to===ch && r.type==='Parent'))) return 'Grandchild';
+  // Parent's partner (step-parent / in-law proxy)
+  if (egoParents.some(gp =>
+    rels.some(r => (r.from===gp||r.to===gp) && (r.from===id||r.to===id) && r.type==='Partner'))) return "Parent's Partner";
+  // Child's partner
+  if (egoChildren.some(ch =>
+    rels.some(r => (r.from===ch||r.to===ch) && (r.from===id||r.to===id) && r.type==='Partner'))) return "Child's Partner";
+  // Aunt/Uncle (parent's sibling)
+  const uncleAuntIds = egoParents.flatMap(gp => {
+    const gpParents = rels.filter(r => r.to===gp && r.type==='Parent').map(r => r.from);
+    return gpParents.flatMap(ggp =>
+      rels.filter(r => r.from===ggp && r.to!==gp && r.type==='Parent').map(r => r.to));
+  });
+  if (uncleAuntIds.includes(id)) return 'Aunt/Uncle';
+  // Niece/Nephew (sibling's child)
+  const siblingIds = [...new Set(egoParents.flatMap(p =>
+    rels.filter(r => r.from===p && r.type==='Parent' && r.to!==egoId).map(r => r.to)))];
+  if (siblingIds.some(sib =>
+    rels.some(r => r.from===sib && r.to===id && r.type==='Parent'))) return 'Niece/Nephew';
+  // Cousin (parent's sibling's child)
+  if (uncleAuntIds.some(ua =>
+    rels.some(r => r.from===ua && r.to===id && r.type==='Parent'))) return 'Cousin';
+
+  return '';  // too distant — leave blank (rel finder can compute on demand)
+}
+
+// ── Me tab ────────────────────────────────────────────────────────────
+function renderMobMe() {
+  const inner = el('mob-me-inner');
+  if (!inner) return;
+
+  if (!egoId || !DB.people[egoId]) {
+    inner.innerHTML = `
+      <div class="mob-me-unlinked">
+        <div class="mob-me-unlinked-ico">👤</div>
+        <div class="mob-me-unlinked-t">Profile not linked</div>
+        <div class="mob-me-unlinked-s">Ask your admin to link your account to a person in the tree to see your personal family view here.</div>
+      </div>`;
+    return;
+  }
+
+  const p = DB.people[egoId];
+  const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
+  const avContent = p.photo
+    ? `<img src="${escHtml(p.photo)}" alt="">`
+    : `${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}`;
+
+  const rels = Object.values(DB.rels);
+  const parents  = rels.filter(r => r.to===egoId && r.type==='Parent').map(r => r.from).filter(id => DB.people[id]);
+  const children = rels.filter(r => r.from===egoId && r.type==='Parent').map(r => r.to).filter(id => DB.people[id]);
+  const partners = rels.filter(r => (r.from===egoId||r.to===egoId) && r.type==='Partner')
+                       .map(r => r.from===egoId ? r.to : r.from).filter(id => DB.people[id]);
+
+  function meChips(ids, role) {
+    if (!ids.length) return '';
+    return `<div class="mob-me-sect">
+      <div class="mob-me-sect-t">${role}</div>
+      <div class="mob-me-chips">
+        ${ids.map(id => `
+          <div class="mob-me-chip" onclick="showMobDetail('${id}', true)">
+            <span>${escHtml(fullName(DB.people[id]))}</span>
+            <small>${lifeSpan(DB.people[id]) || ''}</small>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  inner.innerHTML = `
+    <div class="mob-me-card">
+      <div class="mob-me-av ${p.photo ? '' : avCls}">${avContent}</div>
+      <div class="mob-me-name">${escHtml(fullName(p))}</div>
+      <div class="mob-me-sub">${lifeSpan(p) || (p.occupation ? p.occupation : '')}</div>
+      <button class="mob-me-tree-btn" onclick="switchMobTab('tree');setTimeout(()=>centreOnEgo(),80)">
+        🌳 View in Tree
+      </button>
+    </div>
+    ${meChips(parents,  t('parents'))}
+    ${meChips(partners, t('partners'))}
+    ${meChips(children, t('children'))}`;
+}
+
+// ── Mobile search in People tab ──────────────────────────────────────
+(function _wireMobSearch() {
+  const input = el('mob-srch');
+  const drop  = el('mob-srch-drop');
+  if (!input || !drop) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if (!q) { drop.classList.remove('on'); drop.innerHTML = ''; return; }
+    const results = _searchLocal(q, 8);
+    if (!results.length) { drop.classList.remove('on'); drop.innerHTML = ''; return; }
+    drop.innerHTML = results.map(r =>
+      `<div class="sd-row" onclick="showMobDetail('${r.id}');el('mob-srch').value='';el('mob-srch-drop').classList.remove('on')">
+        ${escHtml(r.name)}<small>${escHtml(r.sub || '')}</small>
+      </div>`).join('');
+    drop.classList.add('on');
+  });
+
+  input.addEventListener('blur', () => setTimeout(() => drop.classList.remove('on'), 150));
+})();
+
+// Simple local search against DB.people + searchCache
+function _searchLocal(q, max = 8) {
+  const lq = q.toLowerCase();
+  const results = [];
+  const seen = new Set();
+  // DB.people first (loaded data)
+  for (const [id, p] of Object.entries(DB.people)) {
+    const name = fullName(p);
+    if (name.toLowerCase().includes(lq)) {
+      seen.add(id);
+      results.push({ id, name, sub: lifeSpan(p) || p.occupation || '' });
+      if (results.length >= max) return results;
+    }
+  }
+  // searchCache for unloaded people
+  for (const [id, p] of searchCache.entries()) {
+    if (seen.has(id)) continue;
+    const name = `${p.first||''} ${p.last||''}`.trim();
+    if (name.toLowerCase().includes(lq)) {
+      results.push({ id, name, sub: '' });
+      if (results.length >= max) return results;
+    }
+  }
+  return results;
+}
+
+// ── Hook: refresh mob views whenever tree data changes ────────────────
+// We patch into scheduleRender so the people list stays current.
+const _origScheduleRender = scheduleRender;
+// Note: scheduleRender is a plain function — we can't shadow it from
+// outside without reassigning. Instead, render() already calls
+// refreshMobViews() at the end (added below).
+
+// ── Init: apply correct mobile layout on app start ────────────────────
+function initMobileShell() {
+  if (!isMobile()) return;
+  // Start on People tab
+  switchMobTab('people');
+  // Ensure tree view is hidden initially (People tab is default)
+  const tv = el('mob-tree-view');
+  if (tv) tv.style.display = 'none';
+}
+
+// ── Override selectPerson to route to mobile detail on mobile ─────────
+// The original selectPerson is captured above. On mobile, a card tap
+// should push the detail view rather than the desktop panel.
+const _origSelectPerson = selectPerson;
+// Re-bind so the module-level selectPerson delegates correctly.
+// (We re-assign the exported window.selectPerson below.)
+
+function selectPersonRouted(id) {
+  if (isMobile()) {
+    showMobDetail(id);
+  } else {
+    _origSelectPerson(id);
+  }
+}
+
+// ── Handle resize: re-init if user rotates to desktop width ──────────
+window.addEventListener('resize', () => {
+  if (!isMobile()) {
+    // Restore desktop view — hide mobile tab UI
+    const tv = el('mob-tree-view');
+    if (tv) tv.style.display = '';
+    ['mob-people','mob-me'].forEach(id => {
+      const v = el(id); if (v) v.style.display = 'none';
+    });
+  } else {
+    switchMobTab(_mobTab);
+  }
+});
+
+// ══ END MOBILE TAB SHELL ═══════════════════════════════════════════════
+
+
 Object.assign(window, {
   // Language & boot
   setLang,
@@ -5102,7 +5887,8 @@ Object.assign(window, {
   // Canvas / zoom
   doZoom,
   // Panel
-  closePanel, selectPerson,
+  closePanel,
+  selectPerson: selectPersonRouted,
   // Person modal
   openEditMo, closePMo, savePerson, delPerson,
   // Relation modal
@@ -5125,6 +5911,9 @@ Object.assign(window, {
   rfiSearch, rfiClearSlot, runRelFinder,
   // Pivot navigation
   setPivot, navigateBack,
+  // Mobile tab shell
+  switchMobTab, setMobGenFilter, showMobDetail, closeMobDetail,
+  initMobileShell, refreshMobViews, renderMobPeople, renderMobMe,
 });
 
 // DB and selId need proper getter/setter descriptors so tests (and devtools)
@@ -5133,6 +5922,20 @@ Object.assign(window, {
 Object.defineProperty(window, 'DB', {
   get() { return DB; },
   set(v) { DB = v; },
+  configurable: true,
+});
+Object.defineProperty(window, '_mobRelLabels', {
+  get() { return _mobRelLabels; },
+  configurable: true,
+});
+Object.defineProperty(window, '_mobDetailStack', {
+  get() { return _mobDetailStack; },
+  set(v) { _mobDetailStack = v; },
+  configurable: true,
+});
+Object.defineProperty(window, 'egoId', {
+  get() { return egoId; },
+  set(v) { egoId = v; },
   configurable: true,
 });
 Object.defineProperty(window, 'selId', {

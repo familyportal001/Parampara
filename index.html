@@ -2106,6 +2106,7 @@ function saveSession(fam) {
 // ── Email verification state ──────────────────────────────────────────────
 let _pendingVerifyEmail = '';  // email address awaiting verification
 let _pendingVerifyJoin  = null; // { key, first, last, email, pass, fh } — resume join after verify
+let _handlingVerify    = false; // true while checkVerified owns the sign-in — suppresses onAuthStateChanged
 
 // Resume the join flow after the user has verified their email.
 // Signs them back in, then continues from after the account-creation point.
@@ -2118,6 +2119,7 @@ async function checkVerified() {
   const { email, pass, key, first, last, fh } = _pendingVerifyJoin || {};
   if (!email || !pass) { showScreen('s-auth'); return; }
   if (errEl) errEl.textContent = 'Checking…';
+  _handlingVerify = true; // suppress onAuthStateChanged during this manual sign-in
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     // Reload the user to get the latest emailVerified flag from Firebase
@@ -2125,17 +2127,20 @@ async function checkVerified() {
     if (!cred.user.emailVerified) {
       if (errEl) errEl.textContent = 'Email not verified yet — please click the link in your inbox first.';
       await signOut(auth);
+      _handlingVerify = false;
       return;
     }
     // Verified — continue the join flow
     if (errEl) errEl.textContent = '';
     _pendingVerifyJoin = null;
     _pendingVerifyEmail = '';
-    // Re-run the family setup portion of doJoin with the now-verified user
+    // _completeJoin drives all navigation from here; release flag after it finishes
     await _completeJoin(cred.user, { key, first, last, email, fh });
   } catch(e) {
     if (errEl) errEl.textContent = friendlyAuthError(e.code);
     await signOut(auth).catch(()=>{});
+  } finally {
+    _handlingVerify = false; // always release, even on error
   }
 }
 
@@ -2361,6 +2366,9 @@ function boot() {
   // Firebase auth state drives everything
   _authUnsub = onAuthStateChanged(auth, user => {
     if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
+    // checkVerified() signs in manually and drives navigation itself.
+    // Don't let onAuthStateChanged race it and clobber the screen.
+    if (_handlingVerify) return;
     fbUser = user;
     if (!user) {
       showScreen('s-auth');

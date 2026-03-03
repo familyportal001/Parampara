@@ -2128,6 +2128,7 @@ async function checkVerified() {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     await reload(cred.user); // force-refresh emailVerified from server
+    fbUser = cred.user; // onAuthStateChanged is suppressed — set fbUser manually
     if (!cred.user.emailVerified) {
       if (errEl) errEl.textContent = 'Email not verified yet — please click the link in your inbox first.';
       await signOut(auth);
@@ -3264,8 +3265,9 @@ async function loadMembers() {
     active.forEach(m => html += memberRow(m, false));
 
     if (revoked.length) {
-      html += `<div class="sec-t" style="margin-top:12px;color:var(--ink3)">Removed / Rejected (${revoked.length})</div>`;
-      revoked.forEach(m => html += memberRow(m, false));
+      html += `<div class="sec-t" style="margin-top:12px;color:var(--ink3)">Removed / Rejected (${revoked.length})</div>
+        <div style="font-size:11px;color:var(--ink4);margin-bottom:8px">Restore to let them request access again, or delete to fully remove their record.</div>`;
+      revoked.forEach(m => html += memberRow(m, false, true));
     }
 
     html += `<div class="sec-t" style="margin-top:18px">💾 Data Storage</div>
@@ -3282,7 +3284,7 @@ async function loadMembers() {
   applyLang(el('admin-mo')); // translate any data-i18n inside the modal
 }
 
-function memberRow(m, isPending) {
+function memberRow(m, isPending, isRevoked = false) {
   const ini = ((m.first||m.email||'?')[0] + (m.last||'')[0]).toUpperCase();
   const isSelf = m.uid === fbUser.uid;
   const rb = `<span class="role-badge rb-${m.role||'pending'}">${m.role||'pending'}</span>`;
@@ -3291,15 +3293,20 @@ function memberRow(m, isPending) {
     acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.uid}','editor')">✓ Approve</button>
             <button class="mbtn mbtn-reject"  onclick="setRole('${m.uid}','rejected')">✕ Reject</button>`;
   } else if (!isSelf) {
-    const opts = ALL_ROLES.map(r => `<option value="${r}"${r===m.role?' selected':''}>${r}</option>`).join('');
-    const linkedPid = m.linkedProfileId || '';
-    const linkLabel = linkedPid && DB.people[linkedPid]
-      ? `🔗 ${escHtml(fullName(DB.people[linkedPid]))}`
-      : '🔗 Link Profile';
-    acts = `<select class="role-sel" onchange="setRole('${m.uid}',this.value)"><option disabled>Set role</option>${opts}</select>
-            <button class="mbtn" style="background:var(--slate);color:white" onclick="openLinkMo('${m.uid}','${escHtml((m.first||'')+(m.last?' '+m.last:''))}','${escHtml(linkedPid)}')">${linkLabel}</button>
-            <button class="mbtn" style="background:var(--slate);color:white" onclick="adminSendReset('${escHtml(m.email||'')}')">🔑 Reset</button>
-            <button class="mbtn mbtn-reject" onclick="removeM('${m.uid}')">Remove</button>`;
+    if (isRevoked) {
+      acts = `<button class="mbtn mbtn-approve" onclick="restoreM('${m.uid}')">↩ Restore</button>
+              <button class="mbtn mbtn-reject" onclick="deleteM('${m.uid}')">🗑 Delete record</button>`;
+    } else {
+      const opts = ALL_ROLES.map(r => `<option value="${r}"${r===m.role?' selected':''}>${r}</option>`).join('');
+      const linkedPid = m.linkedProfileId || '';
+      const linkLabel = linkedPid && DB.people[linkedPid]
+        ? `🔗 ${escHtml(fullName(DB.people[linkedPid]))}`
+        : '🔗 Link Profile';
+      acts = `<select class="role-sel" onchange="setRole('${m.uid}',this.value)"><option disabled>Set role</option>${opts}</select>
+              <button class="mbtn" style="background:var(--slate);color:white" onclick="openLinkMo('${m.uid}','${escHtml((m.first||'')+(m.last?' '+m.last:''))}','${escHtml(linkedPid)}')">${linkLabel}</button>
+              <button class="mbtn" style="background:var(--slate);color:white" onclick="adminSendReset('${escHtml(m.email||'')}')">🔑 Reset</button>
+              <button class="mbtn mbtn-reject" onclick="removeM('${m.uid}')">Remove</button>`;
+    }
   } else {
     const linkedPid = m.linkedProfileId || '';
     const linkLabel = linkedPid && DB.people[linkedPid]
@@ -3333,6 +3340,27 @@ async function removeM(uid) {
     setTimeout(loadMembers, 300);
   } catch(e) { toast('Error removing member: ' + e.message); }
 }
+// Restore a removed/rejected member to pending so admin can re-approve them
+async function restoreM(uid) {
+  if (!confirm('Restore this member? They will be set to pending and must be re-approved.')) return;
+  try {
+    await set(ref(db, `families/${FAM}/members/${uid}/role`), 'pending');
+    toast('Member restored — approve them from the Pending section');
+    setTimeout(loadMembers, 300);
+  } catch(e) { toast('Error restoring member: ' + e.message); }
+}
+
+// Permanently delete a member record — they can rejoin from scratch using the family key
+async function deleteM(uid) {
+  if (!confirm('Permanently delete this member record? They can still rejoin using the family key.')) return;
+  try {
+    await set(ref(db, `families/${FAM}/members/${uid}`), null);
+    await set(ref(db, `userFamilies/${uid}/${FAM}`), null);
+    toast('Member record deleted');
+    setTimeout(loadMembers, 300);
+  } catch(e) { toast('Error deleting member: ' + e.message); }
+}
+
 async function adminSendReset(email) {
   if (!email) { toast('No email on record for this member'); return; }
   try {
@@ -4178,7 +4206,12 @@ async function autoLayout(){
   // Re-run badge update after layout — render() wipes and rebuilds cards from
   // knownRels cache (sync for cached, async fetch for uncached).
   if (viewMode === 'ego') updateAllExpandBadges();
-  setTimeout(fitScreen,50); toast('Layout applied');
+  setTimeout(fitScreen,50);
+  if (!can('edit')) {
+    toast('Layout applied (view only — positions not saved)');
+    return;
+  }
+  toast('Layout applied');
   try { await queuedUpdate(updates); } catch(e) { /* layout positions are non-critical */ }
 }
 
@@ -6615,6 +6648,7 @@ Object.assign(window, {
   showScreen, startApprovalWatch, stopApprovalWatch,
   checkVerified, resendVerification,
   generateInviteLink, copyInviteUrl,
+  restoreM, deleteM,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
   rfiSearch, rfiClearSlot, runRelFinder,

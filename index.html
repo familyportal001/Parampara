@@ -574,6 +574,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .dot{width:7px;height:7px;border-radius:50%;background:var(--copper);flex-shrink:0;transition:background .4s}
 .dot.green{background:#5cab6a;box-shadow:0 0 6px rgba(92,171,106,.5)}
 .dot.amber{background:#c8893a;animation:pulse 1.4s infinite}
+/* Pending-member badge on admin button */
+.adm-btn-wrap{position:relative;display:inline-flex}
+.pending-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;
+  padding:0 4px;border-radius:8px;background:var(--rose);color:#fff;
+  font-size:9px;font-weight:700;line-height:16px;text-align:center;
+  pointer-events:none;display:none;box-sizing:border-box}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* install banner */
@@ -1287,7 +1293,10 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <button class="hbtn primary" onclick="openAddMo()" id="btn-add" data-i18n="addBtn">＋ Add</button>
         <div class="hbtn-sep"></div>
         <!-- Account group -->
-        <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel" data-i18n-tip="adminPanel">👑</button>
+        <div class="adm-btn-wrap">
+          <button class="hbtn icon" onclick="openAdminMo()" id="btn-admin" style="display:none" data-tip="Admin Panel" data-i18n-tip="adminPanel">👑</button>
+          <span class="pending-badge" id="pending-badge"></span>
+        </div>
         <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
         <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
@@ -1327,9 +1336,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <button class="hbtn" id="btn-view-toggle-m" onclick="toggleViewMode();closeMenu()" style="display:none">
         <span class="btn-ico">🌳</span><span class="btn-lbl" data-i18n="fullTree">Full Tree</span>
       </button>
-      <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none">
-        <span class="btn-ico">👑</span><span class="btn-lbl" data-i18n="adminPanel">Admin</span>
-      </button>
+      <div class="adm-btn-wrap" style="width:100%">
+        <button class="hbtn" onclick="openAdminMo();closeMenu()" id="btn-admin-m" style="display:none;width:100%">
+          <span class="btn-ico">👑</span><span class="btn-lbl" data-i18n="adminPanel">Admin</span>
+        </button>
+        <span class="pending-badge" id="pending-badge-m"></span>
+      </div>
       <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">
         <span class="btn-ico">⇄</span><span class="btn-lbl" data-i18n="switchFamily">Switch Family</span>
       </button>
@@ -2799,6 +2811,7 @@ function stopApprovalWatch() {
 async function fullLogout() {
   clearListeners();
   stopApprovalWatch();
+  stopPendingWatch();
   if (_bootTimer) { clearTimeout(_bootTimer); _bootTimer = null; }
   egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
   loadedPids.clear(); loadedRids.clear();
@@ -2844,11 +2857,99 @@ function canEditPerson(p) {
   if (can('editOwn') && p.addedBy === fbUser.uid) return true;
   return false;
 }
+// ── Admin pending-member notification watch ───────────────────────────────
+let _pendingWatchUnsub = null;
+let _lastPendingCount  = 0;  // track previous count to detect new arrivals
+
+function startPendingWatch() {
+  if (_pendingWatchUnsub || !FAM || CU?.role !== 'admin') return;
+  const r = membersRef(FAM);
+  const fn = snap => {
+    if (!snap.exists()) { _updatePendingBadge(0); return; }
+    let count = 0;
+    snap.forEach(child => { if (child.val().role === 'pending') count++; });
+    const isNew = count > _lastPendingCount;
+    _lastPendingCount = count;
+    _updatePendingBadge(count);
+    if (isNew && count > 0) _firePendingNotification(count, snap);
+  };
+  onValue(r, fn);
+  _pendingWatchUnsub = () => off(r, 'value', fn);
+}
+
+function stopPendingWatch() {
+  if (_pendingWatchUnsub) { _pendingWatchUnsub(); _pendingWatchUnsub = null; }
+  _lastPendingCount = 0;
+  _updatePendingBadge(0);
+}
+
+// Called when admin opens the panel — resets badge baseline so count drops to 0.
+// The next new arrival (count increases again) will re-trigger badge + notification.
+function clearPendingNotices() {
+  _lastPendingCount = 0;
+  _updatePendingBadge(0);
+  document.title = 'Parampara';
+}
+
+function _updatePendingBadge(count) {
+  ['pending-badge','pending-badge-m'].forEach(id => {
+    const b = el(id);
+    if (!b) return;
+    if (count > 0) {
+      b.textContent = count > 99 ? '99+' : String(count);
+      b.style.display = 'block';
+    } else {
+      b.style.display = 'none';
+    }
+  });
+  // Also update the document title while there are pending members
+  const base = 'Parampara';
+  document.title = count > 0 ? `(${count}) ${base}` : base;
+}
+
+function _firePendingNotification(count, snap) {
+  // Find the newest pending member's name for the notification body
+  let newestName = '';
+  let newestAt = 0;
+  snap.forEach(child => {
+    const m = child.val();
+    if (m.role === 'pending' && (m.joinedAt || 0) > newestAt) {
+      newestAt = m.joinedAt || 0;
+      newestName = [m.first, m.last].filter(Boolean).join(' ') || m.email || 'Someone';
+    }
+  });
+  const body = count === 1
+    ? `${newestName} is requesting to join your family tree`
+    : `${count} people are waiting for approval`;
+
+  // Browser Notification API — only fires if permission already granted
+  if (typeof Notification === 'undefined') return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification('Parampara — New join request', { body, icon: './icon-192.png', tag: 'pending-approval' });
+    } catch(_) {}
+    return;
+  }
+  // Permission not yet decided — request it (only triggered by a real new arrival)
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        try {
+          new Notification('Parampara — New join request', { body, icon: './icon-192.png', tag: 'pending-approval' });
+        } catch(_) {}
+      }
+    });
+  }
+}
+
 function updatePermUI() {
   const isAdmin = CU && CU.role === 'admin';
   const canAdd  = can('add');
   ['btn-admin','btn-admin-m'].forEach(id => { const e=el(id); if(e) e.style.display=isAdmin?'':'none'; });
   ['btn-add','btn-add-m'].forEach(id => { const e=el(id); if(e) e.style.display=canAdd?'':'none'; });
+  // Start watching for pending members as soon as the admin enters the app
+  if (isAdmin) startPendingWatch();
+  else stopPendingWatch();
 }
 
 // ══ REAL-TIME SYNC ═════════════════════════════════════════════════════
@@ -3225,6 +3326,7 @@ function openAdminMo() {
   el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   el('admin-mo').classList.add('on');
+  clearPendingNotices(); // reset badge when admin opens panel
   loadMembers();
 }
 function closeAMo() { el('admin-mo').classList.remove('on'); }
@@ -3258,7 +3360,11 @@ async function loadMembers() {
     }
 
     if (pending.length) {
-      html += `<div class="sec-t" style="color:var(--rose)">Pending Approval (${pending.length})</div>`;
+      html += `<div class="sec-t" style="color:var(--rose)">
+        Pending Approval (${pending.length})
+        <span style="font-size:9px;font-weight:400;color:var(--ink3);margin-left:6px;text-transform:none;letter-spacing:0">
+          · joined recently
+        </span></div>`;
       pending.forEach(m => html += memberRow(m, true));
     }
     html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
@@ -6649,6 +6755,7 @@ Object.assign(window, {
   checkVerified, resendVerification,
   generateInviteLink, copyInviteUrl,
   restoreM, deleteM,
+  clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
   rfiSearch, rfiClearSlot, runRelFinder,

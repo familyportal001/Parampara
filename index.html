@@ -863,30 +863,46 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   color:var(--ink3);margin-bottom:8px}
 .mob-me-unlinked-s{font-size:13px;line-height:1.65;max-width:260px;margin:0 auto}
 
-/* On mobile: hide the desktop panel and FAB (detail view takes over) */
+/* ── Mobile overlay adjustments ── */
 @media(max-width:720px){
+  /* Hide desktop elements that are replaced by mobile UI */
   #mob-tabs{display:flex}
   #panel{display:none!important}
   #fab-add{display:none!important}
+  /* Zoom cluster: tuck closer to the edge */
   #zoom-ctl{bottom:calc(12px + var(--sab));right:calc(10px + var(--sar))}
-  #sync-bar{bottom:calc(12px + var(--sab))}
-  #canvas-legend{bottom:calc(12px + var(--sab))}
+  /* Sync bar + legend shift up to make room for the tree FAB */
+  #sync-bar{bottom:calc(82px + var(--sab))}
+  #canvas-legend{bottom:calc(82px + var(--sab))}
 }
-/* Tree-tab FAB — floats over canvas on mobile */
+
+/* ── Tree-tab FAB ──
+   Bottom-LEFT so it never overlaps the zoom cluster (bottom-right).
+   Hidden by default — only shown when tree tab is active (JS adds .fab-visible).
+   Morphs between ＋ add mode and ◎ info mode when a card is selected. */
 #mob-tree-fab{
-  display:none;  /* shown only inside mob-tree-view via JS/CSS */
-  position:absolute;bottom:calc(72px + var(--sab));right:calc(14px + var(--sar));
-  z-index:102;width:50px;height:50px;border-radius:50%;
-  background:var(--gold);color:var(--ink);border:none;cursor:pointer;
-  font-size:22px;font-weight:300;line-height:1;
+  position:fixed;
+  bottom:calc(20px + var(--sab));
+  left:calc(14px + var(--sal));
+  z-index:102;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gold);color:var(--ink);
+  border:2px solid transparent;
+  cursor:pointer;font-size:22px;font-weight:400;line-height:1;
   box-shadow:0 4px 16px rgba(200,137,58,.45),0 2px 6px rgba(0,0,0,.3);
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .15s,box-shadow .15s;
+  /* Always starts hidden — JS shows it only on tree tab */
+  display:none;align-items:center;justify-content:center;
+  transition:transform .18s,background .2s,border-color .2s,box-shadow .18s,color .2s;
   -webkit-tap-highlight-color:transparent}
+/* Visible only when explicitly shown */
+#mob-tree-fab.fab-visible{display:flex}
 #mob-tree-fab:active{transform:scale(.92)}
-@media(max-width:720px){
-  #mob-tree-fab{display:flex}
-}
+/* Info-mode: a card is selected — button opens that person's detail */
+#mob-tree-fab.info-mode{
+  background:var(--bark);
+  border-color:var(--gold);
+  color:var(--gold);
+  box-shadow:0 4px 16px rgba(200,137,58,.3),0 2px 6px rgba(0,0,0,.5)}
 @media(min-width:721px){
   #mob-tree-fab{display:none!important}
 }
@@ -3918,7 +3934,11 @@ function closePanel(){
     ${canDel  ?`<button class="pan-btn del" onclick="delPerson('${id}')">🗑</button>`:''}`;
   el('panel').classList.add('open');
 }
-wrap.addEventListener('click',e=>{ if(e.target.closest('.card')||pan.moved)return; closePanel(); });
+wrap.addEventListener('click',e=>{
+  if(e.target.closest('.card')||pan.moved)return;
+  closePanel();
+  _clearMobTreeSel();
+});
 
 // ══ PERSON FORM ════════════════════════════════════════════════════
 function personForm(p={}){ return `
@@ -5385,6 +5405,13 @@ let _mobTab = 'people';   // 'people' | 'tree' | 'me'
 
 function switchMobTab(tab) {
   if (!isMobile()) return;
+  // Leaving tree tab: clear selection, reset FAB, hide it
+  if (_mobTab === 'tree' && tab !== 'tree') {
+    _mobTreeSelId = null;
+    closePanel();
+    _updateMobTreeFab(null);
+    _setTreeFabVisible(false);
+  }
   _mobTab = tab;
 
   // Tab buttons
@@ -5407,6 +5434,9 @@ function switchMobTab(tab) {
   if (meView) {
     meView.style.display     = tab === 'me'     ? 'flex' : 'none';
   }
+
+  // Show tree FAB only on tree tab
+  _setTreeFabVisible(tab === 'tree');
 
   // Lazy-render the newly-visible tab
   if (tab === 'people') renderMobPeople();
@@ -5834,6 +5864,9 @@ function initMobileShell() {
   // Ensure tree view is hidden initially (People tab is default)
   const tv = el('mob-tree-view');
   if (tv) tv.style.display = 'none';
+  // Ensure FAB starts in Add mode but hidden (tree tab not active)
+  _updateMobTreeFab(null);
+  _setTreeFabVisible(false);
 }
 
 // ── Override selectPerson to route to mobile detail on mobile ─────────
@@ -5843,12 +5876,67 @@ const _origSelectPerson = selectPerson;
 // Re-bind so the module-level selectPerson delegates correctly.
 // (We re-assign the exported window.selectPerson below.)
 
+// Tracks which person is highlighted in the tree on mobile
+let _mobTreeSelId = null;
+
 function selectPersonRouted(id) {
   if (isMobile()) {
-    showMobDetail(id);
+    if (_mobTab === 'tree') {
+      // In tree tab: apply highlight + morph FAB — don't open detail yet
+      _mobTreeSelId = id;
+      // Apply the same connection highlight as desktop
+      selId = id;
+      _applyConnectionHighlight(id);
+      // Morph the FAB into info mode
+      _updateMobTreeFab(id);
+    } else {
+      // In any other tab (people list, me tab): open detail directly
+      showMobDetail(id);
+    }
   } else {
     _origSelectPerson(id);
   }
+}
+
+// Update the tree FAB based on selection state.
+// id = null → revert to ＋ Add mode
+// id = pid  → switch to ℹ info mode showing the person's initials
+function _updateMobTreeFab(id) {
+  const fab = el('mob-tree-fab');
+  if (!fab) return;
+
+  if (!id) {
+    // Add mode: ＋ button
+    fab.classList.remove('info-mode');
+    fab.innerHTML = '＋';
+    fab.setAttribute('aria-label', 'Add person');
+    fab.title = 'Add person';
+    fab.onclick = () => openAddMo();
+  } else {
+    // Info mode: shows person initials, opens their detail on tap
+    const p = DB.people[id];
+    if (!p) return;
+    const initials = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
+    fab.classList.add('info-mode');
+    fab.innerHTML = `<span style="font-family:'Crimson Pro',serif;font-size:17px;font-weight:600;letter-spacing:-.02em">${initials}</span>`;
+    fab.setAttribute('aria-label', `View ${fullName(p)}`);
+    fab.title = `View ${fullName(p)}`;
+    fab.onclick = () => showMobDetail(id);
+  }
+}
+
+// Show or hide the tree FAB (only visible when tree tab is active)
+function _setTreeFabVisible(visible) {
+  const fab = el('mob-tree-fab');
+  if (fab) fab.classList.toggle('fab-visible', visible);
+}
+
+// Clear mobile tree selection — called when canvas is tapped on blank area
+function _clearMobTreeSel() {
+  if (!isMobile() || _mobTab !== 'tree') return;
+  _mobTreeSelId = null;
+  _updateMobTreeFab(null);
+  closePanel();   // reuses existing closePanel logic to clear highlights + selId
 }
 
 // ── Handle resize: re-init if user rotates to desktop width ──────────
@@ -5914,6 +6002,7 @@ Object.assign(window, {
   // Mobile tab shell
   switchMobTab, setMobGenFilter, showMobDetail, closeMobDetail,
   initMobileShell, refreshMobViews, renderMobPeople, renderMobMe,
+  _updateMobTreeFab, _clearMobTreeSel, _setTreeFabVisible, selectPersonRouted,
 });
 
 // DB and selId need proper getter/setter descriptors so tests (and devtools)
@@ -5926,6 +6015,15 @@ Object.defineProperty(window, 'DB', {
 });
 Object.defineProperty(window, '_mobRelLabels', {
   get() { return _mobRelLabels; },
+  configurable: true,
+});
+Object.defineProperty(window, '_mobTab', {
+  get() { return _mobTab; },
+  set(v) { _mobTab = v; },
+  configurable: true,
+});
+Object.defineProperty(window, '_mobTreeSelId', {
+  get() { return _mobTreeSelId; },
   configurable: true,
 });
 Object.defineProperty(window, '_mobDetailStack', {

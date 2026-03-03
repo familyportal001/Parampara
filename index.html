@@ -4631,9 +4631,9 @@ function _markOfflinePending() {
 
 // Drain the write queue — called on reconnect
 async function drainWriteQueue() {
-  if (_wqDraining) return;
+  if (_wqDraining) return false;
   const entries = await _wqAll();
-  if (!entries.length) return;
+  if (!entries.length) return false; // nothing queued — caller handles re-sync
   _wqDraining = true;
   setSyncStatus('off', `Syncing ${entries.length} queued write(s)…`);
   try {
@@ -4641,24 +4641,33 @@ async function drainWriteQueue() {
       await set(ref(db, entry.path), entry.value);
     }
     await _wqClear();
-    setSyncStatus('ok', 'Synced ✓');
-    // Trigger a full re-sync so our local state matches server
+    // Do NOT set Synced here — startSync/startEgoSync own the final status.
+    // Setting it then immediately calling startSync() makes startSync overwrite
+    // it with 'Connecting…', leaving the bar stuck until the listener fires.
     if (FAM) {
       if (viewMode === 'ego' && egoId) startEgoSync(pivotId || egoId);
       else startSync();
     }
+    return true;
   } catch(e) {
     console.warn('drainWriteQueue failed', e);
     setSyncStatus('off', 'Sync failed — will retry');
+    return false;
   } finally {
     _wqDraining = false;
   }
 }
 
 // ── 3. Online / offline events ────────────────────────────────────────────
-window.addEventListener('online',  () => {
+window.addEventListener('online', async () => {
   setSyncStatus('off', 'Reconnecting…');
-  drainWriteQueue();
+  // Drain queued writes first; if nothing queued, restart sync directly
+  // so Firebase listeners fire and update the status bar to 'Synced ✓'.
+  const hadQueue = await drainWriteQueue();
+  if (!hadQueue && FAM) {
+    if (viewMode === 'ego' && egoId) startEgoSync(pivotId || egoId);
+    else startSync();
+  }
 });
 window.addEventListener('offline', () => {
   setSyncStatus('off', 'Offline');

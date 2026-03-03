@@ -626,6 +626,13 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 /* key box */
 .key-box{font-family:monospace;font-size:14px;background:var(--parch2);border:1px solid var(--border);
   padding:10px 12px;border-radius:var(--r);word-break:break-all;margin-bottom:8px}
+.inv-link-box{display:flex;align-items:center;gap:6px;background:var(--parch2);border:1px solid var(--border);
+  border-radius:var(--r);padding:8px 10px;margin-bottom:4px}
+.inv-link-text{flex:1;font-family:monospace;font-size:11px;color:var(--ink2);word-break:break-all;line-height:1.4}
+.inv-copy-btn{flex-shrink:0;font-size:11px;padding:5px 10px;border-radius:3px;border:1px solid var(--border);
+  background:var(--slate);color:white;cursor:pointer;white-space:nowrap;transition:background .15s}
+.inv-copy-btn:hover{background:var(--gold);color:var(--ink)}
+.inv-expire{font-size:10px;color:var(--ink4);margin-bottom:12px}
 
 /* toast */
 #toast{position:fixed;bottom:calc(20px + var(--sab));left:50%;transform:translateX(-50%) translateY(60px);
@@ -1208,6 +1215,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
       <div class="aerr" id="j-err"></div>
       <button class="btn btn-gold" onclick="doJoin()" data-i18n="requestAccess">Request Access</button>
+      <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
       <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
     </div>
 
@@ -1787,7 +1795,9 @@ function memberRef(fh,uid){ return ref(db, `families/${fh}/members/${uid}`); }
 function adminFlagRef(fh) { return ref(db, `families/${fh}/adminSet`); }
 // Reverse index: lets us look up all families a user belongs to from Firebase
 // without scanning every family — critical for cross-device login recovery
-function userFamsRef(uid) { return ref(db, `userFamilies/${uid}`); }
+function userFamsRef(uid)    { return ref(db, `userFamilies/${uid}`); }
+function inviteRef(fh, tok)  { return ref(db, `families/${fh}/invites/${tok}`); }
+function invitesRef(fh)      { return ref(db, `families/${fh}/invites`); }
 
 // ── Email ↔ Firebase-safe key ──────────────────────────────────────
 // Firebase keys cannot contain . so we encode email for use as a key
@@ -2184,6 +2194,14 @@ async function _completeJoin(user, { key, first, last, email, fh }) {
   const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
   await set(memberRef(fh, user.uid), memberData);
   await set(ref(db, `userFamilies/${user.uid}/${fh}`), { famKey: key, first, last, role, joinedAt: Date.now() });
+  // Mark invite token as used so it can't be reused
+  if (_inviteToken) {
+    try {
+      await set(ref(db, `families/${fh}/invites/${_inviteToken}/used`), true);
+      await set(ref(db, `inviteIndex/${_inviteToken}/used`), true);
+    } catch(_) { /* non-critical */ }
+    _inviteToken = null; _inviteFamKey = null;
+  }
   const famData = { fh, famKey: key, first, last, role };
   saveSession(famData);
   CU = { ...famData, uid: user.uid, email };
@@ -2199,11 +2217,127 @@ async function _completeJoin(user, { key, first, last, email, fh }) {
   }
 }
 
+// ── Invite link state ─────────────────────────────────────────────────────
+let _inviteToken  = null; // token from URL, cleared once consumed
+let _inviteFamKey = null; // family key decoded from invite, used to pre-fill join form
+
+// Called at boot — reads ?invite=TOKEN from the URL and looks up the invite.
+// If valid, pre-fills the join tab with the family key and switches to it.
+async function _checkInviteParam() {
+  const params = new URLSearchParams(location.search);
+  const token  = params.get('invite');
+  if (!token) return;
+
+  // Strip the token from the URL immediately so refreshes don't reuse it
+  const cleanUrl = location.pathname + location.hash;
+  history.replaceState(null, '', cleanUrl);
+
+  // Look up the invite across all families — token is globally unique so we
+  // store a top-level index: inviteIndex/TOKEN = { fh, famKey, expiresAt }
+  try {
+    const snap = await get(ref(db, `inviteIndex/${token}`));
+    if (!snap.exists()) {
+      // Show a friendly message on the join tab
+      _showInviteError('This invite link is invalid or has expired.');
+      return;
+    }
+    const inv = snap.val();
+    if (inv.expiresAt && Date.now() > inv.expiresAt) {
+      _showInviteError('This invite link has expired. Ask an admin to generate a new one.');
+      return;
+    }
+    // Pre-fill the join form
+    _inviteToken  = token;
+    _inviteFamKey = inv.famKey;
+    // Wait for the auth screen to be visible, then populate
+    setTimeout(() => {
+      const keyField = el('j-key');
+      if (keyField) {
+        keyField.value = inv.famKey;
+        keyField.dispatchEvent(new Event('input')); // trigger key-check logic
+      }
+      switchTab('join');
+      const note = el('j-invite-note');
+      if (note) {
+        note.style.display = 'block';
+        note.textContent   = `✓ Invite link accepted for family "${inv.famKey}"`;
+      }
+    }, 300);
+  } catch(e) {
+    console.warn('Invite lookup failed:', e);
+  }
+}
+
+function _showInviteError(msg) {
+  setTimeout(() => {
+    switchTab('join');
+    const errEl = el('j-err');
+    if (errEl) { errEl.style.color = 'var(--rose)'; errEl.textContent = msg; }
+  }, 300);
+}
+
+// Generate a single-use invite link and write it to Firebase.
+// Called from the admin Members tab.
+async function generateInviteLink() {
+  if (!FAM || !CU || CU.role !== 'admin') return;
+  const btn = el('btn-gen-invite');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  try {
+    const token     = 'inv_' + Array.from(crypto.getRandomValues(new Uint8Array(9)))
+                        .map(b => b.toString(36).padStart(2,'0')).join('').slice(0,12);
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+    const payload   = { fh: FAM, famKey: CU.famKey, createdBy: fbUser.uid,
+                        createdAt: Date.now(), expiresAt, used: false };
+    // Write to both the family's invites subtree and the global index
+    await set(ref(db, `families/${FAM}/invites/${token}`), payload);
+    await set(ref(db, `inviteIndex/${token}`), { fh: FAM, famKey: CU.famKey, expiresAt });
+    // Build the URL
+    const base = location.origin + location.pathname;
+    const url  = `${base}?invite=${token}`;
+    // Render the link box in the admin panel
+    const box = el('invite-link-area');
+    if (box) {
+      const expDate = new Date(expiresAt).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+      box.innerHTML = `
+        <div class="inv-link-box">
+          <span class="inv-link-text" id="inv-url-text">${escHtml(url)}</span>
+          <button class="inv-copy-btn" onclick="copyInviteUrl()">Copy</button>
+        </div>
+        <div class="inv-expire">Expires ${expDate} · single-use</div>`;
+      box._url = url;
+    }
+    toast('Invite link generated ✓');
+  } catch(e) {
+    toast('Error generating invite: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔗 Generate Invite Link'; }
+  }
+}
+
+function copyInviteUrl() {
+  const box = el('invite-link-area');
+  const url = box && box._url;
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    toast('Link copied to clipboard ✓');
+  }).catch(() => {
+    // Fallback for browsers without clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Link copied ✓');
+  });
+}
+
 let _authUnsub = null; // track the active onAuthStateChanged unsubscriber
 let _bootTimer = null; // fallback timer in case Firebase stalls
 function boot() {
   if (!LANG) { showScreen('s-lang'); return; }
   applyLang(); // re-apply translations every boot (handles post-login language change)
+  // Check for invite token in URL — pre-fill join form before showing auth screen
+  _checkInviteParam();
   // Unsubscribe any previous auth listener before registering a new one.
   // Without this, calling boot() more than once (e.g. after language selection)
   // stacks duplicate listeners — the second one may never fire if Firebase
@@ -3065,7 +3199,20 @@ async function loadMembers() {
 
     let html = `<div class="sec-t">Family Secret Key</div>
       <div class="key-box">${escHtml(CU.famKey)}</div>
-      <div style="font-size:11px;color:var(--ink3);margin-bottom:16px">Share only with trusted family members to let them join.</div>`;
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Share only with trusted family members to let them join.</div>`;
+
+    // Invite link section — admins only
+    if (CU.role === 'admin') {
+      html += `<div class="sec-t" style="margin-top:4px">🔗 Invite Link</div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:10px">
+          Generate a one-click join link. Anyone with the link can request access — no key needed. Expires in 7 days.
+        </div>
+        <button id="btn-gen-invite" class="btn btn-ghost btn-sm" style="margin-bottom:10px" onclick="generateInviteLink()">
+          🔗 Generate Invite Link
+        </button>
+        <div id="invite-link-area"></div>
+        <div style="margin-bottom:16px"></div>`;
+    }
 
     if (pending.length) {
       html += `<div class="sec-t" style="color:var(--rose)">Pending Approval (${pending.length})</div>`;
@@ -6425,6 +6572,7 @@ Object.assign(window, {
   // Pending screen
   showScreen, startApprovalWatch, stopApprovalWatch,
   checkVerified, resendVerification,
+  generateInviteLink, copyInviteUrl,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
   rfiSearch, rfiClearSlot, runRelFinder,

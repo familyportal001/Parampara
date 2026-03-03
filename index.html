@@ -5435,8 +5435,13 @@ function switchMobTab(tab) {
     meView.style.display     = tab === 'me'     ? 'flex' : 'none';
   }
 
-  // Show tree FAB only on tree tab
-  _setTreeFabVisible(tab === 'tree');
+  // Show tree-only overlays (FAB, zoom, sync-bar, legend) — only on tree tab
+  const onTree = tab === 'tree';
+  _setTreeFabVisible(onTree);
+  ['zoom-ctl','sync-bar','canvas-legend'].forEach(id => {
+    const el_ = document.getElementById(id);
+    if (el_) el_.style.display = onTree ? '' : 'none';
+  });
 
   // Lazy-render the newly-visible tab
   if (tab === 'people') renderMobPeople();
@@ -5456,7 +5461,7 @@ function refreshMobViews() {
 // ── Mobile person detail (replaces desktop panel on mobile) ──────────
 let _mobDetailStack = [];   // navigation history: array of person IDs
 
-function showMobDetail(id, fromChip = false) {
+async function showMobDetail(id, fromChip = false) {
   if (!isMobile()) { selectPerson(id); return; }
   const det = el('mob-detail');
   if (!det) return;
@@ -5468,9 +5473,28 @@ function showMobDetail(id, fromChip = false) {
     _mobDetailStack.push(id);
   }
 
+  // Person not yet loaded (e.g. from search cache) — show panel immediately
+  // with a loading placeholder, then fetch and render once ready.
+  if (!DB.people[id]) {
+    el('mob-det-title').textContent = '…';
+    el('mob-det-actions').innerHTML = '';
+    el('mob-det-bd').innerHTML =
+      '<div style="padding:40px 20px;text-align:center;color:var(--ink4);font-size:13px">Loading…</div>';
+    el('mob-det-ft').innerHTML = '';
+    det.style.display = 'flex';
+    det.getBoundingClientRect();
+    det.classList.add('open');
+    const loaded = await loadPersonIntoView(id);
+    if (!loaded) {
+      el('mob-det-title').textContent = 'Not found';
+      el('mob-det-bd').innerHTML =
+        '<div style="padding:40px 20px;text-align:center;color:var(--ink4);font-size:13px">This person could not be loaded.</div>';
+      return;
+    }
+  }
+
   _renderMobDetail(id);
   det.style.display = 'flex';
-  // Force reflow so transition fires
   det.getBoundingClientRect();
   det.classList.add('open');
 }
@@ -5864,9 +5888,13 @@ function initMobileShell() {
   // Ensure tree view is hidden initially (People tab is default)
   const tv = el('mob-tree-view');
   if (tv) tv.style.display = 'none';
-  // Ensure FAB starts in Add mode but hidden (tree tab not active)
+  // Ensure FAB and canvas overlays start hidden (People tab is default)
   _updateMobTreeFab(null);
   _setTreeFabVisible(false);
+  ['zoom-ctl','sync-bar','canvas-legend'].forEach(id => {
+    const el_ = document.getElementById(id);
+    if (el_) el_.style.display = 'none';
+  });
 }
 
 // ── Override selectPerson to route to mobile detail on mobile ─────────
@@ -6015,6 +6043,10 @@ Object.defineProperty(window, 'DB', {
 });
 Object.defineProperty(window, '_mobRelLabels', {
   get() { return _mobRelLabels; },
+  configurable: true,
+});
+Object.defineProperty(window, 'searchCache', {
+  get() { return searchCache; },
   configurable: true,
 });
 Object.defineProperty(window, '_mobTab', {

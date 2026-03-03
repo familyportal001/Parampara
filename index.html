@@ -2113,34 +2113,51 @@ let _handlingVerify    = false; // true while checkVerified owns the sign-in —
 async function checkVerified() {
   const errEl = el('verify-err');
   if (errEl) errEl.textContent = '';
-  if (!_pendingVerifyJoin && !_pendingVerifyEmail) {
-    showScreen('s-auth'); return;
+
+  // Guard: must have stored credentials to re-authenticate with
+  if (!_pendingVerifyJoin || !_pendingVerifyJoin.email || !_pendingVerifyJoin.pass) {
+    // No context — just send them back to sign in from scratch
+    _pendingVerifyJoin = null; _pendingVerifyEmail = '';
+    showScreen('s-auth');
+    return;
   }
-  const { email, pass, key, first, last, fh } = _pendingVerifyJoin || {};
-  if (!email || !pass) { showScreen('s-auth'); return; }
+
+  const { email, pass, key, first, last, fh } = _pendingVerifyJoin;
   if (errEl) errEl.textContent = 'Checking…';
-  _handlingVerify = true; // suppress onAuthStateChanged during this manual sign-in
+  _handlingVerify = true; // suppress onAuthStateChanged for this entire flow
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
-    // Reload the user to get the latest emailVerified flag from Firebase
-    await reload(cred.user);
+    await reload(cred.user); // force-refresh emailVerified from server
     if (!cred.user.emailVerified) {
       if (errEl) errEl.textContent = 'Email not verified yet — please click the link in your inbox first.';
       await signOut(auth);
-      _handlingVerify = false;
       return;
     }
-    // Verified — continue the join flow
     if (errEl) errEl.textContent = '';
-    _pendingVerifyJoin = null;
-    _pendingVerifyEmail = '';
-    // _completeJoin drives all navigation from here; release flag after it finishes
-    await _completeJoin(cred.user, { key, first, last, email, fh });
+
+    // Login-path: user came from doLogin (already joined a family before).
+    // They're now verified — just let onAuthStateChanged drive normally.
+    if (fh === '_login_') {
+      _pendingVerifyJoin = null; _pendingVerifyEmail = '';
+      _handlingVerify = false; // release BEFORE navigation so listener can fire
+      // Trigger normal boot flow — user has a session, resumeFamily will pick up
+      const s = getSessions();
+      if (s.families.length === 1) resumeFamily(s.families[0]);
+      else if (s.families.length > 1) buildFamilyPicker(s.families);
+      else recoverFamiliesFromFirebase(cred.user);
+      return;
+    }
+
+    // Join-path: complete the family setup
+    await _completeJoin(cred.user, { key, first, last, email, fh, isNewAccount: true });
+    _pendingVerifyJoin = null; _pendingVerifyEmail = '';
   } catch(e) {
-    if (errEl) errEl.textContent = friendlyAuthError(e.code);
+    const msg = e.code ? friendlyAuthError(e.code) : (e.message || 'An error occurred — please try again');
+    if (errEl) errEl.textContent = msg;
     await signOut(auth).catch(()=>{});
+    // _pendingVerifyJoin intentionally NOT cleared — user can retry
   } finally {
-    _handlingVerify = false; // always release, even on error
+    _handlingVerify = false;
   }
 }
 
@@ -2164,28 +2181,38 @@ async function resendVerification() {
 
 // ── Complete join after email verification ────────────────────────────────
 // Extracted from doJoin — runs after the email verification gate is passed.
-async function _completeJoin(user, { key, first, last, email, fh }) {
-  // Check if this user is already in this family
-  const existingSnap = await get(memberRef(fh, user.uid));
-  if (existingSnap.exists()) {
-    const existingData = existingSnap.val();
-    const existingRole = existingData.role;
-    if (existingRole === 'rejected' || existingRole === 'removed') {
-      toast('Your access to this family has been revoked. Contact the family admin.');
-      await signOut(auth);
-      showScreen('s-auth');
+async function _completeJoin(user, { key, first, last, email, fh, isNewAccount = false }) {
+  // Skip the existence GET for brand-new accounts: they have no member record yet
+  // and the family .read rule would deny the GET (requires active membership).
+  // For existing accounts (email-already-in-use path) we do check — they may
+  // have already joined this family on a previous device.
+  if (!isNewAccount) {
+    let existingSnap;
+    try {
+      existingSnap = await get(memberRef(fh, user.uid));
+    } catch(_) {
+      existingSnap = { exists: () => false }; // denied = no record, proceed
+    }
+    if (existingSnap.exists()) {
+      const existingData = existingSnap.val();
+      const existingRole = existingData.role;
+      if (existingRole === 'rejected' || existingRole === 'removed') {
+        toast('Your access to this family has been revoked. Contact the family admin.');
+        await signOut(auth);
+        showScreen('s-auth');
+        return;
+      }
+      const famData = { fh, famKey: key, first: existingData.first||first, last: existingData.last||last, role: existingRole };
+      saveSession(famData);
+      try {
+        await set(ref(db, `userFamilies/${user.uid}/${fh}`), {
+          famKey: key, first: existingData.first||first, last: existingData.last||last,
+          role: existingRole, joinedAt: existingData.joinedAt || Date.now()
+        });
+      } catch(_) {}
+      resumeFamily(famData);
       return;
     }
-    const famData = { fh, famKey: key, first: existingData.first||first, last: existingData.last||last, role: existingRole };
-    saveSession(famData);
-    try {
-      await set(ref(db, `userFamilies/${user.uid}/${fh}`), {
-        famKey: key, first: existingData.first||first, last: existingData.last||last,
-        role: existingRole, joinedAt: existingData.joinedAt || Date.now()
-      });
-    } catch(_) {}
-    resumeFamily(famData);
-    return;
   }
   // First-admin election
   let role = 'pending';
@@ -2580,12 +2607,15 @@ async function doLogin() {
   errEl.textContent = 'Signing in…';
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
-    // Block unverified users — send them to the verify screen
+    // Block unverified users — route to verify screen
     if (!cred.user.emailVerified) {
+      _handlingVerify = true; // suppress listener during signOut
       await signOut(auth);
+      _handlingVerify = false;
       errEl.textContent = '';
-      // Show verify screen with their email so they know where to look
+      // Store full credentials so checkVerified() can re-authenticate
       _pendingVerifyEmail = email;
+      _pendingVerifyJoin  = { email, pass, key: '', first: '', last: '', fh: '_login_' };
       showScreen('s-verify');
       const disp = el('verify-email-display');
       if (disp) disp.textContent = email;
@@ -2652,8 +2682,12 @@ async function doJoin() {
         user = cred.user;
         // Existing account joining a new family must be verified
         if (!user.emailVerified) {
+          _handlingVerify = true;
           await signOut(auth);
+          _handlingVerify = false;
           _pendingVerifyEmail = email;
+          // Store credentials so checkVerified can re-auth AND continue the join
+          _pendingVerifyJoin = { key, first, last, email, pass, fh };
           showScreen('s-verify');
           const disp = el('verify-email-display');
           if (disp) disp.textContent = email;

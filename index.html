@@ -1237,6 +1237,18 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   </div>
 </div>
 
+<div class="screen hide" id="s-verify" style="text-align:center">
+  <div class="pend-ico">📧</div>
+  <div class="pend-t" data-i18n="verifyTitle">Verify your email</div>
+  <div class="pend-s" id="verify-body" data-i18n="verifyBody">We sent a verification link to your email address. Click the link then come back here.</div>
+  <div class="pend-acts">
+    <button class="btn btn-gold btn-sm" onclick="checkVerified()" data-i18n="checkVerified">I've verified — continue</button>
+    <button class="btn btn-ghost btn-sm" onclick="resendVerification()" data-i18n="resendEmail">Resend email</button>
+    <button class="btn btn-ghost btn-sm" onclick="fullLogout()" data-i18n="signOut">Sign Out</button>
+  </div>
+  <div id="verify-err" style="margin-top:12px;font-size:12px;color:var(--gold);min-height:16px"></div>
+</div>
+
 <!-- INSTALL BANNER -->
 <div id="install-bar">
   <span>📱 Install Parampara on your home screen</span>
@@ -1715,7 +1727,8 @@ async function runDiag() {
 import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
-         sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+         sendPasswordResetEmail, onAuthStateChanged,
+         sendEmailVerification, reload } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getDatabase, ref, set, get, update,
          onValue, off, push, serverTimestamp,
          runTransaction }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -1804,7 +1817,7 @@ function setSyncStatus(state, label) {
 }
 
 // ══ SCREEN MANAGEMENT ══════════════════════════════════════════════
-const SCREENS = ['s-lang','s-family','s-auth','s-pending'];
+const SCREENS = ['s-lang','s-family','s-auth','s-pending','s-verify'];
 function showScreen(id) {
   SCREENS.forEach(s => el(s).classList.toggle('hide', s !== id));
   el('app').classList.remove('show');
@@ -1844,6 +1857,9 @@ const STRINGS = {
     pendingTitle:'Awaiting Approval',
     pendingBody:'Your request has been sent to the family admin. You can view the tree once approved.',
     checkStatus:'Check Status', switchFamily:'Switch Family', signOut:'Sign Out',
+    // Email verification
+    verifyTitle:'Verify your email', verifyBody:'We sent a verification link to <b id="verify-email-display"></b>. Click the link, then tap the button below.',
+    checkVerified:'I\'ve verified — continue', resendEmail:'Resend email',
     // Empty canvas
     emptyTitle:'Your family tree awaits',
     emptyBody:'Start by adding your first family member',
@@ -1893,6 +1909,8 @@ const STRINGS = {
     pendingTitle:'அனுமதி காத்திருக்கிறது',
     pendingBody:'உங்கள் கோரிக்கை குடும்ப நிர்வாகிக்கு அனுப்பப்பட்டது. அனுமதிக்கப்பட்ட பிறகு மரத்தை பார்க்கலாம்.',
     checkStatus:'நிலை சரிபார்', switchFamily:'குடும்பம் மாற்று', signOut:'வெளியேறு',
+    verifyTitle:'மின்னஞ்சலை சரிபார்க்கவும்', verifyBody:'சரிபார்ப்பு இணைப்பை அனுப்பினோம். இணைப்பை கிளிக் செய்து திரும்பவும்.',
+    checkVerified:'சரிபார்த்தேன் — தொடரவும்', resendEmail:'மீண்டும் அனுப்பு',
     emptyTitle:'உங்கள் குடும்ப மரம் காத்திருக்கிறது',
     emptyBody:'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
     addFirst:'＋ முதலில் சேர்க்க',
@@ -1935,6 +1953,8 @@ const STRINGS = {
     pendingTitle:'അംഗീകാരം കാത്തിരിക്കുന്നു',
     pendingBody:'നിങ്ങളുടെ അഭ്യർത്ഥന കുടുംബ അഡ്മിൻ‌ക്ക് അയച്ചു. അംഗീകരിച്ചതിനുശേഷം ട്രീ കാണാം.',
     checkStatus:'നില പരിശോധിക്കുക', switchFamily:'കുടുംബം മാറ്റുക', signOut:'സൈൻ ഔട്ട്',
+    verifyTitle:'ഇമെയിൽ സ്ഥിരീകരിക്കുക', verifyBody:'സ്ഥിരീകരണ ലിങ്ക് അയച്ചു. ലിങ്ക് ക്ലിക്ക് ചെയ്ത് തിരിച്ചു വരൂ.',
+    checkVerified:'സ്ഥിരീകരിച്ചു — തുടരുക', resendEmail:'വീണ്ടും അയക്കുക',
     emptyTitle:'നിങ്ങളുടെ കുടുംബ വൃക്ഷം കാത്തിരിക്കുന്നു',
     emptyBody:'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
     addFirst:'＋ ആദ്യം ചേർക്കുക',
@@ -2073,6 +2093,112 @@ function saveSession(fam) {
 }
 
 // ══ BOOT ═══════════════════════════════════════════════════════════
+// ── Email verification state ──────────────────────────────────────────────
+let _pendingVerifyEmail = '';  // email address awaiting verification
+let _pendingVerifyJoin  = null; // { key, first, last, email, pass, fh } — resume join after verify
+
+// Resume the join flow after the user has verified their email.
+// Signs them back in, then continues from after the account-creation point.
+async function checkVerified() {
+  const errEl = el('verify-err');
+  if (errEl) errEl.textContent = '';
+  if (!_pendingVerifyJoin && !_pendingVerifyEmail) {
+    showScreen('s-auth'); return;
+  }
+  const { email, pass, key, first, last, fh } = _pendingVerifyJoin || {};
+  if (!email || !pass) { showScreen('s-auth'); return; }
+  if (errEl) errEl.textContent = 'Checking…';
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    // Reload the user to get the latest emailVerified flag from Firebase
+    await reload(cred.user);
+    if (!cred.user.emailVerified) {
+      if (errEl) errEl.textContent = 'Email not verified yet — please click the link in your inbox first.';
+      await signOut(auth);
+      return;
+    }
+    // Verified — continue the join flow
+    if (errEl) errEl.textContent = '';
+    _pendingVerifyJoin = null;
+    _pendingVerifyEmail = '';
+    // Re-run the family setup portion of doJoin with the now-verified user
+    await _completeJoin(cred.user, { key, first, last, email, fh });
+  } catch(e) {
+    if (errEl) errEl.textContent = friendlyAuthError(e.code);
+    await signOut(auth).catch(()=>{});
+  }
+}
+
+async function resendVerification() {
+  const errEl = el('verify-err');
+  if (!_pendingVerifyJoin) {
+    if (errEl) errEl.textContent = 'No pending verification — please sign in again.';
+    return;
+  }
+  const { email, pass } = _pendingVerifyJoin;
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    await sendEmailVerification(cred.user);
+    await signOut(auth);
+    if (errEl) errEl.textContent = '';
+    toast('Verification email resent ✓');
+  } catch(e) {
+    if (errEl) errEl.textContent = friendlyAuthError(e.code);
+  }
+}
+
+// ── Complete join after email verification ────────────────────────────────
+// Extracted from doJoin — runs after the email verification gate is passed.
+async function _completeJoin(user, { key, first, last, email, fh }) {
+  // Check if this user is already in this family
+  const existingSnap = await get(memberRef(fh, user.uid));
+  if (existingSnap.exists()) {
+    const existingData = existingSnap.val();
+    const existingRole = existingData.role;
+    if (existingRole === 'rejected' || existingRole === 'removed') {
+      toast('Your access to this family has been revoked. Contact the family admin.');
+      await signOut(auth);
+      showScreen('s-auth');
+      return;
+    }
+    const famData = { fh, famKey: key, first: existingData.first||first, last: existingData.last||last, role: existingRole };
+    saveSession(famData);
+    try {
+      await set(ref(db, `userFamilies/${user.uid}/${fh}`), {
+        famKey: key, first: existingData.first||first, last: existingData.last||last,
+        role: existingRole, joinedAt: existingData.joinedAt || Date.now()
+      });
+    } catch(_) {}
+    resumeFamily(famData);
+    return;
+  }
+  // First-admin election
+  let role = 'pending';
+  try {
+    const txResult = await runTransaction(adminFlagRef(fh), current => {
+      if (current === null) return true;
+      return undefined;
+    });
+    if (txResult.committed) role = 'admin';
+  } catch(e) {}
+  const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
+  await set(memberRef(fh, user.uid), memberData);
+  await set(ref(db, `userFamilies/${user.uid}/${fh}`), { famKey: key, first, last, role, joinedAt: Date.now() });
+  const famData = { fh, famKey: key, first, last, role };
+  saveSession(famData);
+  CU = { ...famData, uid: user.uid, email };
+  FAM = fh;
+  DB  = { people:{}, rels:{} };
+  if (role === 'admin') {
+    toast('Welcome! You are the family admin.');
+    showApp(null);
+  } else {
+    showScreen('s-pending');
+    startApprovalWatch();
+    toast('Request sent — awaiting admin approval');
+  }
+}
+
 let _authUnsub = null; // track the active onAuthStateChanged unsubscriber
 let _bootTimer = null; // fallback timer in case Firebase stalls
 function boot() {
@@ -2311,7 +2437,18 @@ async function doLogin() {
   if (!email || !pass) { errEl.textContent = 'Please fill all fields'; return; }
   errEl.textContent = 'Signing in…';
   try {
-    await signInWithEmailAndPassword(auth, email, pass);
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    // Block unverified users — send them to the verify screen
+    if (!cred.user.emailVerified) {
+      await signOut(auth);
+      errEl.textContent = '';
+      // Show verify screen with their email so they know where to look
+      _pendingVerifyEmail = email;
+      showScreen('s-verify');
+      const disp = el('verify-email-display');
+      if (disp) disp.textContent = email;
+      return;
+    }
     errEl.textContent = ''; // clear — onAuthStateChanged will drive navigation
   } catch(e) {
     errEl.textContent = friendlyAuthError(e.code);
@@ -2361,14 +2498,26 @@ async function doJoin() {
 
   // Create or sign into Firebase Auth account
   let user;
+  let isNewAccount = false;
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     user = cred.user;
+    isNewAccount = true;
   } catch(e) {
     if (e.code === 'auth/email-already-in-use') {
       try {
         const cred = await signInWithEmailAndPassword(auth, email, pass);
         user = cred.user;
+        // Existing account joining a new family must be verified
+        if (!user.emailVerified) {
+          await signOut(auth);
+          _pendingVerifyEmail = email;
+          showScreen('s-verify');
+          const disp = el('verify-email-display');
+          if (disp) disp.textContent = email;
+          errEl.textContent = '';
+          return;
+        }
       } catch(e2) {
         errEl.textContent = 'Email already registered. Check your password or use Sign In tab.';
         return;
@@ -2379,63 +2528,25 @@ async function doJoin() {
     }
   }
 
-  // Check if this user is already in this family
-  errEl.textContent = 'Checking family…';
-  const existingSnap = await get(memberRef(fh, user.uid));
-  if (existingSnap.exists()) {
-    const existingData = existingSnap.val();
-    const existingRole = existingData.role;
-    if (existingRole === 'rejected' || existingRole === 'removed') {
-      errEl.textContent = 'Your access to this family has been revoked. Contact the family admin.';
-      await signOut(auth);
-      return;
-    }
-    // Already a member — just restore the session and enter the family
-    // (this is the normal re-join flow on a new device)
-    const famData = { fh, famKey: key, first: existingData.first||first, last: existingData.last||last, role: existingRole };
-    saveSession(famData);
-    // Backfill userFamilies index in case it was missing
+  // New account — send verification email and gate entry until confirmed
+  if (isNewAccount) {
     try {
-      await set(ref(db, `userFamilies/${user.uid}/${fh}`), {
-        famKey: key, first: existingData.first||first, last: existingData.last||last,
-        role: existingRole, joinedAt: existingData.joinedAt || Date.now()
-      });
-    } catch(_) {}
-    resumeFamily(famData);
+      await sendEmailVerification(user);
+    } catch(e) { /* non-critical — user can resend */ }
+    // Store the join context so checkVerified() can resume where we left off
+    _pendingVerifyEmail  = email;
+    _pendingVerifyJoin   = { key, first, last, email, pass, fh };
+    await signOut(auth); // sign out so onAuthStateChanged doesn't fire prematurely
+    showScreen('s-verify');
+    const disp = el('verify-email-display');
+    if (disp) disp.textContent = email;
+    errEl.textContent = '';
     return;
   }
 
-  // ── Atomic first-admin election using Firebase transaction ────────
-  // runTransaction ensures only one concurrent joiner wins admin,
-  // even if two people join with the same key at exactly the same time.
-  let role = 'pending';
-  try {
-    const txResult = await runTransaction(adminFlagRef(fh), current => {
-      if (current === null) return true; // claim admin slot
-      return undefined;                  // abort — slot already taken
-    });
-    if (txResult.committed) role = 'admin';
-  } catch(e) { /* network issue — default to pending, admin can promote later */ }
-
-  const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
-  await set(memberRef(fh, user.uid), memberData);
-  // Write reverse index so this user can recover their families on any device
-  await set(ref(db, `userFamilies/${user.uid}/${fh}`), { famKey: key, first, last, role, joinedAt: Date.now() });
-
-  const famData = { fh, famKey: key, first, last, role };
-  saveSession(famData);
-  CU = { ...famData, uid: user.uid, email };
-  FAM = fh;
-  DB  = { people:{}, rels:{} };
-
-  if (role === 'admin') {
-    toast('Welcome! You are the family admin.');
-    showApp(null);
-  } else {
-    showScreen('s-pending');
-    startApprovalWatch();
-    toast('Request sent — awaiting admin approval');
-  }
+  // Family setup is now handled by _completeJoin() after email verification
+  // (reached here only for existing verified accounts joining via email-already-in-use path)
+  await _completeJoin(user, { key, first, last, email, fh });
 }
 
 async function doForgot() {
@@ -6313,6 +6424,7 @@ Object.assign(window, {
   openHistMo, closeHMo,
   // Pending screen
   showScreen, startApprovalWatch, stopApprovalWatch,
+  checkVerified, resendVerification,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
   rfiSearch, rfiClearSlot, runRelFinder,

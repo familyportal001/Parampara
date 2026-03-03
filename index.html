@@ -2572,13 +2572,23 @@ function scheduleRender() {
 }
 
 // Full tree mode: stream everything.
-function startSync() {
+async function startSync() {
   clearListeners();
   DB = { people:{}, rels:{} };
   loadedPids.clear();
   loadedRids.clear();
-  setSyncStatus('off', 'Connecting…');
   _syncReady = { people: false, rels: false };
+
+  // If offline, load the last saved snapshot immediately so the tree is usable
+  if (!navigator.onLine) {
+    setSyncStatus('off', 'Offline — showing cached tree');
+    const loaded = await loadSnapshot();
+    if (loaded) { scheduleRender(); }
+    else { setSyncStatus('off', 'Offline — no cached data'); }
+    return;
+  }
+
+  setSyncStatus('off', 'Connecting…');
 
   listen(peopleRef(FAM), snap => {
     DB.people = {};
@@ -2593,7 +2603,10 @@ function startSync() {
       searchCache.set(pid, { first: p.first||'', last: p.last||'', dob: p.dob||'', gender: p.gender||'' });
     });
     scheduleRender();
-    if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
+    if (_syncReady.people && _syncReady.rels) {
+      setSyncStatus('ok', 'Synced ✓');
+      saveSnapshot(); // persist to IDB for offline use
+    }
   });
 
   listen(relsRef(FAM), snap => {
@@ -2604,7 +2617,10 @@ function startSync() {
     });
     _syncReady.rels = true;
     scheduleRender();
-    if (_syncReady.people && _syncReady.rels) setSyncStatus('ok', 'Synced ✓');
+    if (_syncReady.people && _syncReady.rels) {
+      setSyncStatus('ok', 'Synced ✓');
+      saveSnapshot(); // persist to IDB for offline use
+    }
   });
 }
 
@@ -2621,6 +2637,24 @@ async function startEgoSync(fetchPid) {
   // neighbourhood computation) know who the current focal person is.
   pivotId = fetchPid;
   renderPivotBar();
+  // Offline path — serve the IDB snapshot if available
+  if (!navigator.onLine) {
+    setSyncStatus('off', 'Offline — showing cached tree');
+    const loaded = await loadSnapshot();
+    if (loaded) {
+      setupEgoListeners(); // no-op while offline but ready for reconnect
+      render();
+      setTimeout(() => {
+        computeEgoNeighbourhood();
+        applyDimming();
+        centreOnEgo();
+      }, 120);
+    } else {
+      setSyncStatus('off', 'Offline — no cached data');
+    }
+    return;
+  }
+
   try {
     // 1. Fetch pivot person
     const egoSnap = await get(ref(db, `families/${FAM}/people/${fetchPid}`));
@@ -2689,6 +2723,7 @@ async function startEgoSync(fetchPid) {
     setSyncStatus('ok', 'Synced ✓');
     render();
     buildSearchCache();
+    saveSnapshot(); // persist neighbourhood to IDB for offline use
 
     // 8. Layout + visuals after render
     setTimeout(async () => {
@@ -2829,14 +2864,14 @@ async function loadPersonIntoView(pid) {
 
 async function putPerson(id, data) {
   assertCan('add');
-  await set(ref(db, `families/${FAM}/people/${id}`), data);
+  await queuedSet(`families/${FAM}/people/${id}`, data);
 }
 async function putRel(id, data) {
   assertCan('add');
-  await set(ref(db, `families/${FAM}/rels/${id}`), data);
+  await queuedSet(`families/${FAM}/rels/${id}`, data);
   // Maintain personRels index for efficient ego-centric queries
-  await set(ref(db, `families/${FAM}/personRels/${data.from}/${id}`), true);
-  await set(ref(db, `families/${FAM}/personRels/${data.to}/${id}`), true);
+  await queuedSet(`families/${FAM}/personRels/${data.from}/${id}`, true);
+  await queuedSet(`families/${FAM}/personRels/${data.to}/${id}`, true);
   // Once a node gets its first rel it belongs to the tree — remove from
   // pendingPids so normal neighbourhood dimming applies going forward
   if (pendingPids.has(data.from) || pendingPids.has(data.to)) {
@@ -2848,11 +2883,11 @@ async function putRel(id, data) {
 async function deleteRelFb(id) {
   assertCan('add');
   const rel = DB.rels[id];
-  await set(ref(db, `families/${FAM}/rels/${id}`), { id, deleted: true });
+  await queuedSet(`families/${FAM}/rels/${id}`, { id, deleted: true });
   // Remove from personRels index
   if (rel) {
-    await set(ref(db, `families/${FAM}/personRels/${rel.from}/${id}`), null);
-    await set(ref(db, `families/${FAM}/personRels/${rel.to}/${id}`), null);
+    await queuedSet(`families/${FAM}/personRels/${rel.from}/${id}`, null);
+    await queuedSet(`families/${FAM}/personRels/${rel.to}/${id}`, null);
     // Remove from knownRels so expand badge counts stay accurate
     if (knownRels[rel.from]) knownRels[rel.from].delete(id);
     if (knownRels[rel.to])   knownRels[rel.to].delete(id);
@@ -2861,13 +2896,23 @@ async function deleteRelFb(id) {
   delete DB.rels[id];
 }
 async function logHistory(pid, action, changes) {
-  const hRef = push(histRef(FAM, pid));
-  await set(hRef, {
+  // History entries use a push key; generate one locally so we can queue it offline
+  const entry = {
     who: CU ? `${CU.first} ${CU.last}`.trim() || CU.email : '?',
     action,
     changes: JSON.stringify(changes || {}),
     at: Date.now()
-  });
+  };
+  if (navigator.onLine) {
+    try {
+      const hRef = push(histRef(FAM, pid));
+      await set(hRef, entry);
+      return;
+    } catch(e) { if (!isNetworkError(e)) throw e; }
+  }
+  // Offline — queue under a local push key (timestamp + random suffix)
+  const localKey = `-offline-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+  await queuedSet(`families/${FAM}/history/${pid}/${localKey}`, entry);
 }
 async function getHistory(pid) {
   const snap = await get(histRef(FAM, pid));
@@ -2974,15 +3019,19 @@ function memberRow(m, isPending) {
 }
 
 async function setRole(uid, role) {
-  await set(ref(db, `families/${FAM}/members/${uid}/role`), role);
-  toast('Role updated');
-  setTimeout(loadMembers, 300);
+  try {
+    await set(ref(db, `families/${FAM}/members/${uid}/role`), role);
+    toast('Role updated');
+    setTimeout(loadMembers, 300);
+  } catch(e) { toast('Error updating role: ' + e.message); }
 }
 async function removeM(uid) {
   if (!confirm('Remove this member from the family?')) return;
-  await set(ref(db, `families/${FAM}/members/${uid}/role`), 'removed');
-  toast('Member removed');
-  setTimeout(loadMembers, 300);
+  try {
+    await set(ref(db, `families/${FAM}/members/${uid}/role`), 'removed');
+    toast('Member removed');
+    setTimeout(loadMembers, 300);
+  } catch(e) { toast('Error removing member: ' + e.message); }
 }
 async function adminSendReset(email) {
   if (!email) { toast('No email on record for this member'); return; }
@@ -3104,8 +3153,10 @@ async function ndEnd(){
   const dc=id?nodesL.querySelector(`.card[data-id="${id}"]`):null;
   if(dc) dc.classList.remove('dragging');
   if(moved&&id){
-    await set(ref(db,`families/${FAM}/people/${id}/x`),DB.people[id].x);
-    await set(ref(db,`families/${FAM}/people/${id}/y`),DB.people[id].y);
+    try {
+      await queuedSet(`families/${FAM}/people/${id}/x`, DB.people[id].x);
+      await queuedSet(`families/${FAM}/people/${id}/y`, DB.people[id].y);
+    } catch(e) { /* position sync is non-critical — silently ignore */ }
   }
   if(!moved&&id) selectPersonRouted(id);
 }
@@ -3823,12 +3874,12 @@ async function autoLayout(){
       updates[`families/${FAM}/people/${id}/y`]=y;
     });
   });
-  await update(ref(db),updates);
   render();
   // Re-run badge update after layout — render() wipes and rebuilds cards from
   // knownRels cache (sync for cached, async fetch for uncached).
   if (viewMode === 'ego') updateAllExpandBadges();
   setTimeout(fitScreen,50); toast('Layout applied');
+  try { await queuedUpdate(updates); } catch(e) { /* layout positions are non-critical */ }
 }
 
 // ══ SELECT + PANEL ═════════════════════════════════════════════════
@@ -3995,11 +4046,28 @@ async function savePerson(){
       dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
       occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo,
       notes:pv('pf-notes').trim(),editedBy:who,editedByName:whoName,editedAt:now};
-    await putPerson(editId,data);
-    await logHistory(editId,'edited',changes);
-    // Keep searchCache current when name changes
+    // Optimistically apply edit locally first
+    const prevData = { ...DB.people[editId] };
+    DB.people[editId] = data;
     searchCache.set(editId, { first: data.first||'', last: data.last||'', dob: data.dob||'', gender: data.gender||'' });
-    toast('Updated'); closePMo(); showPanel(editId);
+    scheduleRender();
+    closePMo();
+    if (selId === editId) showPanel(editId);
+    try {
+      await putPerson(editId, data);
+      await logHistory(editId, 'edited', changes);
+      toast('Updated');
+    } catch(e) {
+      if (isNetworkError(e)) {
+        toast('Saved locally — will sync when online');
+      } else {
+        // Non-network error — roll back
+        DB.people[editId] = prevData;
+        searchCache.set(editId, { first: prevData.first||'', last: prevData.last||'', dob: prevData.dob||'', gender: prevData.gender||'' });
+        scheduleRender();
+        toast('Error saving — please try again');
+      }
+    }
   } else {
     const id=gid(), count=Object.keys(DB.people).length;
     const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
@@ -4057,12 +4125,25 @@ async function savePerson(){
 async function delPerson(id){
   if(!can('delete')){toast('Only admin can delete');return;}
   if(!confirm(`Remove "${fullName(DB.people[id])}"?`))return;
-  await logHistory(id,'deleted',{name:fullName(DB.people[id])});
-  await set(ref(db,`families/${FAM}/people/${id}`),{...DB.people[id],deleted:true});
+  // Optimistic local removal
+  const backup = { person: {...DB.people[id]}, rels: Object.values(DB.rels).filter(r=>r.from===id||r.to===id) };
   delete DB.people[id];
-  searchCache.delete(id); // keep search index clean
-  Object.values(DB.rels).filter(r=>r.from===id||r.to===id).forEach(r=>deleteRelFb(r.id));
+  searchCache.delete(id);
+  backup.rels.forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
   closePanel(); render(); toast('Removed');
+  try {
+    await logHistory(id,'deleted',{name:fullName(backup.person)});
+    await queuedSet(`families/${FAM}/people/${id}`,{...backup.person,deleted:true});
+    backup.rels.forEach(r => deleteRelFb(r.id));
+  } catch(e) {
+    if (isNetworkError(e)) {
+      toast('Removed locally — will sync when online');
+    } else {
+      DB.people[id] = backup.person;
+      backup.rels.forEach(r => { DB.rels[r.id] = r; loadedRids.add(r.id); });
+      render(); toast('Error removing — please try again');
+    }
+  }
 }
 
 // ══ RELATIONS ══════════════════════════════════════════════════════
@@ -4212,12 +4293,27 @@ async function addRel(){
   }
 }
 async function removeRel(id,elRef){
-  await deleteRelFb(id);
+  // Optimistic local removal
+  const backup = DB.rels[id] ? {...DB.rels[id]} : null;
+  delete DB.rels[id];
+  if (backup) { loadedRids.delete(id); }
   if(elRef)elRef.remove();
   render();
   if(selId)showPanel(selId);
-  updateAllExpandBadges(); // update badges now that a rel was removed
+  updateAllExpandBadges();
   toast('Link removed');
+  try {
+    await deleteRelFb(id);
+  } catch(e) {
+    if (!isNetworkError(e) && backup) {
+      // Roll back on real error
+      DB.rels[id] = backup; loadedRids.add(id);
+      render(); if(selId)showPanel(selId);
+      toast('Error removing link — please try again');
+    } else if (isNetworkError(e)) {
+      toast('Removed locally — will sync when online');
+    }
+  }
 }
 
 // ══ HISTORY ════════════════════════════════════════════════════════
@@ -4385,6 +4481,190 @@ if(isIOS) setTimeout(()=>{if(!window.navigator.standalone){el('install-bar').que
 let _tt;
 function toast(msg){ const t=el('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('on'),3000); }
 
+
+// ══ OFFLINE ENGINE ═════════════════════════════════════════════════════════
+// Three parts:
+//   1. idb*  — thin IndexedDB helpers (snapshot persistence)
+//   2. _wq*  — write queue (pending Firebase writes survive offline / reload)
+//   3. online/offline events + queue drain on reconnect
+
+// ── 1. IDB helpers ─────────────────────────────────────────────────────────
+let _idb = null;
+function _openIdb() {
+  if (_idb) return Promise.resolve(_idb);
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('parampara', 2);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('kv'))    db.createObjectStore('kv');
+      if (!db.objectStoreNames.contains('queue')) db.createObjectStore('queue', { autoIncrement: true });
+    };
+    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onerror   = () => rej(req.error);
+  });
+}
+async function idbSet(key, value) {
+  const db = await _openIdb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(value, key);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+async function idbGet(key) {
+  const db = await _openIdb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('kv', 'readonly');
+    const req = tx.objectStore('kv').get(key);
+    req.onsuccess = () => res(req.result ?? null);
+    req.onerror   = () => rej(req.error);
+  });
+}
+
+// Persist the current DB snapshot keyed by family handle
+async function saveSnapshot() {
+  if (!FAM || !DB || (!Object.keys(DB.people).length && !Object.keys(DB.rels).length)) return;
+  try {
+    await idbSet('snap:' + FAM, { people: DB.people, rels: DB.rels, at: Date.now() });
+  } catch(e) { console.warn('saveSnapshot failed', e); }
+}
+
+// Load snapshot into DB — returns true if data was found
+async function loadSnapshot() {
+  if (!FAM) return false;
+  try {
+    const snap = await idbGet('snap:' + FAM);
+    if (!snap || !snap.people) return false;
+    DB = { people: snap.people, rels: snap.rels };
+    // Rebuild loadedPids/Rids from snapshot
+    loadedPids.clear(); loadedRids.clear();
+    Object.keys(DB.people).forEach(id => loadedPids.add(id));
+    Object.keys(DB.rels).forEach(id => loadedRids.add(id));
+    // Rebuild search cache
+    searchCache.clear();
+    Object.entries(DB.people).forEach(([pid, p]) => {
+      searchCache.set(pid, { first: p.first||'', last: p.last||'', dob: p.dob||'', gender: p.gender||'' });
+    });
+    return true;
+  } catch(e) { console.warn('loadSnapshot failed', e); return false; }
+}
+
+// ── 2. Write queue ─────────────────────────────────────────────────────────
+// Each entry: { path, value, op } where op is 'set' | 'update' | 'push'
+// Entries are stored in IDB so they survive page reload.
+let _wqDraining = false;
+
+async function _wqPush(entry) {
+  try {
+    const db = await _openIdb();
+    await new Promise((res, rej) => {
+      const tx = db.transaction('queue', 'readwrite');
+      tx.objectStore('queue').add(entry);
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+  } catch(e) { console.warn('_wqPush failed', e); }
+}
+
+async function _wqAll() {
+  try {
+    const db = await _openIdb();
+    return new Promise((res, rej) => {
+      const tx = db.transaction('queue', 'readonly');
+      const req = tx.objectStore('queue').getAll();
+      req.onsuccess = () => res(req.result || []);
+      req.onerror   = () => rej(req.error);
+    });
+  } catch { return []; }
+}
+
+async function _wqClear() {
+  try {
+    const db = await _openIdb();
+    await new Promise((res, rej) => {
+      const tx = db.transaction('queue', 'readwrite');
+      tx.objectStore('queue').clear();
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+  } catch(e) { console.warn('_wqClear failed', e); }
+}
+
+// Queue-aware Firebase write — uses real Firebase if online, queues if not
+async function queuedSet(path, value) {
+  if (navigator.onLine) {
+    try {
+      await set(ref(db, path), value);
+      return;
+    } catch(e) {
+      if (!isNetworkError(e)) throw e; // real error, not connectivity
+    }
+  }
+  // Offline or network error — queue it and apply optimistically (already done by caller)
+  await _wqPush({ path, value, op: 'set' });
+  _markOfflinePending();
+}
+
+async function queuedUpdate(updates) {
+  if (navigator.onLine) {
+    try {
+      await update(ref(db), updates);
+      return;
+    } catch(e) {
+      if (!isNetworkError(e)) throw e;
+    }
+  }
+  // Queue each key as a separate set
+  for (const [path, value] of Object.entries(updates)) {
+    await _wqPush({ path, value, op: 'set' });
+  }
+  _markOfflinePending();
+}
+
+function isNetworkError(e) {
+  const msg = (e && e.message || '').toLowerCase();
+  return msg.includes('network') || msg.includes('offline') || msg.includes('failed to fetch')
+      || msg.includes('unavailable') || msg.includes('timeout') || !navigator.onLine;
+}
+
+function _markOfflinePending() {
+  setSyncStatus('off', 'Offline — changes queued');
+}
+
+// Drain the write queue — called on reconnect
+async function drainWriteQueue() {
+  if (_wqDraining) return;
+  const entries = await _wqAll();
+  if (!entries.length) return;
+  _wqDraining = true;
+  setSyncStatus('off', `Syncing ${entries.length} queued write(s)…`);
+  try {
+    for (const entry of entries) {
+      await set(ref(db, entry.path), entry.value);
+    }
+    await _wqClear();
+    setSyncStatus('ok', 'Synced ✓');
+    // Trigger a full re-sync so our local state matches server
+    if (FAM) {
+      if (viewMode === 'ego' && egoId) startEgoSync(pivotId || egoId);
+      else startSync();
+    }
+  } catch(e) {
+    console.warn('drainWriteQueue failed', e);
+    setSyncStatus('off', 'Sync failed — will retry');
+  } finally {
+    _wqDraining = false;
+  }
+}
+
+// ── 3. Online / offline events ────────────────────────────────────────────
+window.addEventListener('online',  () => {
+  setSyncStatus('off', 'Reconnecting…');
+  drainWriteQueue();
+});
+window.addEventListener('offline', () => {
+  setSyncStatus('off', 'Offline');
+});
+// ══ END OFFLINE ENGINE ═════════════════════════════════════════════════════
+
 // ══ SERVICE WORKER ═════════════════════════════════════════════════
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
@@ -4394,6 +4674,8 @@ setupSearch('srch-m','srch-drop-m');
 applyHeaderH(52);
 applyVP();
 applyLang(); // apply saved language before boot so UI is correct from first render
+// Drain any writes that were queued while offline in a previous session
+if (navigator.onLine) drainWriteQueue();
 boot();
 
 // ── Android PWA nav-bar fix ────────────────────────────────────────

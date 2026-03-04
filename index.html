@@ -376,6 +376,17 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .pan-btn.del{background:var(--rose);color:white;border-color:var(--rose)}
 .pf-av{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;
   display:flex;align-items:center;justify-content:center;font-size:28px;
+.photo-upload-wrap{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.photo-thumb{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;background:var(--parch2);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-actions{display:flex;flex-direction:column;gap:4px;flex:1}
+.photo-url-row{display:flex;gap:4px}
+.photo-url-row .pfi{flex:1;min-width:0}
+.photo-upload-btn{font-size:11px;padding:5px 10px;border-radius:3px;border:1px solid var(--border);
+  background:var(--slate);color:white;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.photo-upload-btn:hover{background:var(--gold);color:var(--ink)}
+.photo-upload-btn:disabled{opacity:.5;cursor:default}
+.photo-hint{font-size:10px;color:var(--ink4);line-height:1.4}
   border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .pf-av img{width:100%;height:100%;object-fit:cover}
 .pf-name{font-family:'Crimson Pro',serif;font-size:23px;font-weight:600;
@@ -1752,6 +1763,9 @@ import { getAuth, createUserWithEmailAndPassword,
 import { getDatabase, ref, set, get, update,
          onValue, off, push, serverTimestamp,
          runTransaction }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getStorage, ref as sref,
+         uploadBytes, getDownloadURL,
+         deleteObject }                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDT7mLczjk0kC7j-qD69UHByv10Z1AskBw",
@@ -1763,9 +1777,10 @@ const firebaseConfig = {
   appId:             "1:104094614060:web:0f8219828e5d1918b98789"
 };
 
-const fbApp  = initializeApp(firebaseConfig);
-const auth   = getAuth(fbApp);
-const db     = getDatabase(fbApp);
+const fbApp   = initializeApp(firebaseConfig);
+const auth    = getAuth(fbApp);
+const db      = getDatabase(fbApp);
+const storage = getStorage(fbApp);
 
 // Expose auth to diagnostic panel (read-only, safe)
 window.__firebaseAuth = auth;
@@ -4452,7 +4467,26 @@ function personForm(p={}){ return `
     <div class="pfg"><label class="pfl">${t('pOccupation')}</label><input class="pfi" id="pf-occ" value="${escHtml(p.occupation||'')}"></div>
     <div class="pfg"><label class="pfl">${t('pEdu')}</label><input class="pfi" id="pf-edu" value="${escHtml(p.education||'')}"></div>
   </div>
-  <div class="pfg"><label class="pfl">${t('pPhoto')}</label><input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}"></div>
+  <div class="pfg">
+    <label class="pfl">${t('pPhoto')}</label>
+    <div class="photo-upload-wrap">
+      <div class="photo-thumb" id="pf-photo-thumb">
+        ${p.photo ? `<img src="${escHtml(p.photo)}" alt="" onerror="this.remove()">` : '📷'}
+      </div>
+      <div class="photo-actions">
+        <div class="photo-url-row">
+          <input class="pfi" id="pf-photo" value="${escHtml(p.photo||'')}" placeholder="https://… or upload →"
+            oninput="_onPhotoUrlChange(this.value)">
+          <button type="button" class="photo-upload-btn" id="pf-upload-btn"
+            onclick="document.getElementById('pf-photo-file').click()">📤 Upload</button>
+          <input type="file" id="pf-photo-file" accept="image/*" style="display:none"
+            onchange="_handlePhotoFile(this)">
+        </div>
+        <div class="photo-hint">Max 5 MB · JPEG/PNG/WEBP. Or paste a URL above.</div>
+        <div id="pf-upload-status" style="font-size:10px;color:var(--gold);min-height:14px"></div>
+      </div>
+    </div>
+  </div>
   <div class="pfg"><label class="pfl">${t('pNotes')}</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
 
 let editId=null;
@@ -4460,6 +4494,95 @@ function openAddMo(){  if(!can('add')){toast('No permission');return;} editId=nu
 function openEditMo(id){ if(!canEditPerson(DB.people[id])){toast('No permission');return;} editId=id; el('pmo-title').textContent=t('editDash')+' '+fullName(DB.people[id]); el('pmo-bd').innerHTML=personForm(DB.people[id]); el('person-mo').classList.add('on'); }
 function closePMo(){ el('person-mo').classList.remove('on'); }
 function pv(id){ return (el(id)||{}).value||''; }
+
+// ── Photo upload helpers ─────────────────────────────────────────────────────
+
+// Update thumbnail when URL is typed manually
+function _onPhotoUrlChange(url) {
+  const thumb = el('pf-photo-thumb');
+  if (!thumb) return;
+  if (url && /^https:\/\/.+\..+/i.test(url)) {
+    thumb.innerHTML = `<img src="${escHtml(url)}" alt="" onerror="this.remove();this.parentNode.textContent='📷'">`;
+  } else {
+    thumb.textContent = '📷';
+  }
+}
+
+// Compress image with canvas before upload — keeps storage costs low
+async function _compressImage(file, maxPx = 800, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width: w, height: h } = img;
+      if (w > maxPx || h > maxPx) {
+        const ratio = Math.min(maxPx / w, maxPx / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Compression failed')),
+        'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
+    img.src = url;
+  });
+}
+
+// Handle file picker selection — compress then upload to Firebase Storage
+async function _handlePhotoFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = ''; // reset so same file can be re-selected if needed
+
+  // Guards
+  if (!file.type.startsWith('image/')) { toast('Please select an image file'); return; }
+  if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5 MB'); return; }
+  if (!FAM) { toast('No family loaded'); return; }
+
+  const btn    = el('pf-upload-btn');
+  const status = el('pf-upload-status');
+  const urlInp = el('pf-photo');
+  const thumb  = el('pf-photo-thumb');
+
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  if (status) status.textContent = 'Compressing…';
+
+  try {
+    // Compress
+    const blob = await _compressImage(file);
+
+    if (status) status.textContent = 'Uploading…';
+
+    // Build storage path — use editId if editing, otherwise a temp id
+    const pid   = editId || ('_tmp_' + Date.now());
+    const ext   = 'jpg'; // always JPEG after compression
+    const path  = `photos/${FAM}/${pid}_${Date.now()}.${ext}`;
+    const fileRef = sref(storage, path);
+
+    // Upload
+    await uploadBytes(fileRef, blob, { contentType: 'image/jpeg' });
+    const downloadUrl = await getDownloadURL(fileRef);
+
+    // Update form field and thumbnail
+    if (urlInp) urlInp.value = downloadUrl;
+    if (thumb)  thumb.innerHTML = `<img src="${escHtml(downloadUrl)}" alt="">`;
+    if (status) status.textContent = '✓ Uploaded';
+    setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+  } catch(e) {
+    console.error('Photo upload failed:', e);
+    if (status) status.textContent = '✗ ' + (e.message || 'Upload failed');
+    toast('Upload failed — check your connection');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📤 Upload';
+  }
+}
 
 async function savePerson(){
   const first=pv('pf-first').trim();
@@ -6755,6 +6878,7 @@ Object.assign(window, {
   checkVerified, resendVerification,
   generateInviteLink, copyInviteUrl,
   restoreM, deleteM,
+  _onPhotoUrlChange, _handlePhotoFile,
   clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,

@@ -1324,7 +1324,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </div>
         <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
         <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
-        <button class="hbtn icon" onclick="openPrivacyMo()" data-tip="Account &amp; Privacy">⚙️</button>
+        <button class="hbtn icon" onclick="openPrivacyMo('account')" data-tip="Account &amp; Privacy">⚙️</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
@@ -2285,7 +2285,12 @@ async function _completeJoin(user, { key, first, last, email, fh, isNewAccount =
       return;
     }
   }
-  // First-admin election
+  // First-admin election via transaction on families/fh/adminSet.
+  // Rules: adminSet.read requires "auth != null" (any authenticated user),
+  //        adminSet.write requires "auth != null && !data.exists()" (write-once).
+  // If rules are not yet updated, the transaction may throw PERMISSION_DENIED —
+  // in that case we fall back to a direct write attempt which also succeeds only
+  // if adminSet doesn't exist yet (write-once rule still enforced server-side).
   let role = 'pending';
   try {
     const txResult = await runTransaction(adminFlagRef(fh), current => {
@@ -2293,7 +2298,16 @@ async function _completeJoin(user, { key, first, last, email, fh, isNewAccount =
       return undefined;
     });
     if (txResult.committed) role = 'admin';
-  } catch(e) {}
+  } catch(e) {
+    // Transaction failed — likely PERMISSION_DENIED on the read (old rules).
+    // Fall back: attempt a direct write (succeeds only if adminSet is null = new family).
+    try {
+      await set(adminFlagRef(fh), true);
+      role = 'admin'; // write succeeded → we are the first admin
+    } catch(_) {
+      // adminSet already exists or write also denied → role stays 'pending'
+    }
+  }
   const memberData = { uid: user.uid, email, first, last, role, joinedAt: Date.now() };
   await set(memberRef(fh, user.uid), memberData);
   await set(ref(db, `userFamilies/${user.uid}/${fh}`), { famKey: key, first, last, role, joinedAt: Date.now() });
@@ -2383,6 +2397,11 @@ function _showInviteError(msg) {
 // Called from the admin Members tab.
 async function generateInviteLink() {
   if (!FAM || !CU || CU.role !== 'admin') return;
+
+  // Rate limit: 5 invite generations per 10 minutes per session
+  const rlInvMsg = _rlCheck('invite', 5, 600_000, 600_000);
+  if (rlInvMsg) { toast(rlInvMsg); return; }
+
   const btn = el('btn-gen-invite');
   if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
   try {
@@ -2676,6 +2695,11 @@ async function doLogin() {
   const errEl = el('l-err');
   errEl.textContent = '';
   if (!email || !pass) { errEl.textContent = 'Please fill all fields'; return; }
+
+  // Rate limit: 5 attempts per 30s, then 60s lockout
+  const rlMsg = _rlCheck('login', 5, 30_000, 60_000);
+  if (rlMsg) { errEl.textContent = rlMsg; return; }
+
   errEl.textContent = 'Signing in…';
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
@@ -2693,6 +2717,7 @@ async function doLogin() {
       if (disp) disp.textContent = email;
       return;
     }
+    _rlReset('login'); // successful login clears attempt count
     errEl.textContent = ''; // clear — onAuthStateChanged will drive navigation
   } catch(e) {
     errEl.textContent = friendlyAuthError(e.code);
@@ -2709,6 +2734,10 @@ async function doJoin() {
   errEl.textContent = '';
 
   if (!key || !first || !email || !pass) { errEl.textContent = 'Please fill all required fields'; return; }
+
+  // Rate limit: 3 attempts per 60s, then 120s lockout
+  const rlJoinMsg = _rlCheck('join', 3, 60_000, 120_000);
+  if (rlJoinMsg) { errEl.textContent = rlJoinMsg; return; }
   if (pass.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email address'; return; }
 
@@ -2807,6 +2836,11 @@ async function doForgot() {
   const errEl = el('f-err');
   errEl.textContent = '';
   if (!email) { errEl.textContent = 'Enter your email address'; return; }
+
+  // Rate limit: 3 per 5 minutes — prevents email bombing
+  const rlForgotMsg = _rlCheck('forgot', 3, 300_000, 300_000);
+  if (rlForgotMsg) { errEl.textContent = rlForgotMsg; return; }
+
   errEl.textContent = 'Sending…';
   try {
     await sendPasswordResetEmail(auth, email);
@@ -2896,6 +2930,12 @@ async function fullLogout() {
       showScreen('s-auth');
       switchTab('login');
       setSyncStatus('off', 'Not signed in');
+    } else {
+      // A new user signed in (different credentials after logout).
+      // Tear down this one-shot listener and re-run boot() so the full
+      // auth → family-load flow runs for the new user.
+      if (_authUnsub) { _authUnsub(); _authUnsub = null; }
+      boot();
     }
   });
   await signOut(auth);
@@ -3244,6 +3284,10 @@ function setupEgoListeners() {
 //                   && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() != 'rejected'",
 //
 //         "adminSet": {
+//           // Readable by any authenticated user (needed for first-admin election
+//           // — a new joiner can't read family data before joining, but must be
+//           // able to check adminSet to run the transaction)
+//           ".read": "auth != null",
 //           // Only writable once (for first-admin election via transaction)
 //           ".write": "auth != null && !data.exists()"
 //         },
@@ -5344,6 +5388,43 @@ window.addEventListener('unhandledrejection', e => {
   logErr('unhandled-promise', err instanceof Error ? err : new Error(String(err)));
 });
 
+// ══ RATE LIMITER ═══════════════════════════════════════════════════
+// Pure client-side, in-memory. Resets on page reload.
+// Complements Firebase server-side limits — catches UX abuse and loops early.
+const _rl = {};  // key → { count, firstAt, lockedUntil }
+
+function _rlCheck(key, limit, windowMs, lockMs) {
+  const now = Date.now();
+  let r = _rl[key];
+
+  // Locked out?
+  if (r && r.lockedUntil && now < r.lockedUntil) {
+    const secs = Math.ceil((r.lockedUntil - now) / 1000);
+    return secs >= 60
+      ? `Too many attempts. Try again in ${Math.ceil(secs/60)} minute${Math.ceil(secs/60)>1?'s':''}.`
+      : `Too many attempts. Try again in ${secs} second${secs>1?'s':''}.`;
+  }
+
+  // Outside window — reset
+  if (!r || now - r.firstAt > windowMs) {
+    _rl[key] = { count: 1, firstAt: now, lockedUntil: 0 };
+    return null;
+  }
+
+  // Inside window — increment
+  r.count++;
+  if (r.count > limit) {
+    r.lockedUntil = now + lockMs;
+    const secs = Math.ceil(lockMs / 1000);
+    return secs >= 60
+      ? `Too many attempts. Try again in ${Math.ceil(secs/60)} minute${Math.ceil(secs/60)>1?'s':''}.`
+      : `Too many attempts. Try again in ${secs} second${secs>1?'s':''}.`;
+  }
+  return null;
+}
+
+function _rlReset(key) { delete _rl[key]; }
+
 // ══ SERVICE WORKER ═════════════════════════════════════════════════
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
@@ -5583,6 +5664,16 @@ function impReset() {
 
 async function runImport() {
   if (!_impRows.length) return;
+
+  // Hard cap — prevents accidental or malicious bulk write bombs
+  const ROW_LIMIT = 500;
+  if (_impRows.length > ROW_LIMIT) {
+    el('imp-file-err') && (el('imp-file-err').textContent =
+      `Import limited to ${ROW_LIMIT} rows per batch. Your file has ${_impRows.length} rows — split it into smaller files.`);
+    showImpStep(2);
+    return;
+  }
+
   showImpStep(3);
   el('amo-ft').innerHTML = '';
 
@@ -5752,10 +5843,28 @@ function loadSettingsTab() {
 
 // ══ PRIVACY & DATA FUNCTIONS ══════════════════════════════════════
 
-function closePrivacyMo() { el('privacy-mo').classList.remove('on'); }
+function closePrivacyMo() { const m = el('privacy-mo'); if (m) m.classList.remove('on'); }
 
 // tab: 'notice' | 'account'
+function _ensurePrivacyMo() {
+  if (el('privacy-mo')) return; // already exists
+  const mo = document.createElement('div');
+  mo.className = 'mo-ov';
+  mo.id = 'privacy-mo';
+  mo.innerHTML = `
+    <div class="mo" style="max-width:480px">
+      <div class="mo-hd">
+        <div class="mo-title">⚙️ Account &amp; Privacy</div>
+        <button class="pan-x" onclick="closePrivacyMo()">✕</button>
+      </div>
+      <div class="mo-bd" id="privacy-mo-bd"></div>
+      <div class="mo-ft" id="privacy-mo-ft"></div>
+    </div>`;
+  document.body.appendChild(mo);
+}
+
 function openPrivacyMo(tab) {
+  _ensurePrivacyMo();
   const bd = el('privacy-mo-bd');
   const ft = el('privacy-mo-ft');
   if (!bd) return;

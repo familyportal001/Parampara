@@ -1623,10 +1623,16 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <button onclick="document.getElementById('diag-ov').style.display='none'"
         style="background:none;border:none;color:#9b7a50;font-size:22px;cursor:pointer">✕</button>
     </div>
-    <button id="diag-run" onclick="runDiag()"
-      style="width:100%;padding:11px;background:#c8893a;color:#1e1005;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px">
-      ▶ Run Connectivity Check
-    </button>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="diag-run" onclick="runDiag()"
+        style="flex:1;padding:11px;background:#c8893a;color:#1e1005;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer">
+        ▶ Connectivity
+      </button>
+      <button onclick="showDiagErrors()"
+        style="flex:1;padding:11px;background:#4a1a1a;color:#e07070;border:1px solid #7a3030;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer">
+        🐛 Error Log
+      </button>
+    </div>
     <div id="diag-out" style="font-family:monospace;font-size:12px;line-height:1.9;color:#e0ceaa;white-space:pre-wrap"></div>
   </div>
 </div>
@@ -1768,6 +1774,22 @@ async function runDiag() {
   log('--- Done ---');
   btn.disabled = false;
   btn.textContent = '▶ Run Again';
+}
+
+function showDiagErrors() {
+  const out = document.getElementById('diag-out');
+  const log = window._errLog;
+  if (!log || !log.length) { out.textContent = '✅ No errors recorded this session.'; return; }
+  const lines = ['=== Error Log (' + log.length + ' entries) ===', ''];
+  log.slice().reverse().forEach((e, i) => {
+    lines.push('#' + (log.length - i) + ' [' + new Date(e.t).toLocaleTimeString() + '] ' + e.tag);
+    if (e.code) lines.push('   code:    ' + e.code);
+    lines.push('   message: ' + e.msg);
+    if (e.stack) e.stack.split('\n').slice(0, 3).forEach(l => lines.push('   ' + l.trim()));
+    lines.push('   online: ' + e.online + ' | url: ' + e.url);
+    lines.push('');
+  });
+  out.textContent = lines.join('\n');
 }
 </script>
 
@@ -2628,6 +2650,7 @@ async function resumeFamily(fam) {
     // Pass linkedProfileId directly so showApp doesn't need another Firebase read
     showApp(data.linkedProfileId || null);
   } catch(e) {
+    logErr('resumeFamily', e);
     setSyncStatus('off', 'Error loading family');
     toast('Error: ' + e.message);
   }
@@ -2771,7 +2794,12 @@ async function doJoin() {
 
   // Family setup is now handled by _completeJoin() after email verification
   // (reached here only for existing verified accounts joining via email-already-in-use path)
-  await _completeJoin(user, { key, first, last, email, fh });
+  try {
+    await _completeJoin(user, { key, first, last, email, fh });
+  } catch(e) {
+    logErr('doJoin._completeJoin', e);
+    errEl.textContent = e.message || 'Error joining family — please try again';
+  }
 }
 
 async function doForgot() {
@@ -4586,8 +4614,14 @@ async function _handlePhotoFile(input) {
     const path  = `photos/${FAM}/${pid}_${Date.now()}.${ext}`;
     const fileRef = sref(storage, path);
 
-    // Upload
-    await uploadBytes(fileRef, blob, { contentType: 'image/jpeg' });
+    // Upload — with 20s timeout so it fails visibly if Storage isn't provisioned
+    const uploadTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(Object.assign(new Error('Request timed out'), { code: 'storage/timeout' })), 20000)
+    );
+    await Promise.race([
+      uploadBytes(fileRef, blob, { contentType: 'image/jpeg' }),
+      uploadTimeout,
+    ]);
     const downloadUrl = await getDownloadURL(fileRef);
 
     // Update form field and thumbnail
@@ -4596,9 +4630,17 @@ async function _handlePhotoFile(input) {
     if (status) status.textContent = '✓ Uploaded';
     setTimeout(() => { if (status) status.textContent = ''; }, 3000);
   } catch(e) {
-    console.error('Photo upload failed:', e);
-    if (status) status.textContent = '✗ ' + (e.message || 'Upload failed');
-    toast('Upload failed — check your connection');
+    logErr('photoUpload', e);
+    let msg = 'Upload failed';
+    if (e.code === 'storage/timeout') {
+      msg = 'Upload timed out — Firebase Storage may not be activated for this project';
+    } else if (e.code === 'storage/unauthorized') {
+      msg = 'Permission denied — add Storage rules in Firebase Console';
+    } else if (e.code === 'storage/unknown' || e.message?.includes('CORS')) {
+      msg = 'Storage not reachable — check Firebase Storage is enabled';
+    }
+    if (status) status.textContent = '✗ ' + msg;
+    toast(msg);
   } finally {
     btn.disabled = false;
     btn.textContent = '📤 Upload';
@@ -4645,6 +4687,7 @@ async function savePerson(){
         toast('Saved locally — will sync when online');
       } else {
         // Non-network error — roll back
+        logErr('savePerson', e);
         DB.people[editId] = prevData;
         searchCache.set(editId, { first: prevData.first||'', last: prevData.last||'', dob: prevData.dob||'', gender: prevData.gender||'' });
         scheduleRender();
@@ -5257,6 +5300,50 @@ window.addEventListener('offline', () => {
 });
 // ══ END OFFLINE ENGINE ═════════════════════════════════════════════════════
 
+// ══ ERROR TRACKING ═════════════════════════════════════════════════
+const _errLog = [];
+const _ERR_MAX = 50;
+
+const _ERR_IGNORE = [
+  /websocket/i, /ws:\/\//i,
+  /failed to fetch/i, /networkerror/i, /load failed/i,
+  /permission.denied/i,
+  /resizeobserver loop/i,
+  /script error/i,
+];
+
+function _errShouldIgnore(msg) {
+  const m = (msg || '').toLowerCase();
+  return _ERR_IGNORE.some(re => re.test(m));
+}
+
+function logErr(tag, e) {
+  const msg   = (e && (e.message || String(e))) || 'unknown error';
+  const stack = (e && e.stack) ? e.stack.split('\n').slice(0, 4).join('\n') : '';
+  const code  = e && e.code ? e.code : '';
+  if (_errShouldIgnore(msg)) return;
+  const entry = { t: Date.now(), tag: tag || 'app', msg, code, stack, url: location.pathname, online: navigator.onLine };
+  _errLog.push(entry);
+  if (_errLog.length > _ERR_MAX) _errLog.shift();
+  console.error('[' + tag + ']', msg, e || '');
+  if (!isNetworkError(e)) {
+    const prev = el('slbl') ? el('slbl').textContent : '';
+    setSyncStatus('off', 'Error — tap logo 5x for details');
+    setTimeout(() => { if (el('slbl') && el('slbl').textContent.startsWith('Error')) setSyncStatus('off', prev || 'Ready'); }, 5000);
+  }
+}
+
+window.onerror = function(message, source, lineno, colno, error) {
+  logErr('uncaught', error || new Error(message));
+  return false;
+};
+
+window.addEventListener('unhandledrejection', e => {
+  const err = e.reason;
+  if (err && (err.code === 'PERMISSION_DENIED' || (err.message||'').toLowerCase().includes('permission'))) return;
+  logErr('unhandled-promise', err instanceof Error ? err : new Error(String(err)));
+});
+
 // ══ SERVICE WORKER ═════════════════════════════════════════════════
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
@@ -5868,6 +5955,7 @@ async function deleteMyAccount() {
     toast('Your account has been deleted');
     closePrivacyMo();
   } catch(e) {
+    logErr('deleteMyAccount', e);
     if (e.code === 'auth/requires-recent-login') {
       toast('For security, please sign out and sign back in, then try again');
     } else {
@@ -5885,28 +5973,36 @@ async function deleteFamily() {
   if (prompt(`Type the family name "${famName}" to confirm:`) !== famName) {
     toast('Name did not match — deletion cancelled'); return;
   }
+  // Phase 1 — fetch member UIDs for userFamilies cleanup (best-effort, non-blocking)
+  let memberUids = [];
   try {
-    // Get all member UIDs so we can clean up their userFamilies index
     const membersSnap = await get(membersRef(FAM));
-    const memberUids = [];
     if (membersSnap.exists()) membersSnap.forEach(c => memberUids.push(c.key));
+  } catch(e) {
+    // Members read failed — proceed with deletion anyway.
+    // userFamilies cleanup will be partial (only admin's own entry will be missed
+    // if the read fails entirely). This is recoverable: resumeFamily checks the
+    // member record and finds nothing, so stale userFamilies entries become harmless.
+    logErr('deleteFamily.membersRead', e);
+  }
 
-    // Delete entire family node
+  // Phase 2 — delete the family node and clean up indexes
+  try {
     await set(ref(db, `families/${FAM}`), null);
 
-    // Clean up userFamilies index for every member
-    await Promise.all(memberUids.map(uid =>
+    // Clean up userFamilies for all members we could fetch, plus the acting admin
+    const uidsToClean = [...new Set([...memberUids, fbUser.uid])];
+    await Promise.all(uidsToClean.map(uid =>
       set(ref(db, `userFamilies/${uid}/${FAM}`), null)
     ));
 
-    // Clear local session
     const s = getSessions();
     s.families = s.families.filter(f => f.fh !== FAM);
     localStorage.setItem('para_v3', JSON.stringify(s));
 
     toast('Family tree deleted');
     fullLogout();
-  } catch(e) { toast('Error: ' + e.message); }
+  } catch(e) { logErr('deleteFamily', e); toast('Error deleting family: ' + e.message); }
 }
 
 
@@ -7153,6 +7249,7 @@ Object.assign(window, {
   _onPhotoUrlChange, _handlePhotoFile,
   openPrivacyMo, closePrivacyMo,
   exportFamilyData, leaveFamily, deleteMyAccount, deleteFamily,
+  logErr,
   clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,
@@ -7168,6 +7265,10 @@ Object.assign(window, {
 // DB and selId need proper getter/setter descriptors so tests (and devtools)
 // can read/write the module-scoped variables through window.
 // Object.assign copies values, not descriptors, so we use defineProperty.
+Object.defineProperty(window, '_errLog', {
+  get() { return _errLog; },
+  configurable: true,
+});
 Object.defineProperty(window, 'DB', {
   get() { return DB; },
   set(v) { DB = v; },

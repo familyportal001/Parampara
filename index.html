@@ -1557,20 +1557,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 </div>
 <div id="toast"></div>
 
-<!-- PRIVACY / ACCOUNT MODAL -->
-<div class="mo-ov" id="privacy-mo">
-  <div class="mo" style="max-width:480px">
-    <div class="mo-hd">
-      <div class="mo-title">⚙️ Account &amp; Privacy</div>
-      <button class="pan-x" onclick="closePrivacyMo()">✕</button>
-    </div>
-    <div class="mo-bd" id="privacy-mo-bd"></div>
-    <div class="mo-ft">
-      <button class="hbtn" onclick="closePrivacyMo()">Close</button>
-      <button class="hbtn primary" onclick="exportMyData()" id="btn-export-data">⬇ Export My Data</button>
-    </div>
-  </div>
-</div>
+<!-- privacy-mo rendered by openPrivacyMo() JS — no static HTML needed here -->
 
 <!-- ══ RELATIONSHIP FINDER ══  -->
 <div id="rel-finder-mo">
@@ -7164,7 +7151,7 @@ Object.assign(window, {
   generateInviteLink, copyInviteUrl,
   restoreM, deleteM,
   _onPhotoUrlChange, _handlePhotoFile,
-  openPrivacyMo, closePrivacyMo, exportMyData,
+  openPrivacyMo, closePrivacyMo,
   exportFamilyData, leaveFamily, deleteMyAccount, deleteFamily,
   clearPendingNotices,
   // Relationship finder

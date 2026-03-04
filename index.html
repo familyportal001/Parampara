@@ -3317,7 +3317,12 @@ function setupEgoListeners() {
 //             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'editor' ||
 //             root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'contributor'
 //           )"
-//         }
+//         },
+//
+//         // Admin can delete the entire family node (set to null)
+//         // WITHOUT this rule, set(ref(db, 'families/FAM'), null) throws
+//         // PERMISSION_DENIED because sub-node rules don't cover the parent write.
+//         ".write": "auth != null && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin'"
 //       }
 //     }
 //   }
@@ -6095,9 +6100,22 @@ async function deleteFamily() {
     logErr('deleteFamily.membersRead', e);
   }
 
-  // Phase 2 — delete the family node and clean up indexes
+  // Phase 2 — delete the family node and clean up indexes.
+  // We cannot set(families/FAM, null) because that write falls on the parent node
+  // which has no blanket write rule — only sub-nodes do. Instead we null every
+  // known sub-node via update() which each existing rule covers.
   try {
-    await set(ref(db, `families/${FAM}`), null);
+    await update(ref(db, `families/${FAM}`), {
+      people:   null,
+      rels:     null,
+      history:  null,
+      members:  null,
+      invites:  null,
+      adminSet: null,
+      archived: null,
+      archivedAt: null,
+      archivedBy: null,
+    });
 
     // Clean up userFamilies for all members we could fetch, plus the acting admin
     const uidsToClean = [...new Set([...memberUids, fbUser.uid])];

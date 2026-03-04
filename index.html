@@ -387,6 +387,20 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .photo-upload-btn:hover{background:var(--gold);color:var(--ink)}
 .photo-upload-btn:disabled{opacity:.5;cursor:default}
 .photo-hint{font-size:10px;color:var(--ink4);line-height:1.4}
+/* Privacy / Account modal */
+.priv-section{margin-bottom:20px}
+.priv-section h3{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--copper);
+  margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.priv-section p,.priv-section li{font-size:12px;color:var(--ink2);line-height:1.7;margin:0 0 6px}
+.priv-section ul{padding-left:16px;margin:4px 0 8px}
+.priv-data-row{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.priv-data-row:last-child{border-bottom:none}
+.priv-data-key{color:var(--ink3)}
+.priv-data-val{color:var(--ink);font-weight:500;text-align:right;max-width:60%;word-break:break-all}
+.priv-danger{background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);
+  border-radius:var(--r);padding:14px;margin-top:8px}
+.priv-danger p{color:var(--ink3)}
   border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .pf-av img{width:100%;height:100%;object-fit:cover}
 .pf-name{font-family:'Crimson Pro',serif;font-size:23px;font-weight:600;
@@ -1310,6 +1324,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </div>
         <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
         <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
+        <button class="hbtn icon" onclick="openPrivacyMo()" data-tip="Account &amp; Privacy">⚙️</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
@@ -1358,6 +1373,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       </button>
       <button class="hbtn" id="btn-lang-m" onclick="openLangMo();closeMenu()">
         <span class="btn-ico">🌐</span><span class="btn-lbl" data-i18n="language">Language</span>
+      </button>
+      <button class="hbtn" onclick="openPrivacyMo('account');closeMenu()">
+        <span class="btn-ico">⚙️</span><span class="btn-lbl">Account &amp; Privacy</span>
       </button>
       <button class="hbtn" onclick="fullLogout();closeMenu()">
         <span class="btn-ico">⏻</span><span class="btn-lbl" data-i18n="signOut">Sign Out</span>
@@ -1538,6 +1556,21 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   </div>
 </div>
 <div id="toast"></div>
+
+<!-- PRIVACY / ACCOUNT MODAL -->
+<div class="mo-ov" id="privacy-mo">
+  <div class="mo" style="max-width:480px">
+    <div class="mo-hd">
+      <div class="mo-title">⚙️ Account &amp; Privacy</div>
+      <button class="pan-x" onclick="closePrivacyMo()">✕</button>
+    </div>
+    <div class="mo-bd" id="privacy-mo-bd"></div>
+    <div class="mo-ft">
+      <button class="hbtn" onclick="closePrivacyMo()">Close</button>
+      <button class="hbtn primary" onclick="exportMyData()" id="btn-export-data">⬇ Export My Data</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ RELATIONSHIP FINDER ══  -->
 <div id="rel-finder-mo">
@@ -1759,7 +1792,8 @@ import { initializeApp }                              from 'https://www.gstatic.
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          sendPasswordResetEmail, onAuthStateChanged,
-         sendEmailVerification, reload } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+         sendEmailVerification, reload,
+         deleteUser }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getDatabase, ref, set, get, update,
          onValue, off, push, serverTimestamp,
          runTransaction }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -5631,11 +5665,408 @@ function loadSettingsTab() {
     </div>
 
     <div class="sec-t" style="color:var(--rose)">Danger Zone</div>
-    <div style="background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);
-      border-radius:var(--r);padding:14px;font-size:12px;color:var(--ink3);line-height:1.7">
-      Permanent deletion is not available — archive the family instead to preserve data.
-      If you need the family permanently removed, contact support.
+    <div style="background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);border-radius:var(--r);padding:14px">
+      <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:12px">
+        Permanently delete this entire family tree — all people, relationships, members and history. This cannot be undone.
+      </div>
+      <button class="hbtn" style="width:100%;background:var(--rose);color:white;border-color:var(--rose)" onclick="deleteFamily()">🗑 Delete Entire Family Tree</button>
+    </div>
+    <div style="margin-top:12px;text-align:center">
+      <button onclick="openPrivacyMo('notice')" style="background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit">Privacy &amp; Data Policy</button>
     </div>`;
+}
+
+// ══ PRIVACY & DATA FUNCTIONS ══════════════════════════════════════
+
+function closePrivacyMo() { el('privacy-mo').classList.remove('on'); }
+
+// tab: 'notice' | 'account'
+function openPrivacyMo(tab) {
+  const bd = el('privacy-mo-bd');
+  const ft = el('privacy-mo-ft');
+  if (!bd) return;
+
+  if (tab === 'notice') {
+    bd.innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px">What data we store</div>
+        <div style="color:var(--ink3);font-size:12px;line-height:1.8">
+          Parampara stores the following data in Google Firebase (EU servers):
+          <ul style="margin:8px 0 0 16px;padding:0">
+            <li><b>Account:</b> your email address and a hashed password (managed by Firebase Auth)</li>
+            <li><b>Profile:</b> your name as entered when joining a family</li>
+            <li><b>Family tree data:</b> people, relationships, and edit history you contribute</li>
+            <li><b>Member records:</b> your role and join date within each family you belong to</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px">Who can see your data</div>
+        <div style="color:var(--ink3);font-size:12px;line-height:1.8">
+          Only members of your family tree can see the data in that tree. Admins can see member email addresses.
+          No data is sold or shared with third parties.
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px">Your rights</div>
+        <div style="color:var(--ink3);font-size:12px;line-height:1.8">
+          Under GDPR you have the right to access, correct, export, and delete your personal data.
+          Use the <b>My Account</b> option (from the menu) to export your data or delete your account at any time.
+        </div>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px">Data retention</div>
+        <div style="color:var(--ink3);font-size:12px;line-height:1.8">
+          Your data is kept for as long as you are a member of a family. Deleting your account removes your
+          member record and Firebase Auth credentials. Family tree content (people and relationships you added)
+          remains visible to other members unless the family admin deletes the tree.
+        </div>
+      </div>`;
+    ft.innerHTML = `
+      <button class="hbtn" onclick="closePrivacyMo()">Close</button>
+      ${fbUser ? '<button class="hbtn primary" onclick="openPrivacyMo(\'account\')">My Account →</button>' : ''}`;
+  } else {
+    // Account tab — personal data actions
+    const inFamily = !!(CU && FAM);
+    const isAdmin  = CU && CU.role === 'admin';
+    bd.innerHTML = `
+      <div style="margin-bottom:20px">
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:4px">Signed in as</div>
+        <div style="font-size:14px;color:var(--ink);font-weight:500">${escHtml(fbUser ? fbUser.email : '—')}</div>
+      </div>
+
+      ${inFamily ? `
+      <div style="margin-bottom:16px">
+        <div class="sec-t">Export My Data</div>
+        <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:8px">
+          Download all people and relationships in this family tree as JSON.
+        </div>
+        <button class="hbtn" style="width:100%" onclick="exportFamilyData()">⬇ Download Family Data (JSON)</button>
+      </div>` : ''}
+
+      ${inFamily ? `
+      <div style="margin-bottom:16px">
+        <div class="sec-t" style="color:var(--copper)">Leave This Family</div>
+        <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:8px">
+          Removes you from this family tree. You can rejoin later with the family key.
+          ${isAdmin ? '<b>Note: as admin, leaving will make the tree inaccessible if you are the only admin.</b>' : ''}
+        </div>
+        <button class="hbtn" style="width:100%;border-color:var(--copper);color:var(--copper)"
+          onclick="leaveFamily()">↩ Leave This Family</button>
+      </div>` : ''}
+
+      <div>
+        <div class="sec-t" style="color:var(--rose)">Delete My Account</div>
+        <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-bottom:8px">
+          Permanently deletes your Firebase account and removes you from all families.
+          Family tree content you added remains visible to other members. This cannot be undone.
+        </div>
+        <button class="hbtn" style="width:100%;background:var(--rose);color:white;border-color:var(--rose)"
+          onclick="deleteMyAccount()">🗑 Delete My Account</button>
+      </div>`;
+    ft.innerHTML = '<button class="hbtn" onclick="closePrivacyMo()">Close</button>';
+  }
+
+  el('privacy-mo').classList.add('on');
+}
+
+// Export all family data as a JSON download
+function exportFamilyData() {
+  if (!DB) { toast('No data loaded'); return; }
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    family: CU ? CU.famKey : 'unknown',
+    people: DB.people,
+    relationships: DB.rels,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `parampara-${(CU && CU.famKey || 'family').replace(/[^a-z0-9]/gi,'_')}-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Download started');
+}
+
+// Leave current family — removes own member record and userFamilies entry
+async function leaveFamily() {
+  if (!CU || !FAM || !fbUser) return;
+  const isAdmin = CU.role === 'admin';
+  const msg = isAdmin
+    ? 'Leave this family? As admin, no one else may be able to manage it. This cannot be undone.'
+    : 'Leave this family? You can rejoin later with the family key.';
+  if (!confirm(msg)) return;
+  try {
+    await set(ref(db, `families/${FAM}/members/${fbUser.uid}`), null);
+    await set(ref(db, `userFamilies/${fbUser.uid}/${FAM}`), null);
+    // Remove from local session cache
+    const s = getSessions();
+    s.families = s.families.filter(f => f.fh !== FAM);
+    localStorage.setItem('para_v3', JSON.stringify(s));
+    toast('You have left the family');
+    closePrivacyMo();
+    fullLogout();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// Delete the user's Firebase Auth account + all their member records
+async function deleteMyAccount() {
+  if (!fbUser) return;
+  if (!confirm('Permanently delete your account? This cannot be undone.')) return;
+  try {
+    // Remove from all families
+    const snap = await get(ref(db, `userFamilies/${fbUser.uid}`));
+    if (snap.exists()) {
+      const families = Object.keys(snap.val());
+      await Promise.all(families.map(fh => Promise.all([
+        set(ref(db, `families/${fh}/members/${fbUser.uid}`), null),
+        set(ref(db, `userFamilies/${fbUser.uid}/${fh}`), null),
+      ])));
+    }
+    // Clear local session
+    localStorage.removeItem('para_v3');
+    // Delete Firebase Auth account (requires recent sign-in — Firebase will throw
+    // auth/requires-recent-login if session is stale; handled in catch)
+    await fbUser.delete();
+    toast('Account deleted');
+    closePrivacyMo();
+    showScreen('s-auth');
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      toast('For security, please sign out and sign back in, then try again');
+    } else {
+      toast('Error deleting account: ' + e.message);
+    }
+  }
+}
+
+// Delete entire family tree (admin only) — removes all Firebase data for this family
+async function deleteFamily() {
+  if (!FAM || !CU || CU.role !== 'admin') { toast('Admin only'); return; }
+  const famName = CU.famKey || 'this family';
+  if (!confirm(`Permanently delete "${famName}"? This removes ALL people, relationships, and members. Cannot be undone.`)) return;
+  if (prompt(`Type the family name "${famName}" to confirm:`) !== famName) {
+    toast('Name did not match — deletion cancelled'); return;
+  }
+  try {
+    // Get all member UIDs so we can clean up their userFamilies index
+    const membersSnap = await get(membersRef(FAM));
+    const memberUids = [];
+    if (membersSnap.exists()) membersSnap.forEach(c => memberUids.push(c.key));
+
+    // Delete entire family node
+    await set(ref(db, `families/${FAM}`), null);
+
+    // Clean up userFamilies index for every member
+    await Promise.all(memberUids.map(uid =>
+      set(ref(db, `userFamilies/${uid}/${FAM}`), null)
+    ));
+
+    // Clear local session
+    const s = getSessions();
+    s.families = s.families.filter(f => f.fh !== FAM);
+    localStorage.setItem('para_v3', JSON.stringify(s));
+
+    toast('Family tree deleted');
+    fullLogout();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ══ ACCOUNT & PRIVACY MODAL ═══════════════════════════════════════
+
+function openPrivacyMo() {
+  _renderPrivacyModal();
+  el('privacy-mo').classList.add('on');
+}
+function closePrivacyMo() {
+  el('privacy-mo').classList.remove('on');
+}
+
+function _renderPrivacyModal() {
+  const bd = el('privacy-mo-bd');
+  if (!bd) return;
+
+  // ── What data we hold on this user ──────────────────────────────
+  const families = getSessions().families || [];
+  const famList  = families.length
+    ? families.map(f => `<li>${escHtml(f.famKey || f.fh)} <span style="color:var(--ink4)">(${f.role || 'member'})</span></li>`).join('')
+    : '<li style="color:var(--ink4)">No families</li>';
+
+  bd.innerHTML = `
+    <!-- 1. Privacy Policy -->
+    <div class="priv-section">
+      <h3>Privacy Policy</h3>
+      <p><strong>What we collect</strong></p>
+      <ul>
+        <li>Your email address and display name (used for sign-in and to identify you to family admins)</li>
+        <li>Family tree data you add — names, dates, relationships, photos (URLs)</li>
+        <li>Edit history attributed to your account</li>
+      </ul>
+      <p><strong>Where it's stored</strong></p>
+      <ul>
+        <li>Firebase Authentication and Realtime Database (Google Cloud, EU region)</li>
+        <li>Nothing is sold or shared with third parties</li>
+        <li>Family data is only readable by authenticated members of that family</li>
+      </ul>
+      <p><strong>Your rights</strong> — You can export or delete all your data at any time using the buttons below.</p>
+    </div>
+
+    <!-- 2. My Data -->
+    <div class="priv-section">
+      <h3>Data We Hold On You</h3>
+      <div>
+        <div class="priv-data-row">
+          <span class="priv-data-key">Email</span>
+          <span class="priv-data-val">${escHtml(fbUser && fbUser.email || '—')}</span>
+        </div>
+        <div class="priv-data-row">
+          <span class="priv-data-key">Account created</span>
+          <span class="priv-data-val">${fbUser && fbUser.metadata && fbUser.metadata.creationTime ? new Date(fbUser.metadata.creationTime).toLocaleDateString() : '—'}</span>
+        </div>
+        <div class="priv-data-row">
+          <span class="priv-data-key">Families</span>
+          <span class="priv-data-val">${families.length}</span>
+        </div>
+      </div>
+      <ul style="margin-top:8px">${famList}</ul>
+    </div>
+
+    <!-- 3. Delete Account -->
+    <div class="priv-section">
+      <h3>Delete My Account</h3>
+      <div class="priv-danger">
+        <p>This will permanently:</p>
+        <ul>
+          <li>Remove you from all families</li>
+          <li>Delete your sign-in account</li>
+          <li>Anonymise edit history attributed to you</li>
+        </ul>
+        <p>Tree data (people, relationships) you added <strong>will not</strong> be deleted — it belongs to the shared family tree. If you want specific records removed, ask a family admin.</p>
+        <p style="color:var(--rose);margin-top:8px"><strong>This cannot be undone.</strong></p>
+        <div style="margin-top:12px">
+          <input class="fi" id="priv-confirm-email" type="email" placeholder="Type your email to confirm"
+            style="margin-bottom:8px;border-color:rgba(180,60,60,.4)">
+          <button class="btn" style="width:100%;background:var(--rose);color:white;border-color:var(--rose)"
+            onclick="deleteMyAccount()">🗑 Delete My Account</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Export all data the current user has access to as a JSON download
+async function exportMyData() {
+  const btn = el('btn-export-data');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Exporting…'; }
+  try {
+    const families = getSessions().families || [];
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      account: {
+        email: fbUser && fbUser.email,
+        uid:   fbUser && fbUser.uid,
+        createdAt: fbUser && fbUser.metadata && fbUser.metadata.creationTime,
+      },
+      families: [],
+    };
+
+    for (const fam of families) {
+      try {
+        const [peopleSnap, relsSnap, membersSnap] = await Promise.all([
+          get(ref(db, `families/${fam.fh}/people`)),
+          get(ref(db, `families/${fam.fh}/rels`)),
+          get(ref(db, `families/${fam.fh}/members`)),
+        ]);
+        exportData.families.push({
+          key:     fam.famKey,
+          role:    fam.role,
+          people:  peopleSnap.exists()  ? peopleSnap.val()  : {},
+          rels:    relsSnap.exists()    ? relsSnap.val()    : {},
+          members: membersSnap.exists() ? membersSnap.val() : {},
+        });
+      } catch(_) {
+        exportData.families.push({ key: fam.famKey, role: fam.role, error: 'Could not read data' });
+      }
+    }
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `parampara-export-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Export downloaded ✓');
+  } catch(e) {
+    toast('Export failed: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '⬇ Export My Data'; }
+  }
+}
+
+// Delete account: remove from all families, anonymise history, delete auth user
+async function deleteMyAccount() {
+  const confirmEmail = (el('priv-confirm-email') || {}).value || '';
+  const myEmail = fbUser && fbUser.email;
+  if (!confirmEmail || confirmEmail.toLowerCase() !== (myEmail || '').toLowerCase()) {
+    toast('Please type your email address to confirm'); return;
+  }
+
+  const families = getSessions().families || [];
+
+  // Block if sole admin of any family that has other active members
+  for (const fam of families) {
+    if (fam.role !== 'admin') continue;
+    try {
+      const snap = await get(membersRef(fam.fh));
+      if (!snap.exists()) continue;
+      const members = [];
+      snap.forEach(c => members.push(c.val()));
+      const otherAdmins  = members.filter(m => m.role === 'admin' && m.uid !== fbUser.uid);
+      const activeOthers = members.filter(m => !['pending','removed','rejected'].includes(m.role) && m.uid !== fbUser.uid);
+      if (activeOthers.length > 0 && otherAdmins.length === 0) {
+        toast(`You are the only admin of "${fam.famKey}". Promote another member to admin first.`);
+        return;
+      }
+    } catch(_) {}
+  }
+
+  if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
+
+  const btn = document.querySelector('#privacy-mo-bd button[onclick="deleteMyAccount()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Deleting…'; }
+
+  try {
+    const uid = fbUser.uid;
+
+    // 1. Remove from every family's members list
+    for (const fam of families) {
+      try { await set(ref(db, `families/${fam.fh}/members/${uid}`), null); } catch(_) {}
+    }
+
+    // 2. Remove userFamilies index
+    try { await set(ref(db, `userFamilies/${uid}`), null); } catch(_) {}
+
+    // 3. Delete Firebase Auth account (must be done last — after this fbUser is gone)
+    await deleteUser(fbUser);
+
+    // 4. Clear local session and redirect to auth screen
+    localStorage.removeItem('para_v3');
+    toast('Your account has been deleted.');
+    closePrivacyMo();
+    // Auth listener will fire with null user → showScreen('s-auth')
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      toast('For security, please sign out and sign back in before deleting your account.');
+    } else {
+      toast('Error deleting account: ' + e.message);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '🗑 Delete My Account'; }
+  }
 }
 
 // ══ KEY-EXISTS CHECK (for join form warning) ═══════════════════════
@@ -6879,6 +7310,9 @@ Object.assign(window, {
   generateInviteLink, copyInviteUrl,
   restoreM, deleteM,
   _onPhotoUrlChange, _handlePhotoFile,
+  openPrivacyMo, closePrivacyMo, exportMyData, deleteMyAccount,
+  openPrivacyMo, closePrivacyMo,
+  exportFamilyData, leaveFamily, deleteMyAccount, deleteFamily,
   clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,

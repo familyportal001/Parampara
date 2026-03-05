@@ -505,6 +505,8 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   position:sticky;top:0;border-bottom:1px solid var(--border)}
 .imp-preview td{padding:5px 8px;border-bottom:1px solid rgba(74,46,16,.2);color:var(--ink2)}
 .imp-preview tr:last-child td{border-bottom:none}
+.imp-preview tr.imp-dup td{background:rgba(200,137,58,.10);color:var(--ink)}
+.imp-preview tr.imp-dup td:first-child::before{content:'⚠ ';color:var(--gold);font-size:10px}
 .imp-progress{background:var(--parch2);border-radius:6px;height:8px;
   overflow:hidden;margin:8px 0}
 .imp-progress-bar{height:100%;background:var(--gold);transition:width .3s;border-radius:6px}
@@ -2137,7 +2139,10 @@ const STRINGS = {
     impColsPeople:'Columns: first, last, dob, dod, gender, occupation, notes',
     impColsRels:'Columns: personA, personB, type  (type = Parent | Partner | Sibling)',
     impRowsReady:'rows ready to import', impBack:'← Back',
-    impDupNote:'Duplicate names will be imported as new entries (no merge). Relationships require exact name matches.',
+    impDupNote:'Relationships require exact name matches.',
+    impDupFound:'exact match(es) already in tree — highlighted below.',
+    impDupNone:'No duplicates found — all rows are new.',
+    impSkipDups:'Skip duplicates', impImportAll:'Import all (including duplicates)',
     impImporting:'Importing…', impComplete:'Import complete', impWithErrors:'Import finished with errors',
     impParsedOk:'All rows parsed cleanly ✓', impMoreRows:'and {n} more rows',
     impImportMore:'Import More',
@@ -2175,6 +2180,10 @@ const STRINGS = {
     rfiIs:'is', personSingular:'person', personPlural:'people',
     cycleAddErr:'Cannot add — this would create a circular parent chain',
     cycleRenderWarn:'Circular parent link detected — some people may appear in the wrong generation. Check for loops in parent relationships.',
+    settExportTitle:'Export Tree',
+    settExportDesc:'Download the family tree as CSV files compatible with the import tool. Includes all people and relationships.',
+    settExportPeople:'⬇ People CSV',
+    settExportRels:'⬇ Relationships CSV',
   },
   ta: {
     signIn:'உள்நுழை', joinFamily:'குடும்பம் சேர்', forgot:'மறந்தீர்களா?',
@@ -2264,7 +2273,10 @@ const STRINGS = {
     impColsPeople:'நெடுவரிசைகள்: first, last, dob, dod, gender, occupation, notes',
     impColsRels:'நெடுவரிசைகள்: personA, personB, type  (type = Parent | Partner | Sibling)',
     impRowsReady:'வரிசைகள் இறக்குமதிக்கு தயார்', impBack:'← பின்னால்',
-    impDupNote:'நகல் பெயர்கள் புதிய பதிவுகளாக இறக்குமதி செய்யப்படும். உறவுகளுக்கு சரியான பெயர் தேவை.',
+    impDupNote:'உறவுகளுக்கு சரியான பெயர் தேவை.',
+    impDupFound:'ஏற்கனவே மரத்தில் உள்ள பொருத்தங்கள் — கீழே சிறப்பிக்கப்பட்டுள்ளன.',
+    impDupNone:'நகல்கள் இல்லை — அனைத்து வரிசைகளும் புதியவை.',
+    impSkipDups:'நகல்களை தவிர்', impImportAll:'அனைத்தையும் இறக்குமதி செய் (நகல்கள் உட்பட)',
     impImporting:'இறக்குமதி செய்கிறது…', impComplete:'இறக்குமதி முடிந்தது', impWithErrors:'பிழைகளுடன் இறக்குமதி முடிந்தது',
     impParsedOk:'அனைத்து வரிசைகளும் சரியாக பாகுபடுத்தப்பட்டன ✓', impMoreRows:'{n} வரிசைகள் மேலும்',
     impImportMore:'மேலும் இறக்குமதி',
@@ -2301,6 +2313,10 @@ const STRINGS = {
     rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
     cycleAddErr:'சேர்க்க இயலாது — இது சுற்று பெற்றோர் சங்கிலியை உருவாக்கும்',
     cycleRenderWarn:'சுற்று பெற்றோர் இணைப்பு கண்டறியப்பட்டது — சில நபர்கள் தவறான தலைமுறையில் தோன்றலாம்.',
+    settExportTitle:'மரத்தை ஏற்றுமதி செய்',
+    settExportDesc:'குடும்ப மரத்தை CSV கோப்புகளாக பதிவிறக்கவும். நபர்கள் மற்றும் உறவுகள் அனைத்தும் சேர்க்கப்படும்.',
+    settExportPeople:'⬇ நபர்கள் CSV',
+    settExportRels:'⬇ உறவுகள் CSV',
   },
   ml: {
     signIn:'സൈൻ ഇൻ', joinFamily:'കുടുംബം ചേരുക', forgot:'മറന്നോ?',
@@ -2390,7 +2406,10 @@ const STRINGS = {
     impColsPeople:'നിരകൾ: first, last, dob, dod, gender, occupation, notes',
     impColsRels:'നിരകൾ: personA, personB, type  (type = Parent | Partner | Sibling)',
     impRowsReady:'വരികൾ ഇറക്കുമതിക്ക് തയ്യാർ', impBack:'← പിന്നോട്ട്',
-    impDupNote:'ഡ്യൂപ്ലിക്കേറ്റ് പേരുകൾ പുതിയ എൻ‌ട്രികളായി ഇറക്കുമതി ചെയ്യും. ബന്ധങ്ങൾക്ക് കൃത്യ പേര് ആവശ്യം.',
+    impDupNote:'ബന്ധങ്ങൾക്ക് കൃത്യ പേര് ആവശ്യം.',
+    impDupFound:'ഇതിനകം ട്രീയിൽ കൃത്യ പൊരുത്തങ്ങൾ — ചുവടെ ഹൈലൈറ്റ് ചെയ്തിരിക്കുന്നു.',
+    impDupNone:'ഡ്യൂപ്ലിക്കേറ്റുകൾ ഇല്ല — എല്ലാ വരികളും പുതിയതാണ്.',
+    impSkipDups:'ഡ്യൂപ്ലിക്കേറ്റ് ഒഴിവാക്കുക', impImportAll:'എല്ലാം ഇറക്കുമതി ചെയ്യുക (ഡ്യൂപ്ലിക്കേറ്റ് ഉൾപ്പെടെ)',
     impImporting:'ഇറക്കുമതി ചെയ്യുന്നു…', impComplete:'ഇറക്കുമതി പൂർത്തിയായി', impWithErrors:'പിശകുകളോടെ ഇറക്കുമതി പൂർത്തിയായി',
     impParsedOk:'എല്ലാ വരികളും ശരിയായി പാഴ്‌സ് ചെയ്തു ✓', impMoreRows:'{n} വരികൾ കൂടി',
     impImportMore:'കൂടുതൽ ഇറക്കുമതി',
@@ -2427,6 +2446,10 @@ const STRINGS = {
     rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
     cycleAddErr:'ചേർക്കാൻ കഴിയില്ല — ഇത് ഒരു വൃത്താകാര രക്ഷിതൃ ശൃംഖല ഉണ്ടാക്കും',
     cycleRenderWarn:'വൃത്താകാര രക്ഷിതൃ ലിങ്ക് കണ്ടെത്തി — ചില ആളുകൾ തെറ്റായ തലമുറയിൽ ദൃശ്യമാകാം.',
+    settExportTitle:'ട്രീ എക്സ്പോർട്ട് ചെയ്യുക',
+    settExportDesc:'കുടുംബ വൃക്ഷം CSV ഫയലുകളായി ഡൗൺലോഡ് ചെയ്യുക. എല്ലാ ആളുകളും ബന്ധങ്ങളും ഉൾപ്പെടും.',
+    settExportPeople:'⬇ ആളുകൾ CSV',
+    settExportRels:'⬇ ബന്ധങ്ങൾ CSV',
   }
 };
 
@@ -6085,7 +6108,8 @@ function openAdminMo_new() {
 
 // ══ BULK IMPORT ════════════════════════════════════════════════════
 let _impMode = 'people';   // 'people' | 'rels'
-let _impRows = [];         // parsed CSV rows ready to import
+let _impRows = [];
+let _impSkipDups = true; // default: skip exact-name duplicates on import
 
 function loadImportTab() {
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
@@ -6119,9 +6143,8 @@ function loadImportTab() {
       </div>
       <div class="imp-stat" id="imp-stat"></div>
       <div class="imp-preview" id="imp-preview-wrap"></div>
-      <div style="font-size:11px;color:var(--ink4);margin-bottom:10px">
-        ${t('impDupNote')}
-      </div>
+      <div id="imp-dup-banner" style="display:none;font-size:12px;margin-bottom:8px;padding:6px 10px;border-radius:4px;background:rgba(200,137,58,.12);border:1px solid rgba(200,137,58,.35);color:var(--gold)"></div>
+      <div style="font-size:11px;color:var(--ink4);margin-bottom:10px" id="imp-dup-note"></div>
     </div>
 
     <div class="imp-step" id="imp-step-3">
@@ -6218,12 +6241,32 @@ function parseImpCSV(text) {
     return;
   }
 
+  // Dedup check (people mode only) — exact-match on normalised first+last
+  // against currently loaded DB.people. Tags each row with _status and _matchPid.
+  let _dupCount = 0;
+  if (_impMode === 'people') {
+    // Build normalised name → pid lookup from in-memory tree
+    const _existingNames = {};
+    Object.entries(DB.people).forEach(([pid, p]) => {
+      if (p.deleted) return;
+      const key = ((p.first||'').trim() + ' ' + (p.last||'').trim()).toLowerCase().trim();
+      if (key) _existingNames[key] = pid;
+    });
+    rows.forEach(row => {
+      const key = ((row.first||'').trim() + ' ' + (row.last||'').trim()).toLowerCase().trim();
+      const match = _existingNames[key];
+      if (match) { row._status = 'exact_match'; row._matchPid = match; _dupCount++; }
+      else        { row._status = 'new'; }
+    });
+  }
+
   _impRows = rows;
   showImpStep(2);
-  buildImpPreview(rows, errs);
+  buildImpPreview(rows, errs, _dupCount);
 }
 
-function buildImpPreview(rows, errs) {
+function buildImpPreview(rows, errs, dupCount) {
+  dupCount = dupCount || 0;
   el('imp-row-count').textContent = rows.length;
 
   const stat = errs.length
@@ -6231,13 +6274,32 @@ function buildImpPreview(rows, errs) {
     : `<span style="color:#5cab6a">${t('impParsedOk')}</span>`;
   el('imp-stat').innerHTML = stat;
 
+  // Dedup banner (people mode only)
+  const banner = el('imp-dup-banner');
+  const noteEl = el('imp-dup-note');
+  if (banner && noteEl) {
+    if (_impMode === 'people' && dupCount > 0) {
+      banner.style.display = 'block';
+      banner.innerHTML = `⚠ <b>${dupCount}</b> ${t('impDupFound')}`;
+      noteEl.textContent = t('impDupNote');
+    } else if (_impMode === 'people') {
+      banner.style.display = 'none';
+      noteEl.textContent = t('impDupNone');
+    } else {
+      banner.style.display = 'none';
+      noteEl.textContent = t('impDupNote');
+    }
+  }
+
   let thead, tbody;
   if (_impMode === 'people') {
     thead = '<tr><th>#</th><th>First</th><th>Last</th><th>DOB</th><th>Gender</th><th>Occupation</th></tr>';
-    tbody = rows.slice(0,50).map((r,i) =>
-      `<tr><td>${i+1}</td><td>${escHtml(r.first)}</td><td>${escHtml(r.last||'')}</td>
-       <td>${escHtml(r.dob||'')}</td><td>${escHtml(r.gender||'')}</td><td>${escHtml(r.occupation||'')}</td></tr>`
-    ).join('');
+    tbody = rows.slice(0,50).map((r,i) => {
+      const isDup = r._status === 'exact_match';
+      const cls   = isDup ? ' class="imp-dup"' : '';
+      return `<tr${cls}><td>${i+1}</td><td>${escHtml(r.first)}</td><td>${escHtml(r.last||'')}</td>
+       <td>${escHtml(r.dob||'')}</td><td>${escHtml(r.gender||'')}</td><td>${escHtml(r.occupation||'')}</td></tr>`;
+    }).join('');
   } else {
     thead = '<tr><th>#</th><th>Person A</th><th>Person B</th><th>Type</th></tr>';
     tbody = rows.slice(0,50).map((r,i) =>
@@ -6247,9 +6309,34 @@ function buildImpPreview(rows, errs) {
   if (rows.length > 50) tbody += `<tr><td colspan="6" style="text-align:center;color:var(--ink4)">…and ${rows.length-50} more rows</td></tr>`;
   el('imp-preview-wrap').innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
 
-  el('amo-ft').innerHTML = `
-    <button class="hbtn" onclick="impReset()">Cancel</button>
-    <button class="hbtn primary" onclick="runImport()">Import ${rows.length} ${_impMode==='people'?'People':'Relationships'}</button>`;
+  // Footer: when duplicates found, show Skip/Import-all choice;
+  // otherwise just the single Import button.
+  _impSkipDups = true; // reset to safe default on each preview
+  if (_impMode === 'people' && dupCount > 0) {
+    el('amo-ft').innerHTML = `
+      <button class="hbtn" onclick="impReset()">Cancel</button>
+      <button class="hbtn" id="btn-imp-all" onclick="_impSkipDups=false;_updateImpFooter(${rows.length})">${t('impImportAll')}</button>
+      <button class="hbtn primary" id="btn-imp-skip" onclick="_impSkipDups=true;_updateImpFooter(${rows.length})">${t('impSkipDups')} (${rows.length - dupCount})</button>`;
+  } else {
+    el('amo-ft').innerHTML = `
+      <button class="hbtn" onclick="impReset()">Cancel</button>
+      <button class="hbtn primary" onclick="runImport()">Import ${rows.length} ${_impMode==='people'?'People':'Relationships'}</button>`;
+  }
+}
+
+// Called when user toggles Skip/Import-all in the dedup footer.
+// Highlights the active button and auto-runs the import.
+function _updateImpFooter(total) {
+  const dupCount = _impRows.filter(r => r._status === 'exact_match').length;
+  const skipBtn  = el('btn-imp-skip');
+  const allBtn   = el('btn-imp-all');
+  if (skipBtn) skipBtn.classList.toggle('primary',  _impSkipDups);
+  if (skipBtn) skipBtn.classList.toggle('',         !_impSkipDups);
+  if (allBtn)  allBtn.classList.toggle('primary',   !_impSkipDups);
+  if (allBtn)  allBtn.classList.toggle('',           _impSkipDups);
+  // Update count label
+  if (skipBtn) skipBtn.textContent = t('impSkipDups') + ' (' + (total - dupCount) + ')';
+  runImport();
 }
 
 function showImpStep(n) {
@@ -6295,6 +6382,12 @@ async function runImport() {
     for (let i=0; i<total; i+=BATCH) {
       const batch = _impRows.slice(i, i+BATCH);
       await Promise.all(batch.map(async row => {
+        // Skip rows tagged as exact_match when in skip-duplicates mode
+        if (_impSkipDups && row._status === 'exact_match') {
+          done++; // count as processed so progress bar reaches 100%
+          setProgress(done+failed, failed);
+          return;
+        }
         try {
           const pid = gid();
           const personData = {
@@ -6465,6 +6558,15 @@ function loadSettingsTab() {
       }
     </div>
 
+    <div class="sec-t">${t('settExportTitle')}</div>
+    <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
+      <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:12px">${t('settExportDesc')}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="hbtn" onclick="exportTreeCSV('people')" style="font-size:12px">${t('settExportPeople')}</button>
+        <button class="hbtn" onclick="exportTreeCSV('rels')" style="font-size:12px">${t('settExportRels')}</button>
+      </div>
+    </div>
+
     <div class="sec-t" style="color:var(--rose)">${t('settDangerZone')}</div>
     <div style="background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);border-radius:var(--r);padding:14px">
       <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:12px">
@@ -6593,6 +6695,75 @@ function openPrivacyMo(tab) {
 }
 
 // Export current family data — fetches fresh from Firebase (not just in-memory cache)
+// ── CSV export: people sheet + relationships sheet ───────────
+// Produces a ZIP-free dual-file download: one CSV for people,
+// one for relationships. Both are compatible with the import tool.
+// Uses in-memory DB so zero extra Firebase reads.
+function _csvEscape(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  // Quote if contains comma, newline, double-quote, or leading/trailing space
+  if (/[,"\n\r]/.test(s) || s !== s.trim()) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function _csvRow(fields) {
+  return fields.map(_csvEscape).join(',');
+}
+
+function exportTreeCSV(sheet) {
+  if (!FAM || !CU) { toast('No family loaded'); return; }
+  const famSlug = (CU.famKey || 'family').replace(/[^a-z0-9]/gi, '_');
+  const date    = new Date().toISOString().slice(0, 10);
+
+  if (sheet === 'people') {
+    const FIELDS = ['first','last','dob','dod','gender','occupation',
+                    'nationality','birthplace','location','education','notes','photo'];
+    const header = _csvRow(FIELDS);
+    const people = Object.values(DB.people).filter(p => !p.deleted);
+    people.sort((a, b) => (a.last || '').localeCompare(b.last || '') ||
+                          (a.first || '').localeCompare(b.first || ''));
+    const rows = people.map(p => _csvRow(FIELDS.map(f => p[f] || '')));
+    const csv  = [header, ...rows].join('\r\n');
+    _csvDownload(csv, `parampara-${famSlug}-people-${date}.csv`);
+    toast(`People exported ✓  (${people.length} rows)`);
+  } else {
+    // Relationships sheet — resolve person names for readability
+    // Also include IDs so the data is unambiguous when names clash
+    const header = _csvRow(['personA','personB','type','personA_id','personB_id']);
+    const rels   = Object.values(DB.rels).filter(r => !r.deleted);
+    rels.sort((a, b) => {
+      const na = (DB.people[a.from] && (DB.people[a.from].last || DB.people[a.from].first)) || a.from;
+      const nb = (DB.people[b.from] && (DB.people[b.from].last || DB.people[b.from].first)) || b.from;
+      return na.localeCompare(nb);
+    });
+    const rows = rels.map(r => {
+      const pa = DB.people[r.from];
+      const pb = DB.people[r.to];
+      const nameA = pa ? fullName(pa) : r.from;
+      const nameB = pb ? fullName(pb) : r.to;
+      return _csvRow([nameA, nameB, r.type, r.from, r.to]);
+    });
+    const csv = [header, ...rows].join('\r\n');
+    _csvDownload(csv, `parampara-${famSlug}-relationships-${date}.csv`);
+    toast(`Relationships exported ✓  (${rels.length} rows)`);
+  }
+}
+
+function _csvDownload(csv, filename) {
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 async function exportFamilyData() {
   if (!FAM || !CU) { toast('No family loaded'); return; }
   const btn = document.querySelector('[onclick="exportFamilyData()"]');
@@ -8014,7 +8185,7 @@ Object.assign(window, {
   restoreM, deleteM,
   _onPhotoUrlChange, _handlePhotoFile,
   openPrivacyMo, closePrivacyMo,
-  exportFamilyData, leaveFamily, deleteMyAccount, deleteFamily,
+  exportFamilyData, exportTreeCSV, leaveFamily, deleteMyAccount, deleteFamily,
   logErr,
   dismissOnboarding, dismissKeyBanner,
   _getStrings: () => STRINGS,

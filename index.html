@@ -3324,6 +3324,16 @@ function setupEgoListeners() {
 //         // PERMISSION_DENIED because sub-node rules don't cover the parent write.
 //         ".write": "auth != null && root.child('families/'+$fh+'/members/'+auth.uid+'/role').val() === 'admin'"
 //       }
+//     },
+//
+//     // Cross-family index: each user's list of family memberships.
+//     // Users can only write their own entries; admins cannot write other users' entries
+//     // so userFamilies cleanup for other members in deleteFamily is best-effort.
+//     "userFamilies": {
+//       "$uid": {
+//         ".read":  "auth != null && auth.uid === $uid",
+//         ".write": "auth != null && auth.uid === $uid"
+//       }
 //     }
 //   }
 // }
@@ -6100,36 +6110,42 @@ async function deleteFamily() {
     logErr('deleteFamily.membersRead', e);
   }
 
-  // Phase 2 — delete the family node and clean up indexes.
-  // We cannot set(families/FAM, null) because that write falls on the parent node
-  // which has no blanket write rule — only sub-nodes do. Instead we null every
-  // known sub-node via update() which each existing rule covers.
+  // Phase 2 — delete all family sub-nodes.
+  // update() nulls each known child independently; each is covered by existing write rules.
+  // We do NOT set(families/FAM, null) — that writes to the parent which has no rule.
   try {
     await update(ref(db, `families/${FAM}`), {
-      people:   null,
-      rels:     null,
-      history:  null,
-      members:  null,
-      invites:  null,
-      adminSet: null,
-      archived: null,
+      people:    null,
+      rels:      null,
+      history:   null,
+      members:   null,
+      invites:   null,
+      adminSet:  null,
+      archived:  null,
       archivedAt: null,
       archivedBy: null,
     });
+  } catch(e) {
+    logErr('deleteFamily', e);
+    toast('Error deleting family: ' + e.message);
+    return; // abort — data not wiped, don't proceed
+  }
 
-    // Clean up userFamilies for all members we could fetch, plus the acting admin
-    const uidsToClean = [...new Set([...memberUids, fbUser.uid])];
-    await Promise.all(uidsToClean.map(uid =>
-      set(ref(db, `userFamilies/${uid}/${FAM}`), null)
-    ));
+  // Phase 3 — best-effort userFamilies index cleanup.
+  // The admin can always write their own entry (auth.uid === $uid rule).
+  // Other members' entries are cleaned up silently; failures are harmless because
+  // resumeFamily re-checks the member record and finds nothing on next login.
+  const uidsToClean = [...new Set([...memberUids, fbUser.uid])];
+  await Promise.allSettled(uidsToClean.map(uid =>
+    set(ref(db, `userFamilies/${uid}/${FAM}`), null)
+  ));
 
-    const s = getSessions();
-    s.families = s.families.filter(f => f.fh !== FAM);
-    localStorage.setItem('para_v3', JSON.stringify(s));
-
-    toast('Family tree deleted');
-    fullLogout();
-  } catch(e) { logErr('deleteFamily', e); toast('Error deleting family: ' + e.message); }
+  // Clear local session and log out — family data is gone regardless of cleanup result
+  const s = getSessions();
+  s.families = s.families.filter(f => f.fh !== FAM);
+  localStorage.setItem('para_v3', JSON.stringify(s));
+  toast('Family tree deleted');
+  fullLogout();
 }
 
 

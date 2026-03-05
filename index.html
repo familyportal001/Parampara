@@ -1351,7 +1351,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
           <span class="pending-badge" id="pending-badge"></span>
         </div>
         <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
-        <button class="hbtn icon" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
+        <button class="hbtn icon" id="btn-switch-fam" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
         <button class="hbtn icon" onclick="openPrivacyMo('account')" data-tip="Account &amp; Privacy">⚙️</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
       </span>
@@ -1396,7 +1396,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </button>
         <span class="pending-badge" id="pending-badge-m"></span>
       </div>
-      <button class="hbtn" onclick="openFamilySwitcher();closeMenu()">
+      <button class="hbtn" id="btn-switch-fam-m" onclick="openFamilySwitcher();closeMenu()">
         <span class="btn-ico">⇄</span><span class="btn-lbl" data-i18n="switchFamily">Switch Family</span>
       </button>
       <button class="hbtn" id="btn-lang-m" onclick="openLangMo();closeMenu()">
@@ -2178,6 +2178,7 @@ const STRINGS = {
     obStep3:'Share your <b>Family Secret Key</b> so relatives can join and see the tree.',
     obGotIt:"Got it, don't show again",
     rfiIs:'is', personSingular:'person', personPlural:'people',
+    onlyOneFamily:'You are only a member of one family tree',
     cycleAddErr:'Cannot add — this would create a circular parent chain',
     cycleRenderWarn:'Circular parent link detected — some people may appear in the wrong generation. Check for loops in parent relationships.',
     settExportTitle:'Export Tree',
@@ -2311,6 +2312,7 @@ const STRINGS = {
     obStep3:'உறவினர்கள் சேர முடியும்படி உங்கள் <b>குடும்ப ரகசிய திறவுகோலை</b> பகிரவும்.',
     obGotIt:'புரிந்தது, மீண்டும் காட்டாதே',
     rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
+    onlyOneFamily:'நீங்கள் ஒரே ஒரு குடும்ப மரத்தில் மட்டுமே உறுப்பினர்',
     cycleAddErr:'சேர்க்க இயலாது — இது சுற்று பெற்றோர் சங்கிலியை உருவாக்கும்',
     cycleRenderWarn:'சுற்று பெற்றோர் இணைப்பு கண்டறியப்பட்டது — சில நபர்கள் தவறான தலைமுறையில் தோன்றலாம்.',
     settExportTitle:'மரத்தை ஏற்றுமதி செய்',
@@ -2444,6 +2446,7 @@ const STRINGS = {
     obStep3:'ബന്ധുക്കൾക്ക് ചേരാൻ നിങ്ങളുടെ <b>കുടുംബ രഹസ്യ കീ</b> പങ്കിടുക.',
     obGotIt:'മനസ്സിലായി, വീണ്ടും കാണിക്കേണ്ട',
     rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
+    onlyOneFamily:'നിങ്ങൾ ഒരു കുടുംബ ട്രീയിൽ മാത്രം അംഗമാണ്',
     cycleAddErr:'ചേർക്കാൻ കഴിയില്ല — ഇത് ഒരു വൃത്താകാര രക്ഷിതൃ ശൃംഖല ഉണ്ടാക്കും',
     cycleRenderWarn:'വൃത്താകാര രക്ഷിതൃ ലിങ്ക് കണ്ടെത്തി — ചില ആളുകൾ തെറ്റായ തലമുറയിൽ ദൃശ്യമാകാം.',
     settExportTitle:'ട്രീ എക്സ്പോർട്ട് ചെയ്യുക',
@@ -2985,18 +2988,27 @@ async function buildFamilyPicker(families) {
 
 function openFamilySwitcher() {
   const s = getSessions();
-  if (s.families.length <= 1) return;
+  if (s.families.length <= 1) {
+    toast(t('onlyOneFamily'));
+    return;
+  }
+  // Stop watchers tied to the current family before switching
   clearListeners();
+  stopPendingWatch();
+  stopApprovalWatch();
+  // Clear all state
   DB = { people:{}, rels:{} };
-  // Reset ego state
   egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
-  _mobRelLabels = {}; _mobDetailStack = []; // clear mobile caches on family switch
+  _mobRelLabels = {}; _mobDetailStack = [];
   loadedPids.clear(); loadedRids.clear();
   knownRels = {}; egoNeighbourhood.clear(); pendingPids.clear(); searchCache.clear();
   renderPivotBar();
-  // Reset selection state so stale panel doesn't persist into next family
   selId = null;
   el('panel').classList.remove('open');
+  // Close any open modals so they don't show stale data from the old family
+  ['amo','rmo','pmo','link-mo','rfi-mo'].forEach(id => {
+    const m = el(id); if (m) m.classList.remove('on');
+  });
   el('nodes-layer').innerHTML = '';
   el('world-svg').innerHTML   = '';
   buildFamilyPicker(s.families);
@@ -3050,7 +3062,7 @@ async function resumeFamily(fam) {
       });
     } catch(_) { /* non-critical — don't block login */ }
 
-    DB = { people:{}, rels:{} };
+    DB = { people:{}, rels:{}, members:{} };
     el('nodes-layer').innerHTML = '';
     if (data.role === 'pending') { showScreen('s-pending'); startApprovalWatch(); return; }
     // Pass linkedProfileId directly so showApp doesn't need another Firebase read
@@ -3438,6 +3450,9 @@ function updatePermUI() {
   const canAdd  = can('add');
   ['btn-admin','btn-admin-m'].forEach(id => { const e=el(id); if(e) e.style.display=isAdmin?'':'none'; });
   ['btn-add','btn-add-m'].forEach(id => { const e=el(id); if(e) e.style.display=canAdd?'':'none'; });
+  // Show switch-family buttons only when user belongs to more than one family
+  const canSwitch = getSessions().families.length > 1;
+  ['btn-switch-fam','btn-switch-fam-m'].forEach(id => { const e=el(id); if(e) e.style.display=canSwitch?'':'none'; });
   // Start watching for pending members as soon as the admin enters the app
   if (isAdmin) startPendingWatch();
   else stopPendingWatch();

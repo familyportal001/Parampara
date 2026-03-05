@@ -2173,6 +2173,8 @@ const STRINGS = {
     obStep3:'Share your <b>Family Secret Key</b> so relatives can join and see the tree.',
     obGotIt:"Got it, don't show again",
     rfiIs:'is', personSingular:'person', personPlural:'people',
+    cycleAddErr:'Cannot add — this would create a circular parent chain',
+    cycleRenderWarn:'Circular parent link detected — some people may appear in the wrong generation. Check for loops in parent relationships.',
   },
   ta: {
     signIn:'உள்நுழை', joinFamily:'குடும்பம் சேர்', forgot:'மறந்தீர்களா?',
@@ -2297,6 +2299,8 @@ const STRINGS = {
     obStep3:'உறவினர்கள் சேர முடியும்படி உங்கள் <b>குடும்ப ரகசிய திறவுகோலை</b> பகிரவும்.',
     obGotIt:'புரிந்தது, மீண்டும் காட்டாதே',
     rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
+    cycleAddErr:'சேர்க்க இயலாது — இது சுற்று பெற்றோர் சங்கிலியை உருவாக்கும்',
+    cycleRenderWarn:'சுற்று பெற்றோர் இணைப்பு கண்டறியப்பட்டது — சில நபர்கள் தவறான தலைமுறையில் தோன்றலாம்.',
   },
   ml: {
     signIn:'സൈൻ ഇൻ', joinFamily:'കുടുംബം ചേരുക', forgot:'മറന്നോ?',
@@ -2421,6 +2425,8 @@ const STRINGS = {
     obStep3:'ബന്ധുക്കൾക്ക് ചേരാൻ നിങ്ങളുടെ <b>കുടുംബ രഹസ്യ കീ</b> പങ്കിടുക.',
     obGotIt:'മനസ്സിലായി, വീണ്ടും കാണിക്കേണ്ട',
     rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
+    cycleAddErr:'ചേർക്കാൻ കഴിയില്ല — ഇത് ഒരു വൃത്താകാര രക്ഷിതൃ ശൃംഖല ഉണ്ടാക്കും',
+    cycleRenderWarn:'വൃത്താകാര രക്ഷിതൃ ലിങ്ക് കണ്ടെത്തി — ചില ആളുകൾ തെറ്റായ തലമുറയിൽ ദൃശ്യമാകാം.',
   }
 };
 
@@ -4589,7 +4595,7 @@ async function clearLink() {
 // ══ RENDER ═════════════════════════════════════════════════════════
 function getGen(id, memo={}, visiting=new Set()){
   if(memo[id]!==undefined) return memo[id];
-  if(visiting.has(id)){ memo[id]=0; return 0; } // cycle detected — break it
+  if(visiting.has(id)){ memo[id]=0; _cycleDetectedInRender=true; return 0; } // cycle detected — break it
   visiting.add(id);
   const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
   if(!pars.length){
@@ -4617,12 +4623,20 @@ function getGen(id, memo={}, visiting=new Set()){
   visiting.delete(id);
   return memo[id];
 }
+
+// ── Cycle detection state ─────────────────────────────────────
+// Set to true inside getGen() whenever a parent-chain cycle is found.
+// Cleared at the start of each render pass so we only toast once per pass.
+let _cycleDetectedInRender = false;
+let _cycleWarnTimer = null;
+
 function render(){
   const ids=Object.keys(DB.people);
   el('empty').classList.toggle('hide',ids.length>0);
   _syncOnboardingBanner(ids.length);
   checkKeyBanner(ids.length);
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
+  _cycleDetectedInRender = false; // reset before each render pass
   const memo={};
   // Pass 1: compute all parent-chain generations
   ids.forEach(id=>getGen(id,memo));
@@ -4634,6 +4648,13 @@ function render(){
     const pars=Object.values(DB.rels).filter(r=>r.to===id&&r.type==='Parent').map(r=>r.from);
     if(!pars.length) { delete memo[id]; getGen(id,memo); } // re-run for parentless nodes only
   });
+  // Surface a single cycle warning toast if any cycles were found this pass.
+  // Debounced 400 ms so rapid re-renders don't spam the user.
+  if (_cycleDetectedInRender) {
+    clearTimeout(_cycleWarnTimer);
+    _cycleWarnTimer = setTimeout(() => toast('⚠ ' + t('cycleRenderWarn')), 400);
+  }
+
   ids.forEach(id=>{
     loadedPids.add(id); // track loaded state
     renderCard(id,memo[id]%6);
@@ -5410,6 +5431,30 @@ async function addRel(){
   // Duplicate check
   if (Object.values(DB.rels).find(r => r.from===from && r.to===to && r.type===type)) {
     toast('This link already exists'); return;
+  }
+
+  // Cycle guard — Parent rels only.
+  // Adding "from → Parent → to" is invalid when "to" is already reachable
+  // by walking upward through existing Parent rels from "from".
+  // That situation means "to" is already an ancestor of "from"; making
+  // "from" a parent of "to" would create a loop in the parent chain.
+  if (type === 'Parent') {
+    const _wouldCycle = (startId, targetId) => {
+      const visited = new Set(), stack = [startId];
+      while (stack.length) {
+        const cur = stack.pop();
+        if (cur === targetId) return true;
+        if (visited.has(cur))  continue;
+        visited.add(cur);
+        Object.values(DB.rels)
+          .filter(r => r.type === 'Parent' && r.to === cur)
+          .forEach(r => stack.push(r.from));
+      }
+      return false;
+    };
+    if (_wouldCycle(from, to)) {
+      toast('⚠ ' + t('cycleAddErr')); return;
+    }
   }
 
   const id = 'r' + Date.now();

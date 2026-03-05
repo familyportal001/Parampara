@@ -4924,9 +4924,10 @@ function personForm(p={}){ return `
     <div class="pfg"><label class="pfl">${t('pNat')}</label><input class="pfi" id="pf-nat" value="${escHtml(p.nationality||'')}"></div>
   </div>
   <div class="pfi-row">
-    <div class="pfg"><label class="pfl">${t('pDob')}</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}"></div>
-    <div class="pfg"><label class="pfl">${t('pDod')}</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}"></div>
+    <div class="pfg"><label class="pfl">${t('pDob')}</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}" oninput="updateAgeHint()"></div>
+    <div class="pfg"><label class="pfl">${t('pDod')}</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}" oninput="updateAgeHint()"></div>
   </div>
+  <div id="pf-age-hint-row" style="font-size:11px;color:var(--ink3);padding:0 2px 6px;min-height:18px" id="pf-age-hint"></div>
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">${t('pBp')}</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
     <div class="pfg"><label class="pfl">${t('pLoc')}</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
@@ -5066,6 +5067,39 @@ async function _handlePhotoFile(input) {
   }
 }
 
+function updateAgeHint() {
+  const hint = document.getElementById('pf-age-hint');
+  if (!hint) return;
+  const dobStr = (document.getElementById('pf-dob') || {}).value || '';
+  const dodStr = (document.getElementById('pf-dod') || {}).value || '';
+  if (!dobStr) { hint.textContent = ''; return; }
+  const dob = new Date(dobStr);
+  if (isNaN(dob)) { hint.textContent = ''; return; }
+  if (dodStr) {
+    const dod = new Date(dodStr);
+    if (!isNaN(dod)) {
+      if (dod < dob) {
+        hint.style.color = 'var(--rose)';
+        hint.textContent = '⚠ Death date is before birth date';
+        return;
+      }
+      const yrs = Math.floor((dod - dob) / (365.25*24*60*60*1000));
+      hint.style.color = 'var(--ink3)';
+      hint.textContent = 'Lived ' + yrs + ' year' + (yrs !== 1 ? 's' : '');
+      return;
+    }
+  }
+  const today = new Date();
+  const yrs = Math.floor((today - dob) / (365.25*24*60*60*1000));
+  if (yrs < 0) {
+    hint.style.color = 'var(--rose)';
+    hint.textContent = '⚠ Birth date is in the future';
+    return;
+  }
+  hint.style.color = 'var(--ink3)';
+  hint.textContent = yrs + ' year' + (yrs !== 1 ? 's' : '') + ' old';
+}
+
 async function savePerson(){
   const first=pv('pf-first').trim();
   if(!first){toast('First name is required');return;}
@@ -5075,7 +5109,41 @@ async function savePerson(){
   if(rawPhoto && !/^https:\/\/.+\..+/i.test(rawPhoto)){
     toast('Photo URL must start with https://'); return;
   }
+
+  // DOB / DOD validation
+  const dobVal = pv('pf-dob');
+  const dodVal = pv('pf-dod');
+  if (dobVal && dodVal && dodVal < dobVal) {
+    toast('Death date cannot be before birth date'); return;
+  }
+  if (dobVal) {
+    const birthYear = parseInt(dobVal.slice(0, 4), 10);
+    const currentYear = new Date().getFullYear();
+    if (birthYear < 1000 || birthYear > currentYear + 1) {
+      toast('Please enter a valid birth year'); return;
+    }
+  }
   const photo = rawPhoto;
+
+  // ── Date validation ──────────────────────────────────────
+  const _dobV = (document.getElementById('pf-dob') || {}).value || '';
+  const _dodV = (document.getElementById('pf-dod') || {}).value || '';
+  if (_dobV && _dodV) {
+    const _d1 = new Date(_dobV), _d2 = new Date(_dodV);
+    if (!isNaN(_d1) && !isNaN(_d2) && _d2 < _d1) {
+      toast('Date of death cannot be before date of birth'); return;
+    }
+  }
+  if (_dobV) {
+    const _d1 = new Date(_dobV);
+    if (!isNaN(_d1) && _d1 > new Date()) {
+      toast('Date of birth cannot be in the future'); return;
+    }
+    if (!isNaN(_d1) && (Date.now() - _d1) > 150*365.25*24*60*60*1000) {
+      toast('Date of birth seems too far in the past (over 150 years)'); return;
+    }
+  }
+
   const now=Date.now();
   const who=fbUser.uid;
   const whoName=CU?`${CU.first} ${CU.last}`.trim()||CU.email:'?';
@@ -5167,23 +5235,65 @@ async function savePerson(){
     }
   }
 }
+let _undoTimer = null;
+let _undoState = null; // { id, backup, committed }
+
 async function delPerson(id){
   if(!can('delete')){toast('Only admin can delete');return;}
   if(!confirm(`Remove "${fullName(DB.people[id])}"?`))return;
-  // Optimistic local removal
+  // Commit any previous pending undo before starting a new delete
+  if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
   const backup = { person: {...DB.people[id]}, rels: Object.values(DB.rels).filter(r=>r.from===id||r.to===id) };
-  delete DB.people[id];
-  searchCache.delete(id);
+  delete DB.people[id]; searchCache.delete(id);
   backup.rels.forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
-  closePanel(); render(); toast('Removed');
+  closePanel(); render();
+  _undoState = { id, backup, committed: false };
+  clearTimeout(_undoTimer);
+  _showUndoToast(fullName(backup.person));
+  _undoTimer = setTimeout(async () => {
+    if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
+  }, 6000);
+}
+
+function _showUndoToast(name) {
+  const el = document.getElementById('toast');
+  el.innerHTML = 'Removed ' + escHtml(name)
+    + '  <button onclick="undoDelete()" style="background:var(--gold);color:var(--ink);border:none;'
+    + 'padding:2px 9px;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:2px">Undo</button>';
+  el.classList.add('on');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => el.classList.remove('on'), 6000);
+}
+
+async function undoDelete() {
+  if (!_undoState || _undoState.committed) return;
+  clearTimeout(_undoTimer);
+  const { id, backup } = _undoState;
+  _undoState = null;
+  DB.people[id] = backup.person;
+  searchCache.set(id, { first: backup.person.first||'', last: backup.person.last||'',
+    dob: backup.person.dob||'', gender: backup.person.gender||'' });
+  backup.rels.forEach(r => { DB.rels[r.id] = r; loadedRids.add(r.id); });
+  render();
+  document.getElementById('toast').classList.remove('on');
+  toast('Restored');
+  try {
+    await queuedSet('families/' + FAM + '/people/' + id, backup.person);
+    await Promise.all(backup.rels.map(r => queuedSet('families/' + FAM + '/rels/' + r.id, r)));
+  } catch(e) { logErr('undoDelete', e); }
+}
+
+async function _commitDelete(state) {
+  if (!state || state.committed) return;
+  state.committed = true;
+  const { id, backup } = state;
   try {
     await logHistory(id,'deleted',{name:fullName(backup.person)});
-    await queuedSet(`families/${FAM}/people/${id}`,{...backup.person,deleted:true});
+    await queuedSet('families/' + FAM + '/people/' + id, {...backup.person, deleted:true});
     backup.rels.forEach(r => deleteRelFb(r.id));
   } catch(e) {
-    if (isNetworkError(e)) {
-      toast('Removed locally — will sync when online');
-    } else {
+    if (isNetworkError(e)) { toast('Removed locally — will sync when online'); }
+    else {
       DB.people[id] = backup.person;
       backup.rels.forEach(r => { DB.rels[r.id] = r; loadedRids.add(r.id); });
       render(); toast('Error removing — please try again');
@@ -6260,7 +6370,41 @@ async function unarchiveFamily() {
 function loadSettingsTab() {
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   const isArchived = CU && CU.archived;
+  // Tree stats — in-memory, zero extra Firebase reads
+  const _pp = Object.values(DB.people).filter(p => !p.deleted);
+  const _rr = Object.values(DB.rels).filter(r => !r.deleted);
+  const _mm = DB.members ? Object.values(DB.members).filter(m => m.role !== 'pending') : [];
+  const _byDob = _pp.filter(p => p.dob).sort((a,b) => a.dob < b.dob ? -1 : 1);
+  const _oldest = _byDob[0];
+  const _lastEditP = _pp.filter(p => p.editedAt).sort((a,b) => b.editedAt - a.editedAt)[0];
+  function _ageOf(p) {
+    if (!p || !p.dob) return null;
+    const end = p.dod ? new Date(p.dod) : new Date();
+    const a = Math.floor((end - new Date(p.dob)) / (365.25*24*60*60*1000));
+    return isNaN(a) ? null : a;
+  }
+  const _statsDetail = _oldest
+    ? ('<div style="font-size:11px;color:var(--ink3);border-top:1px solid var(--border);padding-top:8px;line-height:1.9">'
+       + '<b style="color:var(--ink)">Oldest:</b> ' + escHtml(fullName(_oldest))
+       + (_ageOf(_oldest) !== null ? ' — ' + _ageOf(_oldest) + ' yrs' : (_oldest.dob ? ' · b. ' + _oldest.dob : ''))
+       + (_lastEditP ? '<br><b style="color:var(--ink)">Last edited:</b> '
+         + escHtml(fullName(_lastEditP)) + ' — ' + new Date(_lastEditP.editedAt).toLocaleDateString() : '')
+       + '</div>')
+    : '';
+
   el('amo-bd').innerHTML = `
+    <div class="sec-t">Tree Stats</div>
+    <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:${_oldest ? '10px' : '0'}">
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_pp.length}</div>
+          <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">People</div></div>
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_rr.length}</div>
+          <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Links</div></div>
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_mm.length || '—'}</div>
+          <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Members</div></div>
+      </div>
+      ${_statsDetail}
+    </div>
     <div class="sec-t">${t('settFamilyStatus')}</div>
     <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -7829,6 +7973,7 @@ Object.assign(window, {
   logErr,
   dismissOnboarding, dismissKeyBanner,
   _getStrings: () => STRINGS,
+  undoDelete,
   clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,

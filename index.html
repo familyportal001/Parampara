@@ -93,6 +93,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .anote{font-size:11px;color:var(--ink3);text-align:center;margin-top:12px;line-height:1.6}
 .hint-box{background:rgba(200,137,58,.08);border:1px solid rgba(200,137,58,.2);
   border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--ink4);margin:10px 0;line-height:1.6}
+
+/* ── Onboarding ──────────────────────────────────────────────────── */
+#ob-banner{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  width:min(480px,calc(100vw - 32px));background:var(--clay2);
+  border:1px solid var(--copper);border-radius:12px;padding:20px 20px 16px;
+  box-shadow:0 4px 24px rgba(0,0,0,.35);z-index:10;pointer-events:all}
+#ob-banner.hide{display:none}
+.ob-steps{display:flex;flex-direction:column;gap:10px;margin:12px 0 16px}
+.ob-step{display:flex;align-items:flex-start;gap:10px}
+.ob-num{width:22px;height:22px;min-width:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ob-text{font-size:13px;color:var(--ink3);line-height:1.55}
+.ob-text b{color:var(--parch2)}
+.ob-title{font-family:'Crimson Pro',serif;font-size:19px;color:var(--parch);margin-bottom:2px}
+.ob-acts{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.ob-dismiss{background:none;border:none;color:var(--ink4);font-size:12px;
+  cursor:pointer;padding:4px 8px;font-family:inherit}
+.ob-dismiss:hover{color:var(--ink3)}
+#ob-key-banner{background:rgba(92,171,106,.08);border:1px solid rgba(92,171,106,.3);
+  border-radius:8px;padding:12px 14px;margin:0 0 12px;font-size:12px;
+  color:var(--ink3);line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+#ob-key-banner.hide{display:none}
+#ob-key-banner .ob-key-ico{font-size:20px;line-height:1;flex-shrink:0}
+#ob-key-banner .ob-key-x{background:none;border:none;color:var(--ink4);
+  cursor:pointer;font-size:16px;margin-left:auto;padding:0 2px;font-family:inherit;flex-shrink:0}
 .divider{display:flex;align-items:center;gap:8px;margin:12px 0;color:var(--ink3);font-size:11px}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--clay)}
 
@@ -1413,12 +1439,40 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <div class="em-t" style="font-family:'Crimson Pro',serif" data-i18n="emptyTitle">Your family tree awaits</div>
         <div class="em-s" data-i18n="emptyBody">Start by adding your first family member</div>
         <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
+
+        <!-- Admin onboarding banner — shown once to new admins on an empty tree -->
+        <div id="ob-banner" class="hide">
+          <div class="ob-title">👑 You're the admin — here's how to get started</div>
+          <div class="ob-steps">
+            <div class="ob-step">
+              <div class="ob-num">1</div>
+              <div class="ob-text">Tap <b>＋ Add First Person</b> above to add yourself (or any family member) to the tree.</div>
+            </div>
+            <div class="ob-step">
+              <div class="ob-num">2</div>
+              <div class="ob-text">Keep adding people, then draw <b>relationships</b> between them using the link button on each card.</div>
+            </div>
+            <div class="ob-step">
+              <div class="ob-num">3</div>
+              <div class="ob-text">Share your <b>Family Secret Key</b> (<code id="ob-famkey"></code>) so relatives can join and see the tree.</div>
+            </div>
+          </div>
+          <div class="ob-acts">
+            <button class="ob-dismiss" onclick="dismissOnboarding()">Got it, don't show again</button>
+            <button class="btn btn-gold" style="font-size:13px;padding:8px 16px" onclick="openAddMo();dismissOnboarding()">＋ Add First Person</button>
+          </div>
+        </div>
       </div>
       <!-- Shown in ego view when user has no linked profile -->
       <div id="unlinked-prompt" class="hide">
         <div class="up-ico">👤</div>
-        <div class="up-t">Profile not linked</div>
-        <div class="up-s" id="unlinked-msg">Ask your admin to link your account to a person in the tree. Then you'll see your personal family view here.</div>
+        <div class="up-t">Profile not linked yet</div>
+        <div class="up-s" id="unlinked-msg">Your account isn't linked to a person in the tree yet.</div>
+        <div class="up-s" style="font-size:12px;margin-top:8px;opacity:.7">
+          Ask your family admin to open the <b>Admin Panel → Members</b>,
+          find your name, and tap <b>Link Profile</b>. Once linked, you'll see
+          your personal family view centred on you.
+        </div>
       </div>
     </div>
   </div>
@@ -1430,6 +1484,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <input id="mob-srch" type="text" placeholder="Search people…" autocomplete="off">
         <div id="mob-srch-drop"></div>
       </div>
+    </div>
+    <!-- Key-sharing hint for new admins — shown after first person added -->
+    <div id="ob-key-banner" class="hide">
+      <span class="ob-key-ico">🔑</span>
+      <span id="ob-key-text"></span>
+      <button class="ob-key-x" onclick="dismissKeyBanner()" title="Dismiss">✕</button>
     </div>
     <div id="mob-gen-filters">
       <button class="mgf-chip on" data-gen="all" onclick="setMobGenFilter('all')">All</button>
@@ -1632,6 +1692,10 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         style="flex:1;padding:11px;background:#4a1a1a;color:#e07070;border:1px solid #7a3030;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer">
         🐛 Error Log
       </button>
+      <button onclick="showDiagI18n()"
+        style="flex:1;padding:11px;background:#1a2e1a;color:#70c070;border:1px solid #307030;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer">
+        🌐 i18n
+      </button>
     </div>
     <div id="diag-out" style="font-family:monospace;font-size:12px;line-height:1.9;color:#e0ceaa;white-space:pre-wrap"></div>
   </div>
@@ -1791,6 +1855,57 @@ function showDiagErrors() {
   });
   out.textContent = lines.join('\n');
 }
+
+function showDiagI18n() {
+  // Run i18n coverage check in-browser against the live STRINGS object and DOM
+  const out = document.getElementById('diag-out');
+  const S = window._getStrings ? window._getStrings() : null;
+  if (!S) { out.textContent = 'STRINGS not accessible — check window._getStrings export.'; return; }
+
+  const enKeys = new Set(Object.keys(S.en || {}));
+  const langs  = Object.keys(S).filter(l => l !== 'en');
+  const lines  = ['=== i18n Coverage Report ===', ''];
+
+  // Keys used in DOM (data-i18n attributes on currently rendered elements)
+  const domKeys = new Set(
+    [...document.querySelectorAll('[data-i18n],[data-i18n-ph],[data-i18n-tip]')]
+      .map(el => el.dataset.i18n || el.dataset.i18nPh || el.dataset.i18nTip)
+      .filter(Boolean)
+  );
+
+  lines.push('en: ' + enKeys.size + ' keys defined');
+  lines.push('DOM keys in use: ' + domKeys.size);
+  lines.push('');
+
+  let totalIssues = 0;
+  for (const lang of langs) {
+    const langKeys = new Set(Object.keys(S[lang] || {}));
+    const missing  = [...enKeys].filter(k => !langKeys.has(k));
+    const pct      = Math.round(((enKeys.size - missing.length) / enKeys.size) * 100);
+    lines.push(lang.toUpperCase() + ': ' + pct + '% (' + (enKeys.size - missing.length) + '/' + enKeys.size + ')');
+    if (missing.length) {
+      totalIssues += missing.length;
+      missing.forEach(k => lines.push('  ✗ ' + k + ' — en: "' + (S.en[k] || '?') + '"'));
+    } else {
+      lines.push('  ✓ Fully covered');
+    }
+    lines.push('');
+  }
+
+  // Dead keys (in en, not in DOM)
+  const dead = [...enKeys].filter(k => !domKeys.has(k));
+  if (dead.length) {
+    lines.push('Dead keys (defined but not in current DOM):');
+    dead.forEach(k => lines.push('  ~ ' + k));
+    lines.push('  Note: some may be used in JS-generated modals not currently open.');
+    lines.push('');
+  }
+
+  if (totalIssues === 0) lines.push('✅ All languages fully covered.');
+  else lines.push('✗ ' + totalIssues + ' missing translation(s). See above.');
+
+  out.textContent = lines.join('\n');
+}
 </script>
 
 <script type="module">
@@ -1911,6 +2026,8 @@ function showApp(linkedProfileId) {
   initEgoView(linkedProfileId);
   // Initialise mobile shell once we know we're in the app
   initMobileShell();
+  // Kick off onboarding checks (no-op if already dismissed or not admin)
+  initOnboarding();
 }
 
 // ══ LANGUAGE ═══════════════════════════════════════════════════════
@@ -4262,6 +4379,8 @@ function getGen(id, memo={}, visiting=new Set()){
 function render(){
   const ids=Object.keys(DB.people);
   el('empty').classList.toggle('hide',ids.length>0);
+  _syncOnboardingBanner(ids.length);
+  checkKeyBanner(ids.length);
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
   const memo={};
   // Pass 1: compute all parent-chain generations
@@ -5439,6 +5558,80 @@ function _rlCheck(key, limit, windowMs, lockMs) {
 }
 
 function _rlReset(key) { delete _rl[key]; }
+
+// ══ ONBOARDING ══════════════════════════════════════════════════════
+// Three targeted moments — no modal wizard, no blocking overlay.
+// State stored in localStorage so it never shows twice.
+//
+//  para_ob       = 'done'  — admin first-entry banner dismissed
+//  para_ob_key   = 'done'  — key-sharing hint dismissed
+//
+// initOnboarding() called from showApp() every time app loads.
+// checkKeyBanner() called from render() when people count crosses 1→N.
+
+function initOnboarding() {
+  if (!CU || !FAM) return;
+
+  // Only admins get the first-entry banner
+  if (CU.role !== 'admin') return;
+  if (localStorage.getItem('para_ob') === 'done') return;
+
+  // Only show on a genuinely empty tree (no people yet)
+  // DB.people may still be loading — we set the banner visible flag and let
+  // render() actually show/hide based on tree size.
+  _obPending = true;
+
+  // Fill in the family key in step 3
+  const keyEl = el('ob-famkey');
+  if (keyEl) keyEl.textContent = CU.famKey || FAM;
+}
+
+// Called by render() — shows banner only when tree is empty AND admin hasn't dismissed
+let _obPending = false;
+function _syncOnboardingBanner(peopleCount) {
+  const banner = el('ob-banner');
+  if (!banner) return;
+  if (!_obPending) { banner.classList.add('hide'); return; }
+  banner.classList.toggle('hide', peopleCount > 0);
+}
+
+function dismissOnboarding() {
+  _obPending = false;
+  const banner = el('ob-banner');
+  if (banner) banner.classList.add('hide');
+  localStorage.setItem('para_ob', 'done');
+}
+
+// Key-sharing banner — shown in People list after first person added
+function checkKeyBanner(peopleCount) {
+  const banner = el('ob-key-banner');
+  if (!banner) return;
+
+  // Only for admins who haven't dismissed it
+  if (!CU || CU.role !== 'admin') { banner.classList.add('hide'); return; }
+  if (localStorage.getItem('para_ob_key') === 'done') { banner.classList.add('hide'); return; }
+
+  // Show once there's at least 1 person and admin banner is gone
+  if (peopleCount >= 1) {
+    const textEl = el('ob-key-text');
+    if (textEl && !textEl.dataset.set) {
+      const key = CU.famKey || FAM;
+      textEl.innerHTML = `Your family key is <b style="color:var(--parch2);font-family:monospace">${escHtml(key)}</b> — share it with relatives so they can join the tree. They'll find it on the Join tab.`;
+      textEl.dataset.set = '1';
+    }
+    banner.classList.remove('hide');
+  } else {
+    banner.classList.add('hide');
+  }
+}
+
+function dismissKeyBanner() {
+  const banner = el('ob-key-banner');
+  if (banner) banner.classList.add('hide');
+  localStorage.setItem('para_ob_key', 'done');
+}
+
+// ══ END ONBOARDING ════════════════════════════════════════════════════
 
 // ══ SERVICE WORKER ═════════════════════════════════════════════════
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
@@ -7393,6 +7586,8 @@ Object.assign(window, {
   openPrivacyMo, closePrivacyMo,
   exportFamilyData, leaveFamily, deleteMyAccount, deleteFamily,
   logErr,
+  dismissOnboarding, dismissKeyBanner,
+  _getStrings: () => STRINGS,
   clearPendingNotices,
   // Relationship finder
   openRelFinderMo, closeRelFinderMo,

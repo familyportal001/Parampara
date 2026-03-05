@@ -1442,23 +1442,23 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
         <!-- Admin onboarding banner — shown once to new admins on an empty tree -->
         <div id="ob-banner" class="hide">
-          <div class="ob-title">👑 You're the admin — here's how to get started</div>
+          <div class="ob-title" data-i18n="obAdminTitle">👑 You're the admin — here's how to get started</div>
           <div class="ob-steps">
             <div class="ob-step">
               <div class="ob-num">1</div>
-              <div class="ob-text">Tap <b>＋ Add First Person</b> above to add yourself (or any family member) to the tree.</div>
+              <div class="ob-text" data-i18n="obStep1">Tap <b>＋ Add First Person</b> above to add yourself (or any family member) to the tree.</div>
             </div>
             <div class="ob-step">
               <div class="ob-num">2</div>
-              <div class="ob-text">Keep adding people, then draw <b>relationships</b> between them using the link button on each card.</div>
+              <div class="ob-text" data-i18n="obStep2">Keep adding people, then draw <b>relationships</b> between them using the link button on each card.</div>
             </div>
             <div class="ob-step">
               <div class="ob-num">3</div>
-              <div class="ob-text">Share your <b>Family Secret Key</b> (<code id="ob-famkey"></code>) so relatives can join and see the tree.</div>
+              <div class="ob-text"><span data-i18n="obStep3">Share your <b>Family Secret Key</b> so relatives can join and see the tree.</span> (<code id="ob-famkey"></code>)</div>
             </div>
           </div>
           <div class="ob-acts">
-            <button class="ob-dismiss" onclick="dismissOnboarding()">Got it, don't show again</button>
+            <button class="ob-dismiss" onclick="dismissOnboarding()" data-i18n="obGotIt">Got it, don't show again</button>
             <button class="btn btn-gold" style="font-size:13px;padding:8px 16px" onclick="openAddMo();dismissOnboarding()">＋ Add First Person</button>
           </div>
         </div>
@@ -1527,12 +1527,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 <div id="canvas-legend" tabindex="0" aria-label="Map legend" title="Legend">
   <div id="legend-pill">?</div>
   <div id="legend-body">
-    <div class="legend-title">Legend</div>
-    <div class="legend-section">Lines</div>
-    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,6 20,6 26,6" stroke="rgba(155,122,80,.75)" stroke-width="2" fill="none"/></svg><span>Parent – child</span></div>
+    <div class="legend-title" data-i18n="legendTitle">Legend</div>
+    <div class="legend-section" data-i18n="legendLines">Lines</div>
+    <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,6 20,6 26,6" stroke="rgba(155,122,80,.75)" stroke-width="2" fill="none"/></svg><span data-i18n="legendParentChild">Parent – child</span></div>
     <div class="legend-row"><svg width="28" height="12"><path d="M2,6 C8,2 20,2 26,6" stroke="rgba(200,137,58,.85)" stroke-width="2" stroke-dasharray="5,3" fill="none"/></svg><span data-i18n="partners">Partners</span></div>
     <div class="legend-row"><svg width="28" height="12"><line x1="2" y1="6" x2="26" y2="6" stroke="rgba(92,171,106,.75)" stroke-width="1.5" stroke-dasharray="2,5"/></svg><span data-i18n="siblings">Siblings</span></div>
-    <div class="legend-section" style="margin-top:8px">Card stripe = generation</div>
+    <div class="legend-section" style="margin-top:8px" data-i18n="legendCardStripe">Card stripe = generation</div>
     <div class="legend-gens">
       <div class="legend-gen" style="background:var(--copper)"></div>
       <div class="legend-gen" style="background:var(--slate)"></div>
@@ -1541,7 +1541,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <div class="legend-gen" style="background:#5c4a7a"></div>
       <div class="legend-gen" style="background:var(--ink3)"></div>
     </div>
-    <div style="font-size:9px;color:var(--ink4);margin-top:4px">Repeats after 6 generations</div>
+    <div style="font-size:9px;color:var(--ink4);margin-top:4px" data-i18n="legendRepeats">Repeats after 6 generations</div>
   </div>
 </div>
 
@@ -1598,12 +1598,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 <div class="mo-ov" id="link-mo">
   <div class="mo" style="max-width:420px">
     <div class="mo-hd">
-      <div class="mo-title" id="link-mo-title">Link to Profile</div>
+      <div class="mo-title" id="link-mo-title" data-i18n="linkToProfile">Link to Profile</div>
       <button class="pan-x" onclick="closeLinkMo()">✕</button>
     </div>
     <div class="mo-bd">
       <div style="font-size:12px;color:var(--ink3);margin-bottom:12px" id="link-mo-sub">
-        Select the person in the family tree that this member corresponds to.
+        <span data-i18n="linkSelectPerson">Select the person in the family tree that this member corresponds to.</span>
       </div>
       <input class="fi" id="link-search" type="text" placeholder="Search by name…" data-i18n-ph="searchPh"
         oninput="filterLinkPicker(this.value)" style="margin-bottom:10px">
@@ -1611,7 +1611,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     </div>
     <div class="mo-ft">
       <button class="hbtn" onclick="closeLinkMo()">Cancel</button>
-      <button class="hbtn" onclick="clearLink()" id="btn-clear-link" style="display:none;background:var(--rose);color:white;border-color:var(--rose)">Unlink</button>
+      <button class="hbtn" onclick="clearLink()" id="btn-clear-link" style="display:none;background:var(--rose);color:white;border-color:var(--rose)" data-i18n="linkUnlink">Unlink</button>
     </div>
   </div>
 </div>
@@ -1628,8 +1628,8 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <div class="rfi-hd-left">
         <div class="rfi-icon">🔗</div>
         <div>
-          <div class="rfi-title">Find Relationship</div>
-          <div class="rfi-subtitle">How are two people connected?</div>
+          <div class="rfi-title" data-i18n="rfiTitle">Find Relationship</div>
+          <div class="rfi-subtitle" data-i18n="rfiSubtitle">How are two people connected?</div>
         </div>
       </div>
       <button class="rfi-close" onclick="closeRelFinderMo()">✕</button>
@@ -1638,7 +1638,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     <!-- Person Selectors -->
     <div class="rfi-selectors">
       <div>
-        <div class="rfi-slot-label">Person A</div>
+        <div class="rfi-slot-label" data-i18n="rfiPersonA">Person A</div>
         <div class="rfi-slot-wrap" id="rfi-a-wrap">
           <div id="rfi-a-chip" style="display:none"></div>
           <input class="rfi-slot-input" id="rfi-a-in" placeholder="Search name…" autocomplete="off"
@@ -1646,9 +1646,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
           <div class="rfi-drop" id="rfi-a-drop"></div>
         </div>
       </div>
-      <div class="rfi-vs">and</div>
+      <div class="rfi-vs" data-i18n="rfiAnd">and</div>
       <div>
-        <div class="rfi-slot-label">Person B</div>
+        <div class="rfi-slot-label" data-i18n="rfiPersonB">Person B</div>
         <div class="rfi-slot-wrap" id="rfi-b-wrap">
           <div id="rfi-b-chip" style="display:none"></div>
           <input class="rfi-slot-input" id="rfi-b-in" placeholder="Search name…" autocomplete="off"
@@ -1660,15 +1660,15 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
     <!-- Find button -->
     <button class="rfi-find-btn" id="rfi-find-btn" onclick="runRelFinder()" disabled>
-      <span class="rfi-find-btn-ico">🔍</span> Find Connection
+      <span class="rfi-find-btn-ico">🔍</span> <span data-i18n="rfiFindBtn">Find Connection</span>
     </button>
 
     <!-- Results -->
     <div class="rfi-results" id="rfi-results">
       <div class="rfi-state">
         <div class="rfi-state-ico">🌳</div>
-        <div class="rfi-state-t">Select two family members</div>
-        <div class="rfi-state-s">Choose Person A and Person B above, then tap "Find Connection" to discover how they're related.</div>
+        <div class="rfi-state-t" data-i18n="rfiSelectTwo">Select two family members</div>
+        <div class="rfi-state-s" data-i18n="rfiSelectHint">Choose Person A and Person B above, then tap "Find Connection" to discover how they're related.</div>
       </div>
     </div>
 
@@ -2092,6 +2092,87 @@ const STRINGS = {
     auditTrail:'Audit Trail', deceased:'Deceased', living:'Living',
     added:'added', lastEdited:'last edited', relLink:'Link',
     noHistory:'No history recorded yet', noDetails:'No details recorded',
+    // ── Relationship Finder UI ───────────────────────────────────────
+    rfiTitle:'Find Relationship', rfiSubtitle:'How are two people connected?',
+    rfiPersonA:'Person A', rfiPersonB:'Person B', rfiAnd:'and',
+    rfiFindBtn:'Find Connection',
+    rfiSelectTwo:'Select two family members',
+    rfiSelectHint:'Choose Person A and Person B, then tap "Find Connection".',
+    rfiSamePerson:'Same person selected', rfiSameHint:'Please choose two different people.',
+    rfiSearching:'Searching connections…',
+    rfiNoPath:'No connection found', rfiNoPathNote:"don't appear to be connected in this family tree.",
+    rfiPathTitle:'Connection path',
+    rfiConnDown_f:'mother of', rfiConnDown_m:'father of', rfiConnDown_n:'parent of',
+    rfiConnUp_f:'daughter of', rfiConnUp_m:'son of', rfiConnUp_n:'child of',
+    rfiConnPartner:'partner of', rfiConnSibling:'sibling of', rfiConnRel:'related to',
+    // ── Relationship labels (describeRelationship) ───────────────────
+    relSamePerson:'Same person',
+    relSpousePartner:'Spouse / Partner', relWifePartner:'Wife / Partner', relHusbandPartner:'Husband / Partner',
+    relSibling:'Sibling', relSister:'Sister', relBrother:'Brother',
+    relParent:'Parent', relMother:'Mother', relFather:'Father',
+    relGrandparent:'Grandparent', relGrandmother:'Grandmother', relGrandfather:'Grandfather',
+    relGreatGrandparent:'Great-Grandparent', relGreatGrandmother:'Great-Grandmother', relGreatGrandfather:'Great-Grandfather',
+    relChild:'Child', relDaughter:'Daughter', relSon:'Son',
+    relGrandchild:'Grandchild', relGranddaughter:'Granddaughter', relGrandson:'Grandson',
+    relGreatGrandchild:'Great-Grandchild', relGreatGranddaughter:'Great-Granddaughter', relGreatGrandson:'Great-Grandson',
+    relAuntUncle:'Aunt/Uncle', relAunt:'Aunt', relUncle:'Uncle',
+    relNieceNephew:'Niece/Nephew', relNiece:'Niece', relNephew:'Nephew',
+    relGreatAuntUncle:'Great-Aunt/Uncle', relGreatAunt:'Great-Aunt', relGreatUncle:'Great-Uncle',
+    relGrandNieceNephew:'Grand-Niece/Nephew', relGrandNiece:'Grand-Niece', relGrandNephew:'Grand-Nephew',
+    relCousin:'Cousin', relCousinRemoved:'removed', relCousinOnce:'once', relCousinTwice:'twice',
+    relParentInLaw:'Parent-in-law', relMotherInLaw:'Mother-in-law', relFatherInLaw:'Father-in-law',
+    relChildInLaw:'Child-in-law', relDaughterInLaw:'Daughter-in-law', relSonInLaw:'Son-in-law',
+    relSiblingInLaw:'Sibling-in-law', relSisterInLaw:'Sister-in-law', relBrotherInLaw:'Brother-in-law',
+    relRelByMarriage:'Relative by marriage', relDistant:'Distant Relative',
+    relGenUp:'generation up', relGensUp:'generations up',
+    relGenDown:'generation down', relGensDown:'generations down',
+    relStepAway:'step away', relStepsAway:'steps away', relViaPartner:'via partner',
+    relUpDown:'up', relDn:'down', relApart:'apart',
+    ordSt:'st', ordNd:'nd', ordRd:'rd', ordTh:'th',
+    // ── Import tab ──────────────────────────────────────────────────
+    impUploadHint:'Upload a CSV file to add people or relationships in bulk.',
+    impDownload:'↓ Download template',
+    impPeople:'👤 People', impRels:'⛓ Relationships',
+    impDropLabel:'Click or drag a CSV file here',
+    impColsPeople:'Columns: first, last, dob, dod, gender, occupation, notes',
+    impColsRels:'Columns: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impRowsReady:'rows ready to import', impBack:'← Back',
+    impDupNote:'Duplicate names will be imported as new entries (no merge). Relationships require exact name matches.',
+    impImporting:'Importing…', impComplete:'Import complete', impWithErrors:'Import finished with errors',
+    impParsedOk:'All rows parsed cleanly ✓', impMoreRows:'and {n} more rows',
+    impImportMore:'Import More',
+    impThFirst:'First', impThLast:'Last', impThDob:'DOB', impThGender:'Gender', impThOccupation:'Occupation',
+    impThPersonA:'Person A', impThPersonB:'Person B', impThType:'Type',
+    impErrCsv:'Please upload a .csv file',
+    impErrNoRows:'No valid rows found in file',
+    impErrNeedHeader:'CSV must have a header row and at least one data row',
+    impErrLimit:'Import limited to {limit} rows per batch. Your file has {n} rows — split it into smaller files.',
+    impPeople2:'people', impRelationships2:'relationships',
+    impSkipped:'skipped (name not found or write error)', impErrors:'error(s)',
+    impParsedSkipped:'row(s) skipped',
+    // ── Admin Settings tab ──────────────────────────────────────────
+    settFamilyStatus:'Family Tree Status', settDangerZone:'Danger Zone',
+    settActive:'Active', settArchived2:'Archived',
+    settActiveDesc:'Fully editable by authorised members',
+    settArchivedDesc:'Read-only — no edits allowed',
+    settArchiveBtn:'📦 Archive this Family Tree',
+    settRestoreBtn:'↩ Restore Family (allow editing)',
+    settDeleteDesc:'Permanently delete this entire family tree — all people, relationships, members and history. This cannot be undone.',
+    settDeleteBtn:'🗑 Delete Entire Family Tree',
+    // ── Legend ──────────────────────────────────────────────────────
+    legendTitle:'Legend', legendLines:'Lines', legendParentChild:'Parent – child',
+    legendCardStripe:'Card stripe = generation', legendRepeats:'Repeats after 6 generations',
+    // ── Link Profile modal ──────────────────────────────────────────
+    linkToProfile:'Link to Profile',
+    linkSelectPerson:'Select the person in the family tree that this member corresponds to.',
+    linkUnlink:'Unlink', linkTitle:'Link {name} to Profile', linkSub:'Select the person in the family tree that corresponds to {name}.',
+    // ── Onboarding banner ───────────────────────────────────────────
+    obAdminTitle:"👑 You're the admin — here's how to get started",
+    obStep1:'Tap <b>＋ Add First Person</b> above to add yourself (or any family member) to the tree.',
+    obStep2:'Keep adding people, then draw <b>relationships</b> between them using the link button on each card.',
+    obStep3:'Share your <b>Family Secret Key</b> so relatives can join and see the tree.',
+    obGotIt:"Got it, don't show again",
+    rfiIs:'is', personSingular:'person', personPlural:'people',
   },
   ta: {
     signIn:'உள்நுழை', joinFamily:'குடும்பம் சேர்', forgot:'மறந்தீர்களா?',
@@ -2136,6 +2217,86 @@ const STRINGS = {
     auditTrail:'தணிக்கை தடம்', deceased:'மறைந்தவர்', living:'வாழ்கிறார்',
     added:'சேர்க்கப்பட்டது', lastEdited:'கடைசியாக திருத்தப்பட்டது', relLink:'இணைப்பு',
     noHistory:'வரலாறு எதுவும் பதிவு இல்லை', noDetails:'விவரங்கள் இல்லை',
+    // ── Relationship Finder UI ───────────────────────────────────────
+    rfiTitle:'உறவுமுறை கண்டுபிடி', rfiSubtitle:'இரண்டு நபர்கள் எப்படி தொடர்புடையவர்கள்?',
+    rfiPersonA:'நபர் அ', rfiPersonB:'நபர் ஆ', rfiAnd:'மற்றும்',
+    rfiFindBtn:'தொடர்பு கண்டுபிடி',
+    rfiSelectTwo:'இரண்டு குடும்ப உறுப்பினர்களை தேர்ந்தெடுக்கவும்',
+    rfiSelectHint:'நபர் அ மற்றும் நபர் ஆ தேர்ந்தெடுத்து "தொடர்பு கண்டுபிடி" அழுத்தவும்.',
+    rfiSamePerson:'ஒரே நபர் தேர்ந்தெடுக்கப்பட்டது', rfiSameHint:'வேறு இரண்டு நபர்களை தேர்ந்தெடுக்கவும்.',
+    rfiSearching:'தொடர்புகளை தேடுகிறது…',
+    rfiNoPath:'தொடர்பு கிடைக்கவில்லை', rfiNoPathNote:'இந்த குடும்ப மரத்தில் தொடர்புடையதாக தெரியவில்லை.',
+    rfiPathTitle:'தொடர்பு பாதை',
+    rfiConnDown_f:'தாயார்', rfiConnDown_m:'தந்தை', rfiConnDown_n:'பெற்றோர்',
+    rfiConnUp_f:'மகள்', rfiConnUp_m:'மகன்', rfiConnUp_n:'குழந்தை',
+    rfiConnPartner:'துணைவர்', rfiConnSibling:'உடன்பிறப்பு', rfiConnRel:'உறவினர்',
+    // ── Relationship labels ──────────────────────────────────────────
+    relSamePerson:'ஒரே நபர்',
+    relSpousePartner:'மனைவி/கணவர்', relWifePartner:'மனைவி', relHusbandPartner:'கணவர்',
+    relSibling:'உடன்பிறப்பு', relSister:'சகோதரி', relBrother:'சகோதரன்',
+    relParent:'பெற்றோர்', relMother:'அம்மா', relFather:'அப்பா',
+    relGrandparent:'தாத்தா/பாட்டி', relGrandmother:'பாட்டி', relGrandfather:'தாத்தா',
+    relGreatGrandparent:'கொள்ளுத் தாத்தா/பாட்டி', relGreatGrandmother:'கொள்ளுப் பாட்டி', relGreatGrandfather:'கொள்ளுத் தாத்தா',
+    relChild:'குழந்தை', relDaughter:'மகள்', relSon:'மகன்',
+    relGrandchild:'பேரன்/பேத்தி', relGranddaughter:'பேத்தி', relGrandson:'பேரன்',
+    relGreatGrandchild:'கொள்ளுப் பேரன்/பேத்தி', relGreatGranddaughter:'கொள்ளுப் பேத்தி', relGreatGrandson:'கொள்ளுப் பேரன்',
+    relAuntUncle:'அத்தை/மாமா', relAunt:'அத்தை', relUncle:'மாமா',
+    relNieceNephew:'மருமகள்/மருமகன்', relNiece:'மருமகள்', relNephew:'மருமகன்',
+    relGreatAuntUncle:'பெரிய அத்தை/மாமா', relGreatAunt:'பெரிய அத்தை', relGreatUncle:'பெரிய மாமா',
+    relGrandNieceNephew:'பேர் மருமகள்/மருமகன்', relGrandNiece:'பேர் மருமகள்', relGrandNephew:'பேர் மருமகன்',
+    relCousin:'உறவினர்', relCousinRemoved:'தள்ளி', relCousinOnce:'ஒரு முறை', relCousinTwice:'இரு முறை',
+    relParentInLaw:'மாமியார்/மாமனார்', relMotherInLaw:'மாமியார்', relFatherInLaw:'மாமனார்',
+    relChildInLaw:'மருமகன்/மருமகள்', relDaughterInLaw:'மருமகள்', relSonInLaw:'மருமகன்',
+    relSiblingInLaw:'மைத்துனன்/நாத்தனார்', relSisterInLaw:'நாத்தனார்', relBrotherInLaw:'மைத்துனன்',
+    relRelByMarriage:'திருமண உறவினர்', relDistant:'தொலைவு உறவினர்',
+    relGenUp:'தலைமுறை மேல்', relGensUp:'தலைமுறைகள் மேல்',
+    relGenDown:'தலைமுறை கீழ்', relGensDown:'தலைமுறைகள் கீழ்',
+    relStepAway:'படி தொலைவு', relStepsAway:'படிகள் தொலைவு', relViaPartner:'துணைவர் வழி',
+    relUpDown:'மேல்', relDn:'கீழ்', relApart:'தொலைவில்',
+    ordSt:'வது', ordNd:'வது', ordRd:'வது', ordTh:'வது',
+    // ── Import tab ──────────────────────────────────────────────────
+    impUploadHint:'மக்கள் அல்லது உறவுகளை கூட்டமாக சேர்க்க CSV கோப்பை பதிவேற்றவும்.',
+    impDownload:'↓ மாதிரி பதிவிறக்கு',
+    impPeople:'👤 மக்கள்', impRels:'⛓ உறவுகள்',
+    impDropLabel:'CSV கோப்பை இங்கே கிளிக் செய்யவும் அல்லது இழுக்கவும்',
+    impColsPeople:'நெடுவரிசைகள்: first, last, dob, dod, gender, occupation, notes',
+    impColsRels:'நெடுவரிசைகள்: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impRowsReady:'வரிசைகள் இறக்குமதிக்கு தயார்', impBack:'← பின்னால்',
+    impDupNote:'நகல் பெயர்கள் புதிய பதிவுகளாக இறக்குமதி செய்யப்படும். உறவுகளுக்கு சரியான பெயர் தேவை.',
+    impImporting:'இறக்குமதி செய்கிறது…', impComplete:'இறக்குமதி முடிந்தது', impWithErrors:'பிழைகளுடன் இறக்குமதி முடிந்தது',
+    impParsedOk:'அனைத்து வரிசைகளும் சரியாக பாகுபடுத்தப்பட்டன ✓', impMoreRows:'{n} வரிசைகள் மேலும்',
+    impImportMore:'மேலும் இறக்குமதி',
+    impThFirst:'முதல்', impThLast:'கடைசி', impThDob:'பிறந்த தேதி', impThGender:'பாலினம்', impThOccupation:'தொழில்',
+    impThPersonA:'நபர் அ', impThPersonB:'நபர் ஆ', impThType:'வகை',
+    impErrCsv:'.csv கோப்பை பதிவேற்றவும்',
+    impErrNoRows:'கோப்பில் சரியான வரிசைகள் இல்லை',
+    impErrNeedHeader:'CSV-ல் தலைப்பு வரிசை மற்றும் குறைந்தது ஒரு தரவு வரிசை இருக்க வேண்டும்',
+    impErrLimit:'ஒரு தொகுதிக்கு {limit} வரிசைகள் மட்டுமே. உங்கள் கோப்பில் {n} வரிசைகள் உள்ளன — சிறிய கோப்புகளாக பிரிக்கவும்.',
+    impPeople2:'மக்கள்', impRelationships2:'உறவுகள்',
+    impSkipped:'தவிர்க்கப்பட்டது (பெயர் கிடைக்கவில்லை அல்லது எழுத பிழை)', impErrors:'பிழை(கள்)',
+    impParsedSkipped:'வரிசை(கள்) தவிர்க்கப்பட்டன',
+    // ── Admin Settings tab ──────────────────────────────────────────
+    settFamilyStatus:'குடும்ப மர நிலை', settDangerZone:'ஆபத்தான பகுதி',
+    settActive:'செயலில்', settArchived2:'காப்பகப்படுத்தப்பட்டது',
+    settActiveDesc:'அங்கீகரிக்கப்பட்ட உறுப்பினர்களால் முழுமையாக திருத்தலாம்',
+    settArchivedDesc:'படிக்க மட்டுமே — திருத்தல் அனுமதி இல்லை',
+    settArchiveBtn:'📦 இந்த குடும்ப மரத்தை காப்பகப்படுத்து',
+    settRestoreBtn:'↩ குடும்பத்தை மீட்டமை (திருத்தலை அனுமதி)',
+    settDeleteDesc:'இந்த முழு குடும்ப மரத்தையும் நிரந்தரமாக நீக்கு — அனைத்து நபர்கள், உறவுகள், உறுப்பினர்கள் மற்றும் வரலாறு. இதை செயல்தவிர்க்க முடியாது.',
+    settDeleteBtn:'🗑 முழு குடும்ப மரத்தையும் நீக்கு',
+    // ── Legend ──────────────────────────────────────────────────────
+    legendTitle:'விளக்கம்', legendLines:'கோடுகள்', legendParentChild:'பெற்றோர் – குழந்தை',
+    legendCardStripe:'கார்டு வரை = தலைமுறை', legendRepeats:'6 தலைமுறைகளுக்கு பிறகு மீண்டும்',
+    // ── Link Profile modal ──────────────────────────────────────────
+    linkToProfile:'சுயவிவரத்துடன் இணை', linkSelectPerson:'இந்த உறுப்பினருக்கு ஒத்த நபரை குடும்ப மரத்தில் தேர்ந்தெடுக்கவும்.',
+    linkUnlink:'இணைப்பை நீக்கு', linkTitle:'{name}-ஐ சுயவிவரத்துடன் இணை', linkSub:'{name}-க்கு ஒத்த நபரை தேர்ந்தெடுக்கவும்.',
+    // ── Onboarding banner ───────────────────────────────────────────
+    obAdminTitle:'👑 நீங்கள் நிர்வாகி — தொடங்குவது எப்படி',
+    obStep1:'மேலே உள்ள <b>＋ முதலில் சேர்க்க</b> அழுத்தி உங்களை (அல்லது ஒரு குடும்ப உறுப்பினரை) சேர்க்கவும்.',
+    obStep2:'மக்களை சேர்த்துக்கொண்டே, ஒவ்வொரு அட்டையிலுள்ள இணைப்பு பொத்தானை பயன்படுத்தி <b>உறவுகளை</b> வரையவும்.',
+    obStep3:'உறவினர்கள் சேர முடியும்படி உங்கள் <b>குடும்ப ரகசிய திறவுகோலை</b> பகிரவும்.',
+    obGotIt:'புரிந்தது, மீண்டும் காட்டாதே',
+    rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
   },
   ml: {
     signIn:'സൈൻ ഇൻ', joinFamily:'കുടുംബം ചേരുക', forgot:'മറന്നോ?',
@@ -2180,6 +2341,86 @@ const STRINGS = {
     auditTrail:'ഓഡിറ്റ് ട്രെയ്ൽ', deceased:'മരിച്ചു', living:'ജീവിച്ചിരിക്കുന്നു',
     added:'ചേർത്തു', lastEdited:'അവസാനം എഡിറ്റ് ചെയ്തു', relLink:'ലിങ്ക്',
     noHistory:'ചരിത്രം ഒന്നും രേഖപ്പെടുത്തിയിട്ടില്ല', noDetails:'വിശദാംശങ്ങൾ ഇല്ല',
+    // ── Relationship Finder UI ───────────────────────────────────────
+    rfiTitle:'ബന്ധം കണ്ടുപിടിക്കുക', rfiSubtitle:'രണ്ട് പേർ എങ്ങനെ ബന്ധപ്പെട്ടിരിക്കുന്നു?',
+    rfiPersonA:'വ്യക്തി A', rfiPersonB:'വ്യക്തി B', rfiAnd:'ഒപ്പം',
+    rfiFindBtn:'ബന്ധം കണ്ടെത്തുക',
+    rfiSelectTwo:'രണ്ട് കുടുംബ അംഗങ്ങളെ തിരഞ്ഞെടുക്കുക',
+    rfiSelectHint:'വ്യക്തി A, വ്യക്തി B തിരഞ്ഞെടുത്ത് "ബന്ധം കണ്ടെത്തുക" ടാപ്പ് ചെയ്യുക.',
+    rfiSamePerson:'ഒരേ വ്യക്തിയെ തിരഞ്ഞെടുത്തിരിക്കുന്നു', rfiSameHint:'ദയവായി രണ്ട് വ്യത്യസ്ത ആളുകളെ തിരഞ്ഞെടുക്കുക.',
+    rfiSearching:'ബന്ധങ്ങൾ തിരയുന്നു…',
+    rfiNoPath:'ബന്ധം കണ്ടെത്തിയില്ല', rfiNoPathNote:'ഈ കുടുംബ വൃക്ഷത്തിൽ ബന്ധപ്പെട്ടിരിക്കുന്നതായി കാണുന്നില്ല.',
+    rfiPathTitle:'ബന്ധ പാത',
+    rfiConnDown_f:'അമ്മ', rfiConnDown_m:'അച്ഛൻ', rfiConnDown_n:'മാതാപിതാവ്',
+    rfiConnUp_f:'മകൾ', rfiConnUp_m:'മകൻ', rfiConnUp_n:'കുട്ടി',
+    rfiConnPartner:'പങ്കാളി', rfiConnSibling:'സഹോദരൻ/ൻ', rfiConnRel:'ബന്ധു',
+    // ── Relationship labels ──────────────────────────────────────────
+    relSamePerson:'ഒരേ വ്യക്തി',
+    relSpousePartner:'ഭാര്യ/ഭർത്താവ്', relWifePartner:'ഭാര്യ', relHusbandPartner:'ഭർത്താവ്',
+    relSibling:'സഹോദരൻ/ൻ', relSister:'സഹോദരി', relBrother:'സഹോദരൻ',
+    relParent:'മാതാപിതാവ്', relMother:'അമ്മ', relFather:'അച്ഛൻ',
+    relGrandparent:'മുത്തശ്ശി/മുത്തശ്ശൻ', relGrandmother:'മുത്തശ്ശി', relGrandfather:'മുത്തശ്ശൻ',
+    relGreatGrandparent:'പ്രമുത്തശ്ശി/മുത്തശ്ശൻ', relGreatGrandmother:'പ്രമുത്തശ്ശി', relGreatGrandfather:'പ്രമുത്തശ്ശൻ',
+    relChild:'കുട്ടി', relDaughter:'മകൾ', relSon:'മകൻ',
+    relGrandchild:'പേരക്കുട്ടി', relGranddaughter:'പേരക്കുട്ടി (പെൺ)', relGrandson:'പേരക്കുട്ടി (ആൺ)',
+    relGreatGrandchild:'മുൻ‌തലമുറ പേരക്കുട്ടി', relGreatGranddaughter:'മുൻ‌തലമുറ പേരക്കുട്ടി (പെൺ)', relGreatGrandson:'മുൻ‌തലമുറ പേരക്കുട്ടി (ആൺ)',
+    relAuntUncle:'അമ്മാവൻ/അമ്മായി', relAunt:'അമ്മായി', relUncle:'അമ്മാവൻ',
+    relNieceNephew:'അനന്തിരവൾ/അനന്തിരവൻ', relNiece:'അനന്തിരവൾ', relNephew:'അനന്തിരവൻ',
+    relGreatAuntUncle:'മുതിർന്ന അമ്മായി/അമ്മാവൻ', relGreatAunt:'മുതിർന്ന അമ്മായി', relGreatUncle:'മുതിർന്ന അമ്മാവൻ',
+    relGrandNieceNephew:'മുൻ‌തലമുറ അനന്തിരവൾ/ൻ', relGrandNiece:'മുൻ‌തലമുറ അനന്തിരവൾ', relGrandNephew:'മുൻ‌തലമുറ അനന്തിരവൻ',
+    relCousin:'ബന്ധു', relCousinRemoved:'നീക്കം', relCousinOnce:'ഒരിക്കൽ', relCousinTwice:'രണ്ടുതവണ',
+    relParentInLaw:'അമ്മായിയമ്മ/അമ്മാവൻ', relMotherInLaw:'അമ്മായിയമ്മ', relFatherInLaw:'അമ്മായിഅച്ഛൻ',
+    relChildInLaw:'മരുമകൾ/മരുമകൻ', relDaughterInLaw:'മരുമകൾ', relSonInLaw:'മരുമകൻ',
+    relSiblingInLaw:'ഭർതൃ/ഭാര്യ സഹോദരൻ/ൻ', relSisterInLaw:'ഭർതൃ സഹോദരി', relBrotherInLaw:'ഭർതൃ സഹോദരൻ',
+    relRelByMarriage:'വിവാഹ ബന്ധു', relDistant:'ദൂര ബന്ധു',
+    relGenUp:'തലമുറ മുകളിൽ', relGensUp:'തലമുറകൾ മുകളിൽ',
+    relGenDown:'തലമുറ താഴെ', relGensDown:'തലമുറകൾ താഴെ',
+    relStepAway:'ചുവട് അകലെ', relStepsAway:'ചുവടുകൾ അകലെ', relViaPartner:'പങ്കാളി വഴി',
+    relUpDown:'മുകളിൽ', relDn:'താഴെ', relApart:'അകലെ',
+    ordSt:'–ാം', ordNd:'–ാം', ordRd:'–ാം', ordTh:'–ാം',
+    // ── Import tab ──────────────────────────────────────────────────
+    impUploadHint:'ആളുകളെ അല്ലെങ്കിൽ ബന്ധങ്ങൾ ബൾക്കായി ചേർക്കാൻ CSV ഫയൽ അപ്‌ലോഡ് ചെയ്യുക.',
+    impDownload:'↓ ടെംപ്ലേറ്റ് ഡൗൺലോഡ്',
+    impPeople:'👤 ആളുകൾ', impRels:'⛓ ബന്ധങ്ങൾ',
+    impDropLabel:'CSV ഫയൽ ഇവിടെ ക്ലിക്ക് ചെയ്യുക അല്ലെങ്കിൽ വലിച്ചിടുക',
+    impColsPeople:'നിരകൾ: first, last, dob, dod, gender, occupation, notes',
+    impColsRels:'നിരകൾ: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impRowsReady:'വരികൾ ഇറക്കുമതിക്ക് തയ്യാർ', impBack:'← പിന്നോട്ട്',
+    impDupNote:'ഡ്യൂപ്ലിക്കേറ്റ് പേരുകൾ പുതിയ എൻ‌ട്രികളായി ഇറക്കുമതി ചെയ്യും. ബന്ധങ്ങൾക്ക് കൃത്യ പേര് ആവശ്യം.',
+    impImporting:'ഇറക്കുമതി ചെയ്യുന്നു…', impComplete:'ഇറക്കുമതി പൂർത്തിയായി', impWithErrors:'പിശകുകളോടെ ഇറക്കുമതി പൂർത്തിയായി',
+    impParsedOk:'എല്ലാ വരികളും ശരിയായി പാഴ്‌സ് ചെയ്തു ✓', impMoreRows:'{n} വരികൾ കൂടി',
+    impImportMore:'കൂടുതൽ ഇറക്കുമതി',
+    impThFirst:'പേരിന്റെ ആദ്യഭാഗം', impThLast:'പേരിന്റെ അവസാനഭാഗം', impThDob:'ജനന തീയതി', impThGender:'ലിംഗം', impThOccupation:'തൊഴിൽ',
+    impThPersonA:'വ്യക്തി A', impThPersonB:'വ്യക്തി B', impThType:'തരം',
+    impErrCsv:'.csv ഫയൽ അപ്‌ലോഡ് ചെയ്യുക',
+    impErrNoRows:'ഫയലിൽ സാധുവായ വരികൾ ഇല്ല',
+    impErrNeedHeader:'CSV-ൽ ഒരു ഹെഡർ വരിയും ഒരു ഡേറ്റ വരിയും ഉണ്ടായിരിക്കണം',
+    impErrLimit:'ഒരു ബാച്ചിൽ {limit} വരികൾ മാത്രം. ഫയലിൽ {n} വരികൾ ഉണ്ട് — ചെറിയ ഫയലുകളാക്കി വിഭജിക്കുക.',
+    impPeople2:'ആളുകൾ', impRelationships2:'ബന്ധങ്ങൾ',
+    impSkipped:'ഒഴിവാക്കി (പേര് കണ്ടില്ല അല്ലെങ്കിൽ എഴുതൽ പിശക്)', impErrors:'പിശക്(കൾ)',
+    impParsedSkipped:'വരി(കൾ) ഒഴിവാക്കി',
+    // ── Admin Settings tab ──────────────────────────────────────────
+    settFamilyStatus:'കുടുംബ വൃക്ഷ നില', settDangerZone:'അപകട മേഖല',
+    settActive:'സക്രിയം', settArchived2:'ആർക്കൈവ് ചെയ്തു',
+    settActiveDesc:'അംഗീകൃത അംഗങ്ങൾക്ക് പൂർണ്ണമായി എഡിറ്റ് ചെയ്യാം',
+    settArchivedDesc:'വായനയ്ക്ക് മാത്രം — എഡിറ്റ് അനുവദനീയമല്ല',
+    settArchiveBtn:'📦 ഈ കുടുംബ വൃക്ഷം ആർക്കൈവ് ചെയ്യുക',
+    settRestoreBtn:'↩ കുടുംബം പുനഃസ്ഥാപിക്കുക (എഡിറ്റ് അനുവദിക്കുക)',
+    settDeleteDesc:'ഈ കുടുംബ വൃക്ഷം മുഴുവൻ ഇല്ലാതാക്കുക — ആളുകൾ, ബന്ധങ്ങൾ, അംഗങ്ങൾ, ചരിത്രം എല്ലാം. ഇത് പഴയപടിയാക്കാൻ കഴിയില്ല.',
+    settDeleteBtn:'🗑 മുഴുവൻ കുടുംബ വൃക്ഷവും നീക്കം ചെയ്യുക',
+    // ── Legend ──────────────────────────────────────────────────────
+    legendTitle:'ഐതിഹ്യം', legendLines:'വരകൾ', legendParentChild:'മാതാപിതാവ് – കുട്ടി',
+    legendCardStripe:'കാർഡ് വരി = തലമുറ', legendRepeats:'6 തലമുറകൾക്ക് ശേഷം ആവർത്തിക്കുന്നു',
+    // ── Link Profile modal ──────────────────────────────────────────
+    linkToProfile:'പ്രൊഫൈലുമായി ബന്ധിപ്പിക്കുക', linkSelectPerson:'ഈ അംഗത്തിന് ബന്ധപ്പെട്ട ആളെ കുടുംബ വൃക്ഷത്തിൽ തിരഞ്ഞെടുക്കുക.',
+    linkUnlink:'ബന്ധം നീക്കം ചെയ്യുക', linkTitle:'{name} നെ പ്രൊഫൈലുമായി ബന്ധിപ്പിക്കുക', linkSub:'{name} ന് ബന്ധപ്പെട്ട ആളെ തിരഞ്ഞെടുക്കുക.',
+    // ── Onboarding banner ───────────────────────────────────────────
+    obAdminTitle:'👑 നിങ്ങൾ അഡ്മിൻ ആണ് — ആരംഭിക്കാൻ ഇങ്ങനെ',
+    obStep1:'മേൽഭാഗത്തുള്ള <b>＋ ആദ്യം ചേർക്കുക</b> ടാപ്പ് ചെയ്ത് നിങ്ങളെ (അല്ലെങ്കിൽ ഒരു അംഗത്തെ) ചേർക്കുക.',
+    obStep2:'ആളുകളെ ചേർത്ത് ഓരോ കാർഡിലെ ലിങ്ക് ബട്ടൺ ഉപയോഗിച്ച് <b>ബന്ധങ്ങൾ</b> വരയ്ക്കുക.',
+    obStep3:'ബന്ധുക്കൾക്ക് ചേരാൻ നിങ്ങളുടെ <b>കുടുംബ രഹസ്യ കീ</b> പങ്കിടുക.',
+    obGotIt:'മനസ്സിലായി, വീണ്ടും കാണിക്കേണ്ട',
+    rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
   }
 };
 
@@ -4270,7 +4511,7 @@ function openLinkMo(uid, memberName, currentPid) {
   _linkTargetUid  = uid;
   _linkTargetName = memberName;
   el('link-mo-title').textContent = `Link ${memberName} to Profile`;
-  el('link-mo-sub').textContent   = `Select the person in the family tree that corresponds to ${memberName}.`;
+  el('link-mo-sub').textContent   = t('linkSub').replace('{name}', memberName);
   el('link-search').value = '';
   // Show unlink button only if already linked
   el('btn-clear-link').style.display = currentPid ? '' : 'none';
@@ -5696,13 +5937,13 @@ function loadImportTab() {
   el('amo-bd').innerHTML = `
     <div class="imp-step on" id="imp-step-1">
       <div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.65">
-        Upload a <b>CSV file</b> to add people or relationships in bulk.
+        ${t('impUploadHint')}
         <a href="#" onclick="downloadImportTemplate();return false"
-          style="color:var(--gold);text-decoration:none;margin-left:4px">↓ Download template</a>
+          style="color:var(--gold);text-decoration:none;margin-left:4px">${t('impDownload')}</a>
       </div>
       <div class="imp-mode-sel">
-        <button class="imp-mode-btn on" id="imp-btn-people" onclick="setImpMode('people')">👤 People</button>
-        <button class="imp-mode-btn"    id="imp-btn-rels"   onclick="setImpMode('rels')">⛓ Relationships</button>
+        <button class="imp-mode-btn on" id="imp-btn-people" onclick="setImpMode('people')">${t('impPeople')}</button>
+        <button class="imp-mode-btn"    id="imp-btn-rels"   onclick="setImpMode('rels')">${t('impRels')}</button>
       </div>
       <div class="imp-drop" id="imp-drop" onclick="el('imp-file').click()"
         ondragover="event.preventDefault();this.classList.add('drag')"
@@ -5710,26 +5951,26 @@ function loadImportTab() {
         ondrop="handleImpDrop(event)">
         <input type="file" id="imp-file" accept=".csv" onchange="handleImpFile(this.files[0])">
         <div class="imp-drop-ico">📄</div>
-        <div class="imp-drop-lbl">Click or drag a CSV file here</div>
-        <div class="imp-drop-sub" id="imp-mode-hint">Columns: first, last, dob, dod, gender, occupation, notes</div>
+        <div class="imp-drop-lbl">${t('impDropLabel')}</div>
+        <div class="imp-drop-sub" id="imp-mode-hint">${t('impColsPeople')}</div>
       </div>
       <div id="imp-file-err" style="font-size:12px;color:#e07070;min-height:16px"></div>
     </div>
 
     <div class="imp-step" id="imp-step-2">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:13px;color:var(--ink)"><b id="imp-row-count">0</b> rows ready to import</div>
-        <button class="hbtn" style="padding:6px 12px;font-size:11px" onclick="impReset()">← Back</button>
+        <div style="font-size:13px;color:var(--ink)"><b id="imp-row-count">0</b> ${t('impRowsReady')}</div>
+        <button class="hbtn" style="padding:6px 12px;font-size:11px" onclick="impReset()">${t('impBack')}</button>
       </div>
       <div class="imp-stat" id="imp-stat"></div>
       <div class="imp-preview" id="imp-preview-wrap"></div>
       <div style="font-size:11px;color:var(--ink4);margin-bottom:10px">
-        Duplicate names will be imported as new entries (no merge). Relationships require exact name matches.
+        ${t('impDupNote')}
       </div>
     </div>
 
     <div class="imp-step" id="imp-step-3">
-      <div style="font-size:13px;color:var(--ink);margin-bottom:10px" id="imp-progress-lbl">Importing…</div>
+      <div style="font-size:13px;color:var(--ink);margin-bottom:10px" id="imp-progress-lbl">${t('impImporting')}</div>
       <div class="imp-progress"><div class="imp-progress-bar" id="imp-progress-bar" style="width:0%"></div></div>
       <div style="font-size:11px;color:var(--ink4);margin-top:6px" id="imp-progress-sub"></div>
     </div>
@@ -5737,7 +5978,7 @@ function loadImportTab() {
     <div class="imp-step" id="imp-step-4">
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:40px;margin-bottom:10px" id="imp-done-ico">✅</div>
-        <div style="font-size:16px;color:var(--ink);font-family:'Crimson Pro',serif;margin-bottom:6px" id="imp-done-title">Import complete</div>
+        <div style="font-size:16px;color:var(--ink);font-family:'Crimson Pro',serif;margin-bottom:6px" id="imp-done-title">${t('impComplete')}</div>
         <div style="font-size:12px;color:var(--ink3)" id="imp-done-sub"></div>
       </div>
     </div>`;
@@ -5748,9 +5989,7 @@ function setImpMode(mode) {
   el('imp-btn-people').classList.toggle('on', mode==='people');
   el('imp-btn-rels').classList.toggle('on', mode==='rels');
   const hint = el('imp-mode-hint');
-  if (hint) hint.textContent = mode==='people'
-    ? 'Columns: first, last, dob, dod, gender, occupation, notes'
-    : 'Columns: personA, personB, type  (type = Parent | Partner | Sibling)';
+  if (hint) hint.textContent = mode==='people' ? t('impColsPeople') : t('impColsRels');
 }
 
 function handleImpDrop(e) {
@@ -5763,7 +6002,7 @@ function handleImpDrop(e) {
 function handleImpFile(file) {
   if (!file) return;
   if (!file.name.endsWith('.csv')) {
-    el('imp-file-err').textContent = 'Please upload a .csv file';
+    el('imp-file-err').textContent = t('impErrCsv');
     return;
   }
   const reader = new FileReader();
@@ -5774,7 +6013,7 @@ function handleImpFile(file) {
 function parseImpCSV(text) {
   // Normalise line endings, split rows, trim
   const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
-  if (lines.length < 2) { el('imp-file-err').textContent = 'CSV must have a header row and at least one data row'; return; }
+  if (lines.length < 2) { el('imp-file-err').textContent = t('impErrNeedHeader'); return; }
 
   // Parse header — be lenient about casing and whitespace
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g,''));
@@ -5833,8 +6072,8 @@ function buildImpPreview(rows, errs) {
   el('imp-row-count').textContent = rows.length;
 
   const stat = errs.length
-    ? `<span style="color:#e07070">${errs.length} row(s) skipped — ${escHtml(errs[0])}</span>`
-    : `<span style="color:#5cab6a">All rows parsed cleanly ✓</span>`;
+    ? `<span style="color:#e07070">${errs.length} ${t('impParsedSkipped')} — ${escHtml(errs[0])}</span>`
+    : `<span style="color:#5cab6a">${t('impParsedOk')}</span>`;
   el('imp-stat').innerHTML = stat;
 
   let thead, tbody;
@@ -5956,12 +6195,12 @@ async function runImport() {
   // Done
   showImpStep(4);
   el('imp-done-ico').textContent  = failed===0 ? '✅' : '⚠️';
-  el('imp-done-title').textContent = failed===0 ? 'Import complete' : 'Import finished with errors';
-  el('imp-done-sub').textContent  = `${done} ${_impMode==='people'?'people':'relationships'} imported`
-    + (failed ? `, ${failed} skipped (name not found or write error)` : '');
+  el('imp-done-title').textContent = failed===0 ? t('impComplete') : t('impWithErrors');
+  el('imp-done-sub').textContent  = `${done} ${_impMode==='people'?t('impPeople2'):t('impRelationships2')} imported`
+    + (failed ? `, ${failed} ${t('impSkipped')}` : '');
   el('amo-ft').innerHTML = `
-    <button class="hbtn" onclick="loadImportTab()">Import More</button>
-    <button class="hbtn primary" onclick="closeAMo()">Done</button>`;
+    <button class="hbtn" onclick="loadImportTab()">${t('impImportMore')}</button>
+    <button class="hbtn primary" onclick="closeAMo()" data-i18n="done">Done</button>`;
 
   if (done > 0) setTimeout(()=>render(), 400);
 }
@@ -6022,27 +6261,27 @@ function loadSettingsTab() {
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   const isArchived = CU && CU.archived;
   el('amo-bd').innerHTML = `
-    <div class="sec-t">Family Tree Status</div>
+    <div class="sec-t">${t('settFamilyStatus')}</div>
     <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <span style="font-size:20px">${isArchived ? '📦' : '🌳'}</span>
         <div>
-          <div style="font-size:13px;color:var(--ink);font-weight:500">${isArchived ? 'Archived' : 'Active'}</div>
-          <div style="font-size:11px;color:var(--ink3)">${isArchived ? 'Read-only — no edits allowed' : 'Fully editable by authorised members'}</div>
+          <div style="font-size:13px;color:var(--ink);font-weight:500">${isArchived ? t('settArchived2') : t('settActive')}</div>
+          <div style="font-size:11px;color:var(--ink3)">${isArchived ? t('settArchivedDesc') : t('settActiveDesc')}</div>
         </div>
       </div>
       ${isArchived
-        ? `<button class="hbtn" style="width:100%" onclick="unarchiveFamily()">↩ Restore Family (allow editing)</button>`
-        : `<button class="hbtn" style="width:100%;border-color:var(--copper);color:var(--copper)" onclick="archiveFamily()">📦 Archive this Family Tree</button>`
+        ? `<button class="hbtn" style="width:100%" onclick="unarchiveFamily()">${t('settRestoreBtn')}</button>`
+        : `<button class="hbtn" style="width:100%;border-color:var(--copper);color:var(--copper)" onclick="archiveFamily()">${t('settArchiveBtn')}</button>`
       }
     </div>
 
-    <div class="sec-t" style="color:var(--rose)">Danger Zone</div>
+    <div class="sec-t" style="color:var(--rose)">${t('settDangerZone')}</div>
     <div style="background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);border-radius:var(--r);padding:14px">
       <div style="font-size:12px;color:var(--ink3);line-height:1.7;margin-bottom:12px">
-        Permanently delete this entire family tree — all people, relationships, members and history. This cannot be undone.
+        ${t('settDeleteDesc')}
       </div>
-      <button class="hbtn" style="width:100%;background:var(--rose);color:white;border-color:var(--rose)" onclick="deleteFamily()">🗑 Delete Entire Family Tree</button>
+      <button class="hbtn" style="width:100%;background:var(--rose);color:white;border-color:var(--rose)" onclick="deleteFamily()">${t('settDeleteBtn')}</button>
     </div>
     <div style="margin-top:12px;text-align:center">
       <button onclick="openPrivacyMo('notice')" style="background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit">Privacy &amp; Data Policy</button>
@@ -6398,8 +6637,8 @@ function openRelFinderMo(preIdA) {
   document.getElementById('rfi-results').innerHTML = `
     <div class="rfi-state">
       <div class="rfi-state-ico">🌳</div>
-      <div class="rfi-state-t">Select two family members</div>
-      <div class="rfi-state-s">Choose Person A and Person B, then tap "Find Connection".</div>
+      <div class="rfi-state-t">${t('rfiSelectTwo')}</div>
+      <div class="rfi-state-s">${t('rfiSelectHint')}</div>
     </div>`;
   document.getElementById('rel-finder-mo').classList.add('on');
 
@@ -6580,7 +6819,7 @@ function bfsPath(startId, endId) {
 //   'up'   on step N → step N node is the PARENT of step N-1 node
 //   'down' on step N → step N node is the CHILD  of step N-1 node
 function describeRelationship(path, pidA, pidB) {
-  if (!path || path.length < 2) return { label: 'Same person', degree: '' };
+  if (!path || path.length < 2) return { label: t('relSamePerson'), degree: '' };
 
   const genderB = (_rfiPeopleCache[pidB] || {}).gender || '';
   const isFem = genderB === 'Female';
@@ -6591,15 +6830,15 @@ function describeRelationship(path, pidA, pidB) {
 
   // ── Partner (1-hop) ──────────────────────────────────────────────
   if (steps.length === 1 && steps[0] === 'partner') {
-    return { label: isFem ? 'Wife / Partner' : isMal ? 'Husband / Partner' : 'Spouse / Partner', degree: '1 step away' };
+    return { label: isFem ? t('relWifePartner') : isMal ? t('relHusbandPartner') : t('relSpousePartner'), degree: `1 ${t('relStepAway')}` };
   }
 
   // ── Sibling (direct rel or 2-hop via shared parent) ──────────────
   if (steps.length === 1 && steps[0] === 'sibling') {
-    return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '1 step away' };
+    return { label: isFem ? t('relSister') : isMal ? t('relBrother') : t('relSibling'), degree: `1 ${t('relStepAway')}` };
   }
   if (steps.length === 2 && steps[0] === 'up' && steps[1] === 'down') {
-    return { label: isFem ? 'Sister' : isMal ? 'Brother' : 'Sibling', degree: '2 steps away' };
+    return { label: isFem ? t('relSister') : isMal ? t('relBrother') : t('relSibling'), degree: `2 ${t('relStepsAway')}` };
   }
 
   // ── Count directional steps ───────────────────────────────────────
@@ -6613,35 +6852,35 @@ function describeRelationship(path, pidA, pidB) {
 
   // ── Direct ancestor ───────────────────────────────────────────────
   if (up > 0 && down === 0 && partnerHops === 0 && sibHops === 0) {
-    if (up === 1) return { label: isFem ? 'Mother'            : isMal ? 'Father'            : 'Parent',      degree: '1 generation up' };
-    if (up === 2) return { label: isFem ? 'Grandmother'       : isMal ? 'Grandfather'       : 'Grandparent', degree: '2 generations up' };
-    if (up === 3) return { label: isFem ? 'Great-Grandmother' : isMal ? 'Great-Grandfather' : 'Great-Grandparent', degree: '3 generations up' };
-    return { label: `${ordinal(up-1)} Great-${isFem?'Grandmother':isMal?'Grandfather':'Grandparent'}`, degree: `${up} generations up` };
+    if (up === 1) return { label: isFem ? t('relMother')            : isMal ? t('relFather')            : t('relParent'),           degree: `1 ${t('relGenUp')}` };
+    if (up === 2) return { label: isFem ? t('relGrandmother')       : isMal ? t('relGrandfather')       : t('relGrandparent'),      degree: `2 ${t('relGensUp')}` };
+    if (up === 3) return { label: isFem ? t('relGreatGrandmother')  : isMal ? t('relGreatGrandfather')  : t('relGreatGrandparent'), degree: `3 ${t('relGensUp')}` };
+    return { label: `${ordinal(up-1)} Great-${isFem?t('relGrandmother'):isMal?t('relGrandfather'):t('relGrandparent')}`, degree: `${up} ${t('relGensUp')}` };
   }
 
   // ── Direct descendant ─────────────────────────────────────────────
   if (down > 0 && up === 0 && partnerHops === 0 && sibHops === 0) {
-    if (down === 1) return { label: isFem ? 'Daughter'            : isMal ? 'Son'            : 'Child',      degree: '1 generation down' };
-    if (down === 2) return { label: isFem ? 'Granddaughter'       : isMal ? 'Grandson'       : 'Grandchild', degree: '2 generations down' };
-    if (down === 3) return { label: isFem ? 'Great-Granddaughter' : isMal ? 'Great-Grandson' : 'Great-Grandchild', degree: '3 generations down' };
-    return { label: `${ordinal(down-1)} Great-${isFem?'Granddaughter':isMal?'Grandson':'Grandchild'}`, degree: `${down} generations down` };
+    if (down === 1) return { label: isFem ? t('relDaughter')            : isMal ? t('relSon')            : t('relChild'),           degree: `1 ${t('relGenDown')}` };
+    if (down === 2) return { label: isFem ? t('relGranddaughter')       : isMal ? t('relGrandson')       : t('relGrandchild'),      degree: `2 ${t('relGensDown')}` };
+    if (down === 3) return { label: isFem ? t('relGreatGranddaughter')  : isMal ? t('relGreatGrandson')  : t('relGreatGrandchild'), degree: `3 ${t('relGensDown')}` };
+    return { label: `${ordinal(down-1)} Great-${isFem?t('relGranddaughter'):isMal?t('relGrandson'):t('relGrandchild')}`, degree: `${down} ${t('relGensDown')}` };
   }
 
   // ── Aunt / Uncle ──────────────────────────────────────────────────
   if (up === 2 && down === 1 && partnerHops === 0) {
-    return { label: isFem ? 'Aunt'  : isMal ? 'Uncle'  : 'Aunt/Uncle',    degree: `${steps.length} steps away` };
+    return { label: isFem ? t('relAunt')  : isMal ? t('relUncle')  : t('relAuntUncle'),    degree: `${steps.length} ${t('relStepsAway')}` };
   }
   // ── Niece / Nephew ────────────────────────────────────────────────
   if (up === 1 && down === 2 && partnerHops === 0) {
-    return { label: isFem ? 'Niece' : isMal ? 'Nephew' : 'Niece/Nephew',  degree: `${steps.length} steps away` };
+    return { label: isFem ? t('relNiece') : isMal ? t('relNephew') : t('relNieceNephew'),  degree: `${steps.length} ${t('relStepsAway')}` };
   }
 
   // ── Great Aunt / Uncle ────────────────────────────────────────────
   if (up === 3 && down === 1 && partnerHops === 0) {
-    return { label: isFem ? 'Great-Aunt'  : isMal ? 'Great-Uncle'  : 'Great-Aunt/Uncle',   degree: `${steps.length} steps` };
+    return { label: isFem ? t('relGreatAunt')  : isMal ? t('relGreatUncle')  : t('relGreatAuntUncle'),   degree: `${steps.length} ${t('relStepsAway')}` };
   }
   if (up === 1 && down === 3 && partnerHops === 0) {
-    return { label: isFem ? 'Grand-Niece' : isMal ? 'Grand-Nephew' : 'Grand-Niece/Nephew', degree: `${steps.length} steps` };
+    return { label: isFem ? t('relGrandNiece') : isMal ? t('relGrandNephew') : t('relGrandNieceNephew'), degree: `${steps.length} ${t('relStepsAway')}` };
   }
 
   // ── Cousins ───────────────────────────────────────────────────────
@@ -6650,14 +6889,12 @@ function describeRelationship(path, pidA, pidB) {
     const removal = Math.abs(up - down);
     let label;
     if (removal === 0) {
-      label = cousinDegree <= 3
-        ? `${ordinal(cousinDegree)} Cousin`
-        : `${ordinal(cousinDegree)} Cousin`;
+      label = `${ordinal(cousinDegree)} ${t('relCousin')}`;
     } else {
-      const rem = removal === 1 ? 'once' : removal === 2 ? 'twice' : `${removal}× removed`;
-      label = `${ordinal(cousinDegree)} Cousin ${rem} removed`;
+      const rem = removal === 1 ? t('relCousinOnce') : removal === 2 ? t('relCousinTwice') : `${removal}× ${t('relCousinRemoved')}`;
+      label = `${ordinal(cousinDegree)} ${t('relCousin')} ${rem} ${t('relCousinRemoved')}`;
     }
-    return { label, degree: `${up} up, ${down} down` };
+    return { label, degree: `${up} ${t('relUpDown')}, ${down} ${t('relDn')}` };
   }
 
   // ── In-law relationships (exactly one partner hop) ────────────────
@@ -6673,14 +6910,14 @@ function describeRelationship(path, pidA, pidB) {
 
     // Parent-in-law: go to partner then up 1
     if (upBefore === 0 && downBefore === 0 && upAfter === 1 && downAfter === 0) {
-      return { label: isFem ? 'Mother-in-law' : isMal ? 'Father-in-law' : 'Parent-in-law', degree: 'via partner' };
+      return { label: isFem ? t('relMotherInLaw') : isMal ? t('relFatherInLaw') : t('relParentInLaw'), degree: t('relViaPartner') };
     }
     // Child-in-law: go up to child's partner (i.e. down 1 then partner, or partner then down)
     if (upBefore === 0 && downBefore === 1 && upAfter === 0 && downAfter === 0) {
-      return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
+      return { label: isFem ? t('relDaughterInLaw') : isMal ? t('relSonInLaw') : t('relChildInLaw'), degree: t('relViaPartner') };
     }
     if (upBefore === 0 && downBefore === 0 && upAfter === 0 && downAfter === 1) {
-      return { label: isFem ? 'Daughter-in-law' : isMal ? 'Son-in-law' : 'Child-in-law', degree: 'via partner' };
+      return { label: isFem ? t('relDaughterInLaw') : isMal ? t('relSonInLaw') : t('relChildInLaw'), degree: t('relViaPartner') };
     }
     // Sibling-in-law: partner then up+down (partner's sibling) OR sibling's partner
     const hasSibPattern =
@@ -6688,22 +6925,27 @@ function describeRelationship(path, pidA, pidB) {
       (stepsBeforePartner.length === 2 && upBefore === 1 && downBefore === 1) ||
       stepsBeforePartner.includes('sibling') || stepsAfterPartner.includes('sibling');
     if (hasSibPattern) {
-      return { label: isFem ? 'Sister-in-law' : isMal ? 'Brother-in-law' : 'Sibling-in-law', degree: 'via partner' };
+      return { label: isFem ? t('relSisterInLaw') : isMal ? t('relBrotherInLaw') : t('relSiblingInLaw'), degree: t('relViaPartner') };
     }
-    return { label: 'Relative by marriage', degree: `${steps.length} steps via partner` };
+    return { label: t('relRelByMarriage'), degree: `${steps.length} ${t('relStepsAway')} ${t('relViaPartner')}` };
   }
 
   // ── Fallback ──────────────────────────────────────────────────────
   return {
-    label: 'Distant Relative',
-    degree: `${steps.length} step${steps.length !== 1 ? 's' : ''} apart (${up} up, ${down} down)`
+    label: t('relDistant'),
+    degree: `${steps.length} ${steps.length !== 1 ? t('relStepsAway') : t('relStepAway')} ${t('relApart')} (${up} ${t('relUpDown')}, ${down} ${t('relDn')})`
   };
 }
 
 function ordinal(n) {
-  const s = ['th','st','nd','rd'];
+  // Use translated ordinal suffixes so "2nd Cousin" renders in the active language
+  const enS = ['th','st','nd','rd'];
   const v = n % 100;
-  return n + (s[(v-20)%10] || s[v] || s[0]);
+  const enSuffix = enS[(v-20)%10] || enS[v] || enS[0];
+  // Map en suffix → STRINGS key
+  const keyMap = { st:'ordSt', nd:'ordNd', rd:'ordRd', th:'ordTh' };
+  const translated = t(keyMap[enSuffix] || 'ordTh');
+  return n + translated;
 }
 
 // ══ Connector label for each step ════════════════════════════════════════════
@@ -6718,15 +6960,15 @@ function stepLabel(currentPid, nextDirection) {
 
   if (nextDirection === 'down') {
     // We are about to step down: current node is the parent
-    return isFem ? 'mother of' : isMal ? 'father of' : 'parent of';
+    return isFem ? t('rfiConnDown_f') : isMal ? t('rfiConnDown_m') : t('rfiConnDown_n');
   }
   if (nextDirection === 'up') {
     // We are about to step up: current node is the child
-    return isFem ? 'daughter of' : isMal ? 'son of' : 'child of';
+    return isFem ? t('rfiConnUp_f') : isMal ? t('rfiConnUp_m') : t('rfiConnUp_n');
   }
-  if (nextDirection === 'partner') return 'partner of';
-  if (nextDirection === 'sibling') return 'sibling of';
-  return 'related to';
+  if (nextDirection === 'partner') return t('rfiConnPartner');
+  if (nextDirection === 'sibling') return t('rfiConnSibling');
+  return t('rfiConnRel');
 }
 
 // ══ Main find function ════════════════════════════════════════════════════════
@@ -6735,8 +6977,8 @@ async function runRelFinder() {
   if (_rfiA.pid === _rfiB.pid) {
     document.getElementById('rfi-results').innerHTML = `
       <div class="rfi-state"><div class="rfi-state-ico">🤔</div>
-        <div class="rfi-state-t">Same person selected</div>
-        <div class="rfi-state-s">Please choose two different people.</div></div>`;
+        <div class="rfi-state-t">${t('rfiSamePerson')}</div>
+        <div class="rfi-state-s">${t('rfiSameHint')}</div></div>`;
     return;
   }
 
@@ -6744,7 +6986,7 @@ async function runRelFinder() {
   document.getElementById('rfi-results').innerHTML = `
     <div class="rfi-state">
       <div class="rfi-state-ico"><span class="rfi-spin">⏳</span></div>
-      <div class="rfi-state-t">Searching connections…</div>
+      <div class="rfi-state-t">${t('rfiSearching')}</div>
     </div>`;
 
   // If the background rels fetch hasn't finished yet, wait for it.
@@ -6762,10 +7004,9 @@ async function runRelFinder() {
     document.getElementById('rfi-results').innerHTML = `
       <div class="rfi-no-path">
         <div class="rfi-no-path-ico">🔍</div>
-        <div class="rfi-no-path-t">No connection found</div>
+        <div class="rfi-no-path-t">${t('rfiNoPath')}</div>
         <div class="rfi-no-path-s">
-          ${escHtml(_rfiA.name)} and ${escHtml(_rfiB.name)} don't appear to be connected in this family tree.
-          They may belong to separate branches with no linking relationships recorded.
+          ${escHtml(_rfiA.name)} ${t('rfiAnd')} ${escHtml(_rfiB.name)} ${t('rfiNoPathNote')}
         </div>
       </div>`;
     return;
@@ -6795,16 +7036,16 @@ async function runRelFinder() {
 
   // ── Render ────────────────────────────────────────────────────────
   const inverseNote = (inverseRel && inverseRel.label !== rel.label)
-    ? `<div style="font-size:11px;color:var(--ink4);margin-top:6px;font-style:italic">↔ ${escHtml(_rfiA.name)} is ${escHtml(_rfiB.name)}'s ${escHtml(inverseRel.label)}</div>`
+    ? `<div style="font-size:11px;color:var(--ink4);margin-top:6px;font-style:italic">↔ ${escHtml(_rfiA.name)} ${t('rfiIs')||'is'} ${escHtml(_rfiB.name)}'s ${escHtml(inverseRel.label)}</div>`
     : '';
 
   let html = `
     <div class="rfi-rel-banner">
-      <div class="rfi-rel-label">${escHtml(_rfiB.name)} is ${escHtml(_rfiA.name)}'s<br><span style="font-size:28px">${escHtml(rel.label)}</span></div>
-      <div class="rfi-rel-degree">${escHtml(rel.degree)} · ${pathAB.length - 1} step${pathAB.length - 1 !== 1 ? 's' : ''} between them</div>
+      <div class="rfi-rel-label">${escHtml(_rfiB.name)} ${t('rfiAnd')} ${escHtml(_rfiA.name)}'s<br><span style="font-size:28px">${escHtml(rel.label)}</span></div>
+      <div class="rfi-rel-degree">${escHtml(rel.degree)} · ${pathAB.length - 1} ${pathAB.length - 1 !== 1 ? t('relStepsAway') : t('relStepAway')}</div>
       ${inverseNote}
     </div>
-    <div class="rfi-path-title">Connection path (${pathAB.length} ${pathAB.length === 1 ? 'person' : 'people'})</div>
+    <div class="rfi-path-title">${t('rfiPathTitle')} (${pathAB.length} ${pathAB.length === 1 ? t('personSingular') || 'person' : t('personPlural') || 'people'})</div>
     <div class="rfi-path-chain">`;
 
   pathAB.forEach((step, i) => {
@@ -6829,8 +7070,8 @@ async function runRelFinder() {
         <div class="rfi-node-info">
           <div class="rfi-node-name">
             ${escHtml(fullName(p) || step.pid)}
-            ${isA ? '<span class="rfi-node-you">Person A</span>' : ''}
-            ${isB ? '<span class="rfi-node-you">Person B</span>' : ''}
+            ${isA ? `<span class="rfi-node-you">${t('rfiPersonA')}</span>` : ''}
+            ${isB ? `<span class="rfi-node-you">${t('rfiPersonB')}</span>` : ''}
           </div>
           ${lifeStr ? `<div class="rfi-node-meta">${escHtml(lifeStr)}</div>` : ''}
         </div>
@@ -6845,7 +7086,7 @@ async function runRelFinder() {
       html += `
         <div class="rfi-connector">
           <div class="rfi-conn-line"></div>
-          <div class="rfi-conn-label">${escHtml(fullName(p) || step.pid)} is ${connLabel} ↓</div>
+          <div class="rfi-conn-label">${escHtml(fullName(p) || step.pid)} ${t('rfiIs')||'is'} ${connLabel} ↓</div>
         </div>`;
     }
   });

@@ -115,6 +115,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #ob-key-banner{background:rgba(92,171,106,.08);border:1px solid rgba(92,171,106,.3);
   border-radius:8px;padding:12px 14px;margin:0 0 12px;font-size:12px;
   color:var(--ink3);line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+/* Birthday reminder banner */
+#bday-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:linear-gradient(135deg,rgba(139,90,40,.25),rgba(200,137,58,.15));
+  border-bottom:1px solid rgba(200,137,58,.3);font-size:13px;color:var(--parch)}
+#bday-banner-desktop{display:flex;align-items:center;gap:10px;padding:8px 16px;
+  background:linear-gradient(90deg,rgba(139,90,40,.3),rgba(200,137,58,.15));
+  border-bottom:1px solid rgba(200,137,58,.35);font-size:13px;color:var(--parch);
+  position:relative;z-index:10}
+#bday-banner.hide,#bday-banner-desktop.hide{display:none}
+.bday-ico{font-size:18px;flex-shrink:0}
+.bday-x{margin-left:auto;background:none;border:none;color:var(--ink4);
+  cursor:pointer;font-size:16px;padding:0 2px;line-height:1}
+.bday-x:hover{color:var(--copper)}
+
 #ob-key-banner.hide{display:none}
 #ob-key-banner .ob-key-ico{font-size:20px;line-height:1;flex-shrink:0}
 #ob-key-banner .ob-key-x{background:none;border:none;color:var(--ink4);
@@ -181,6 +195,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #srch-drop.on{display:block}
 .sd-row{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(74,46,16,.4);
   color:var(--parch);font-size:13px}
+.sd-empty{padding:10px 12px;color:var(--ink4);font-size:13px;font-style:italic;text-align:center}
 .sd-row:hover{background:var(--soil)}
 .sd-row small{display:block;color:var(--copper);font-size:10px;margin-top:2px}
 /* ── Mobile drawer: compact right-panel card, not full-width ── */
@@ -836,6 +851,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   display:none;max-height:200px;overflow-y:auto;
   box-shadow:0 4px 16px var(--shadow)}
 #mob-srch-drop.on{display:block}
+#mob-sort-bar{display:flex;gap:6px;padding:6px 12px 2px;flex-wrap:wrap}
+.mob-sort-btn{padding:3px 10px;font-size:11px;font-weight:500;border-radius:12px;background:var(--soil);border:1px solid rgba(200,137,58,.25);color:var(--ink3);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.mob-sort-btn.on{background:var(--gold);color:#1a1008;border-color:var(--gold)}
 #mob-gen-filters{
   display:flex;gap:6px;padding:8px 12px;
   overflow-x:auto;scrollbar-width:none;
@@ -1325,6 +1343,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
 <!-- APP -->
 <div id="app">
+  <!-- Birthday reminder banner (desktop) -->
+  <div id="bday-banner-desktop" class="hide">
+    <span class="bday-ico">🎂</span>
+    <span id="bday-text-desktop"></span>
+    <button class="bday-x" onclick="dismissBdayBanner()" title="Dismiss">✕</button>
+  </div>
   <div id="hdr">
     <div id="hdr-row">
       <div class="app-logo" onclick="openFamilySwitcher()" title="Switch family">Parampara</div>
@@ -1486,6 +1510,17 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <input id="mob-srch" type="text" placeholder="Search people…" autocomplete="off">
         <div id="mob-srch-drop"></div>
       </div>
+    </div>
+    <div id="mob-sort-bar">
+      <button class="mob-sort-btn on" data-sort="name" onclick="setMobSort('name')" data-i18n="sortName">A–Z</button>
+      <button class="mob-sort-btn" data-sort="dob_asc" onclick="setMobSort('dob_asc')" data-i18n="sortDobOldest">Oldest first</button>
+      <button class="mob-sort-btn" data-sort="dob_desc" onclick="setMobSort('dob_desc')" data-i18n="sortDobYoungest">Youngest first</button>
+    </div>
+    <!-- Birthday reminder banner -->
+    <div id="bday-banner" class="hide">
+      <span class="bday-ico">🎂</span>
+      <span id="bday-text"></span>
+      <button class="bday-x" onclick="dismissBdayBanner()" title="Dismiss">✕</button>
     </div>
     <!-- Key-sharing hint for new admins — shown after first person added -->
     <div id="ob-key-banner" class="hide">
@@ -2180,6 +2215,8 @@ const STRINGS = {
     accountPrivacy:'Account & Privacy',
     myView:'My View',
     admTabMembers:'👥 Members', admTabImport:'📥 Import', admTabSettings:'⚙️ Settings',
+    searchNoResults:'No results found', sortName:'A–Z', sortDobOldest:'Oldest first', sortDobYoungest:'Youngest first',
+    bdayToday:'{name} turns {age} today! 🎂', bdayTomorrow:'{name} turns {age} tomorrow 🎂', bdaySoon:'{name} turns {age} in {days} days 🎂', bdayMultiToday:'🎂 Today\'s birthdays: {names}', bdayMulti:'🎂 Upcoming: {names} in {days}+ days', someone:'Someone',
     obGotIt:"Got it, don't show again",
     rfiIs:'is', personSingular:'person', personPlural:'people',
     onlyOneFamily:'You are only a member of one family tree',
@@ -2318,6 +2355,8 @@ const STRINGS = {
     accountPrivacy:'கணக்கு & தனியுரிமை',
     myView:'என் காட்சி',
     admTabMembers:'👥 உறுப்பினர்கள்', admTabImport:'📥 இறக்குமதி', admTabSettings:'⚙️ அமைப்புகள்',
+    searchNoResults:'முடிவுகள் இல்லை', sortName:'அ–ஆ', sortDobOldest:'மூத்தவர் முதல்', sortDobYoungest:'இளையவர் முதல்',
+    bdayToday:'{name} இன்று {age} வயது! 🎂', bdayTomorrow:'{name} நாளை {age} வயது 🎂', bdaySoon:'{name} {days} நாளில் {age} வயது 🎂', bdayMultiToday:'🎂 இன்று பிறந்தநாள்: {names}', bdayMulti:'🎂 வரும் பிறந்தநாள்கள்: {names} {days}+ நாளில்', someone:'யாரோ',
     obGotIt:'புரிந்தது, மீண்டும் காட்டாதே',
     rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
     onlyOneFamily:'நீங்கள் ஒரே ஒரு குடும்ப மரத்தில் மட்டுமே உறுப்பினர்',
@@ -2456,6 +2495,8 @@ const STRINGS = {
     accountPrivacy:'അക്കൗണ്ട് & സ്വകാര്യത',
     myView:'എന്റെ കാഴ്ച',
     admTabMembers:'👥 അംഗങ്ങൾ', admTabImport:'📥 ഇറക്കുമതി', admTabSettings:'⚙️ ക്രമീകരണങ്ങൾ',
+    searchNoResults:'ഫലങ്ങൾ ഇല്ല', sortName:'അ–ആ', sortDobOldest:'പ്രായം കൂടിയവർ ആദ്യം', sortDobYoungest:'പ്രായം കുറഞ്ഞവർ ആദ്യം',
+    bdayToday:'{name} ഇന്ന് {age} വയസ്സ് ആകുന്നു! 🎂', bdayTomorrow:'{name} നാളെ {age} വയസ്സ് ആകുന്നു 🎂', bdaySoon:'{name} {days} ദിവസത്തിൽ {age} വയസ്സ് ആകുന്നു 🎂', bdayMultiToday:'🎂 ഇന്നത്തെ ജന്മദിനങ്ങൾ: {names}', bdayMulti:'🎂 വരുന്ന ജന്മദിനങ്ങൾ: {names} {days}+ ദിവസത്തിൽ', someone:'ആരോ',
     obGotIt:'മനസ്സിലായി, വീണ്ടും കാണിക്കേണ്ട',
     rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
     onlyOneFamily:'നിങ്ങൾ ഒരു കുടുംബ ട്രീയിൽ മാത്രം അംഗമാണ്',
@@ -2968,7 +3009,7 @@ function famPickerRow(f) {
         <div class="fam-meta">${escHtml(f.first||'')} ${escHtml(f.last||'')}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <span class="role-badge rb-${f.role||'pending'}">${f.role||'pending'}</span>
+        <span class="role-badge rb-${ALL_ROLES.includes(f.role)?f.role:'pending'}">${ALL_ROLES.includes(f.role)?f.role:'pending'}</span>
         ${f.archived?'<span class="fam-archived-badge">Archived</span>':''}
       </div>
     </div>`;
@@ -3472,10 +3513,29 @@ function updatePermUI() {
 
 // ══ REAL-TIME SYNC ═════════════════════════════════════════════════════
 let _syncReady = { people: false, rels: false };
-let _renderTimer = null;
+let _renderTimer = null;       // legacy — kept for timeout fallback
+let _rafPending  = false;       // rAF request in flight
+let _renderDirty = false;       // true when DB changed since last render
+let _prevDBHash  = '';          // lightweight hash to skip no-op renders
 function scheduleRender() {
-  if (_renderTimer) clearTimeout(_renderTimer);
-  _renderTimer = setTimeout(() => { _renderTimer = null; render(); }, 50);
+  _renderDirty = true;
+  // Prefer requestAnimationFrame for smooth, frame-aligned renders.
+  // Fall back to setTimeout on environments without rAF (e.g. Node test runner).
+  if (typeof requestAnimationFrame === 'function') {
+    if (!_rafPending) {
+      _rafPending = true;
+      requestAnimationFrame(() => {
+        _rafPending = false;
+        if (_renderDirty) { _renderDirty = false; render(); }
+      });
+    }
+    // Clear any legacy timer if rAF takes over
+    if (_renderTimer) { clearTimeout(_renderTimer); _renderTimer = null; }
+  } else {
+    // Node/test fallback — use setTimeout debounce as before
+    if (_renderTimer) clearTimeout(_renderTimer);
+    _renderTimer = setTimeout(() => { _renderTimer = null; _renderDirty = false; render(); }, 50);
+  }
 }
 
 // Full tree mode: stream everything.
@@ -3527,6 +3587,7 @@ async function startSync() {
     if (_syncReady.people && _syncReady.rels) {
       setSyncStatus('ok', 'Synced ✓');
       saveSnapshot(); // persist to IDB for offline use
+      checkBirthdayReminders(); // show upcoming birthdays once per day
     }
   });
 }
@@ -3930,7 +3991,8 @@ async function loadMembers() {
 function memberRow(m, isPending, isRevoked = false) {
   const ini = ((m.first||m.email||'?')[0] + (m.last||'')[0]).toUpperCase();
   const isSelf = m.uid === fbUser.uid;
-  const rb = `<span class="role-badge rb-${m.role||'pending'}">${m.role||'pending'}</span>`;
+  const safeRole = ALL_ROLES.includes(m.role) ? m.role : 'pending';
+  const rb = `<span class="role-badge rb-${safeRole}">${safeRole}</span>`;
   let acts = '';
   if (isPending) {
     acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.uid}','editor')">✓ Approve</button>
@@ -4167,12 +4229,28 @@ async function buildSearchCache() {
 
 function searchCacheQuery(q) {
   if (!q) return [];
-  const lq = q.toLowerCase();
+  const lq = q.toLowerCase().trim();
   const results = [];
   searchCache.forEach((p, pid) => {
-    const name = (p.first + ' ' + p.last).toLowerCase();
-    if (name.includes(lq)) results.push({ pid, ...p });
+    const first = (p.first || '').toLowerCase();
+    const last  = (p.last  || '').toLowerCase();
+    const full  = (first + ' ' + last).trimStart();
+    const dob   = (p.dob  || '');
+    let score = 0;
+    if (full === lq)               score = 100;        // exact full name
+    else if (first === lq)         score = 90;         // exact first name
+    else if (last  === lq)         score = 85;         // exact last name
+    else if (first.startsWith(lq)) score = 80;         // prefix of first name
+    else if (last.startsWith(lq))  score = 70;         // prefix of last name
+    else if (full.startsWith(lq))  score = 75;         // prefix of full name
+    else if (first.includes(lq))   score = 50;         // first name contains
+    else if (last.includes(lq))    score = 40;         // last name contains
+    else if (full.includes(lq))    score = 20;         // anywhere in name
+    // DOB year bonus — useful when searching "1975" or "75"
+    if (score > 0 && dob && dob.includes(lq)) score += 10;
+    if (score > 0) results.push({ pid, score, ...p });
   });
+  results.sort((a, b) => b.score - a.score);
   return results.slice(0, 10);
 }
 
@@ -4595,7 +4673,7 @@ function renderLinkPicker(people) {
   el('link-picker-list').innerHTML = people.length
     ? people.map(p => `
         <div class="link-row" onclick="confirmLink('${p.pid}')">
-          <div class="link-row-av">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>
+          <div class="link-row-av">${escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase())}</div>
           <div>
             <div class="link-row-name">${escHtml(fullName(p))}</div>
             <div class="link-row-meta">${escHtml(lifeSpan(p)||p.occupation||p.gender||'')}</div>
@@ -4680,7 +4758,20 @@ function getGen(id, memo={}, visiting=new Set()){
 let _cycleDetectedInRender = false;
 let _cycleWarnTimer = null;
 
+// Lightweight hash of DB state for dirty-checking — avoids full re-render
+// when scheduleRender() is called but nothing actually changed (e.g. duplicate
+// Firebase onValue events delivering the same snapshot).
+function _dbHash() {
+  const pk = Object.keys(DB.people).sort().join(',');
+  const rk = Object.keys(DB.rels).sort().join(',');
+  return pk + '|' + rk;
+}
+
 function render(){
+  // Skip render entirely if DB hasn't changed since last run
+  const h = _dbHash();
+  if (h === _prevDBHash) return;
+  _prevDBHash = h;
   const ids=Object.keys(DB.people);
   el('empty').classList.toggle('hide',ids.length>0);
   _syncOnboardingBanner(ids.length);
@@ -4746,7 +4837,7 @@ function renderCard(id,gen){
   card.style.left=(p.x||0)+'px'; card.style.top=(p.y||0)+'px';
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'">`
-    :((p.first||'?')[0]+(p.last||'')[0]).toUpperCase();
+    :escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase());
   // "you" badge: always tied to the user's own linked profile (egoId), not the pivot
   const isMe = fbUser && (p.linkedUid === fbUser.uid || id === egoId);
   // Badge: count neighbours not yet visible on canvas.
@@ -4926,7 +5017,7 @@ function closePanel(){
   el('pan-sub').textContent=(p.dod?'✦ '+t('deceased'):'◉ '+t('living'))+(p.gender?` · ${p.gender==='Male'?t('gMale'):p.gender==='Female'?t('gFemale'):t('gOther')}`:'');
   const avCls=p.gender==='Female'?'av-f':p.gender==='Male'?'av-m':'av-o';
   const av=p.photo?`<div class="pf-av"><img src="${escHtml(p.photo)}" alt=""></div>`
-    :`<div class="pf-av ${avCls}" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
+    :`<div class="pf-av ${avCls}" style="font-size:26px">${escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase())}</div>`;
 
   const rows=[
     ['📅',t('pDob'),p.dob],['✝',t('pDod'),p.dod],
@@ -5593,7 +5684,10 @@ function setupSearch(inputId,dropId){
     const q=si.value.toLowerCase().trim();
     if(!q){sd.classList.remove('on');return;}
     const hits = searchCacheQuery(q);
-    if(!hits.length){sd.classList.remove('on');return;}
+    if(!hits.length){
+      sd.innerHTML=`<div class="sd-empty">${escHtml(t('searchNoResults'))}</div>`;
+      sd.classList.add('on'); return;
+    }
     sd.innerHTML=hits.map(h=>{
       const loaded = DB.people[h.pid];
       const detail = loaded ? escHtml(lifeSpan(loaded)||loaded.occupation||'') : escHtml(h.dob||h.gender||'');
@@ -6012,6 +6106,106 @@ function _rlReset(key) { delete _rl[key]; }
 //  para_ob       = 'done'  — admin first-entry banner dismissed
 //  para_ob_key   = 'done'  — key-sharing hint dismissed
 //
+
+// ── Birthday reminders ───────────────────────────────────────────────
+// Computes upcoming birthdays in the next BDAY_WINDOW days.
+// Shows once per day per family (localStorage key: bday_dismissed_<famKey>_<date>).
+const BDAY_WINDOW = 7; // days ahead to look
+
+function _getUpcomingBirthdays() {
+  const today = new Date();
+  const todayMD = `${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const upcoming = [];
+
+  Object.values(DB.people).forEach(p => {
+    if (!p.dob || p.deleted) return;
+    // DOB format: YYYY-MM-DD — extract MM-DD
+    const parts = p.dob.split('-');
+    if (parts.length < 3) return;
+    const personMD = `${parts[1]}-${parts[2]}`;
+
+    // Build a Date for this person's birthday THIS calendar year
+    let bdayThisYear = new Date(today.getFullYear(), parseInt(parts[1])-1, parseInt(parts[2]));
+    // If their birthday already passed this year, look at next year
+    if (bdayThisYear < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+      bdayThisYear = new Date(today.getFullYear()+1, parseInt(parts[1])-1, parseInt(parts[2]));
+    }
+
+    const diffMs   = bdayThisYear - today;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays >= 0 && diffDays <= BDAY_WINDOW) {
+      upcoming.push({
+        pid:     p.id || Object.keys(DB.people).find(k => DB.people[k] === p),
+        name:    (p.first || '') + (p.last ? ' ' + p.last : ''),
+        daysAway: diffDays,
+        age:     today.getFullYear() - parseInt(parts[0])  // turns this year
+      });
+    }
+  });
+
+  // Sort: today first, then by days away
+  upcoming.sort((a, b) => a.daysAway - b.daysAway);
+  return upcoming;
+}
+
+function _bdayDismissKey() {
+  const d = new Date();
+  const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `bday_dismissed_${FAM||'x'}_${ds}`;
+}
+
+function checkBirthdayReminders() {
+  if (!FAM || !DB.people) return;
+  // Don't show if user dismissed today
+  try { if (localStorage.getItem(_bdayDismissKey())) return; } catch(e) {}
+
+  const upcoming = _getUpcomingBirthdays();
+  if (!upcoming.length) return;
+
+  const msg = _buildBdayMessage(upcoming);
+  _showBdayBanner(msg);
+}
+
+function _buildBdayMessage(upcoming) {
+  if (upcoming.length === 1) {
+    const b = upcoming[0];
+    const name = b.name.trim() || t('someone');
+    if (b.daysAway === 0) return t('bdayToday').replace('{name}', name).replace('{age}', b.age);
+    if (b.daysAway === 1) return t('bdayTomorrow').replace('{name}', name).replace('{age}', b.age);
+    return t('bdaySoon').replace('{name}', name).replace('{days}', b.daysAway).replace('{age}', b.age);
+  }
+  // Multiple: list up to 3 names, then "+N more"
+  const todayBdays = upcoming.filter(b => b.daysAway === 0);
+  if (todayBdays.length > 0) {
+    const names = todayBdays.slice(0,2).map(b => b.name.trim()).join(', ');
+    const extra = todayBdays.length > 2 ? ` +${todayBdays.length-2}` : '';
+    return t('bdayMultiToday').replace('{names}', names + extra);
+  }
+  const names = upcoming.slice(0,2).map(b => b.name.trim()).join(', ');
+  const extra = upcoming.length > 2 ? ` +${upcoming.length-2}` : '';
+  return t('bdayMulti').replace('{names}', names+extra).replace('{days}', upcoming[0].daysAway);
+}
+
+function _showBdayBanner(msg) {
+  // Mobile
+  const mob = document.getElementById('bday-banner');
+  const mobTxt = document.getElementById('bday-text');
+  if (mob && mobTxt) { mobTxt.textContent = msg; mob.classList.remove('hide'); }
+  // Desktop
+  const desk = document.getElementById('bday-banner-desktop');
+  const deskTxt = document.getElementById('bday-text-desktop');
+  if (desk && deskTxt) { deskTxt.textContent = msg; desk.classList.remove('hide'); }
+}
+
+function dismissBdayBanner() {
+  try { localStorage.setItem(_bdayDismissKey(), '1'); } catch(e) {}
+  document.getElementById('bday-banner')?.classList.add('hide');
+  document.getElementById('bday-banner-desktop')?.classList.add('hide');
+}
+// Make dismissBdayBanner available to inline onclick
+window.dismissBdayBanner = dismissBdayBanner;
+
 // initOnboarding() called from showApp() every time app loads.
 // checkKeyBanner() called from render() when people count crosses 1→N.
 
@@ -7453,7 +7647,7 @@ async function runRelFinder() {
 
     html += `
       <div class="rfi-node">
-        <div class="rfi-node-av ${isA||isB?'ego':''}" style="${avBg}">${ini}</div>
+        <div class="rfi-node-av ${isA||isB?'ego':''}" style="${avBg}">${escHtml(ini)}</div>
         <div class="rfi-node-info">
           <div class="rfi-node-name">
             ${escHtml(fullName(p) || step.pid)}
@@ -7721,7 +7915,7 @@ function _renderMobDetail(id) {
   const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
   const av = p.photo
     ? `<div class="pf-av"><img src="${escHtml(p.photo)}" alt="" onerror="this.style.display='none'"></div>`
-    : `<div class="pf-av ${avCls}" style="font-size:26px">${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}</div>`;
+    : `<div class="pf-av ${avCls}" style="font-size:26px">${escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase())}</div>`;
 
   const rows = [
     ['📅', t('pDob'),        p.dob],
@@ -7801,8 +7995,15 @@ function _renderMobDetail(id) {
 
 // ── People list tab ──────────────────────────────────────────────────
 let _mobGenFilter = 'all';
+let _mobSort = 'name'; // 'name' | 'dob_asc' | 'dob_desc'
 let _mobRelLabels = {};    // pid → label string (filled lazily)
 let _mobRelLabelJob = null;
+
+function setMobSort(s) {
+  _mobSort = s;
+  document.querySelectorAll('.mob-sort-btn').forEach(b => b.classList.toggle('on', b.dataset.sort === s));
+  _renderMobPeopleList();
+}
 
 function setMobGenFilter(gen) {
   _mobGenFilter = gen;
@@ -7840,10 +8041,15 @@ function _renderMobPeopleList() {
   const listEl = el('mob-people-list');
   if (!listEl) return;
 
-  // Sort alphabetically
+  // Sort by selected mode
   const ids = Object.keys(DB.people).sort((a, b) => {
-    const na = fullName(DB.people[a]).toLowerCase();
-    const nb = fullName(DB.people[b]).toLowerCase();
+    const pa = DB.people[a], pb = DB.people[b];
+    if (_mobSort === 'dob_asc' || _mobSort === 'dob_desc') {
+      const da = pa.dob || '9999', db = pb.dob || '9999';
+      const cmp = da < db ? -1 : da > db ? 1 : 0;
+      return _mobSort === 'dob_asc' ? cmp : -cmp;
+    }
+    const na = fullName(pa).toLowerCase(), nb = fullName(pb).toLowerCase();
     return na < nb ? -1 : na > nb ? 1 : 0;
   });
 
@@ -7864,7 +8070,7 @@ function _renderMobPeopleList() {
     const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
     const avContent = p.photo
       ? `<img src="${escHtml(p.photo)}" alt="" onerror="this.parentNode.className='mpl-av ${avCls}';this.remove()">`
-      : `${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}`;
+      : escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase());
     const sub = [lifeSpan(p), p.occupation].filter(Boolean).join(' · ') || '';
     const relLabel = _mobRelLabels[id] || '';
     return `<div class="mpl-row" onclick="showMobDetail('${id}')">
@@ -7975,7 +8181,7 @@ function renderMobMe() {
   const avCls = p.gender === 'Female' ? 'av-f' : p.gender === 'Male' ? 'av-m' : 'av-o';
   const avContent = p.photo
     ? `<img src="${escHtml(p.photo)}" alt="">`
-    : `${((p.first||'?')[0]+(p.last||'')[0]).toUpperCase()}`;
+    : escHtml(((p.first||'?')[0]+(p.last||'')[0]).toUpperCase());
 
   const rels = Object.values(DB.rels);
   const parents  = rels.filter(r => r.to===egoId && r.type==='Parent').map(r => r.from).filter(id => DB.people[id]);
@@ -8001,7 +8207,7 @@ function renderMobMe() {
     <div class="mob-me-card">
       <div class="mob-me-av ${p.photo ? '' : avCls}">${avContent}</div>
       <div class="mob-me-name">${escHtml(fullName(p))}</div>
-      <div class="mob-me-sub">${lifeSpan(p) || (p.occupation ? p.occupation : '')}</div>
+      <div class="mob-me-sub">${escHtml(lifeSpan(p) || p.occupation || '')}</div>
       <button class="mob-me-tree-btn" onclick="switchMobTab('tree');setTimeout(()=>centreOnEgo(),80)">
         🌳 View in Tree
       </button>
@@ -8021,7 +8227,10 @@ function renderMobMe() {
     const q = input.value.trim();
     if (!q) { drop.classList.remove('on'); drop.innerHTML = ''; return; }
     const results = _searchLocal(q, 8);
-    if (!results.length) { drop.classList.remove('on'); drop.innerHTML = ''; return; }
+    if (!results.length) {
+      drop.innerHTML = `<div class="sd-empty">${escHtml(t('searchNoResults'))}</div>`;
+      drop.classList.add('on'); return;
+    }
     drop.innerHTML = results.map(r =>
       `<div class="sd-row" onclick="showMobDetail('${r.id}');el('mob-srch').value='';el('mob-srch-drop').classList.remove('on')">
         ${escHtml(r.name)}<small>${escHtml(r.sub || '')}</small>
@@ -8131,7 +8340,7 @@ function _updateMobTreeFab(id) {
     if (!p) return;
     const initials = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
     fab.classList.add('info-mode');
-    fab.innerHTML = `<span style="font-family:'Crimson Pro',serif;font-size:17px;font-weight:600;letter-spacing:-.02em">${initials}</span>`;
+    fab.innerHTML = `<span style="font-family:'Crimson Pro',serif;font-size:17px;font-weight:600;letter-spacing:-.02em">${escHtml(initials)}</span>`;
     fab.setAttribute('aria-label', `View ${fullName(p)}`);
     fab.title = `View ${fullName(p)}`;
     fab.onclick = () => showMobDetail(id);

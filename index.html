@@ -94,6 +94,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .hint-box{background:rgba(200,137,58,.08);border:1px solid rgba(200,137,58,.2);
   border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--ink4);margin:10px 0;line-height:1.6}
 
+
+/* ── About / Landing screen ─────────────────────────────────────── */
+#s-about{z-index:990}
+.ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0}
+.ab-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(200,137,58,.35))}
+.ab-title{font-family:'Crimson Pro',serif;font-size:34px;font-weight:300;color:var(--gold);
+  letter-spacing:.06em;text-align:center;line-height:1.1;margin-bottom:6px}
+.ab-tagline{font-size:12px;color:var(--ink4);letter-spacing:.14em;text-transform:uppercase;
+  margin-bottom:28px;text-align:center}
+.ab-features{width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.ab-feat{display:flex;align-items:flex-start;gap:14px;padding:12px 14px;
+  background:var(--bark);border:1px solid var(--clay);border-radius:8px}
+.ab-feat-ico{font-size:22px;line-height:1;flex-shrink:0;margin-top:1px}
+.ab-feat-text{flex:1}
+.ab-feat-title{font-size:13px;font-weight:500;color:var(--parch);margin-bottom:2px}
+.ab-feat-desc{font-size:12px;color:var(--ink4);line-height:1.55}
+.ab-cta{width:100%;padding:13px;background:var(--gold);border:none;border-radius:var(--r);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink);
+  letter-spacing:.05em;cursor:pointer;transition:background .2s;margin-bottom:10px}
+.ab-cta:hover{background:var(--gold2)}
+.ab-skip{background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  text-decoration:underline;text-underline-offset:3px}
+.ab-skip:hover{color:var(--ink3)}
+
 /* ── Onboarding ──────────────────────────────────────────────────── */
 #ob-banner{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
   width:min(480px,calc(100vw - 32px));background:var(--clay2);
@@ -128,6 +153,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .bday-x{margin-left:auto;background:none;border:none;color:var(--ink4);
   cursor:pointer;font-size:16px;padding:0 2px;line-height:1}
 .bday-x:hover{color:var(--copper)}
+
+
+/* ── Viewer read-only banner ────────────────────────────────────── */
+#viewer-banner{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  width:min(480px,calc(100vw - 32px));background:rgba(80,60,80,.18);
+  border:1px solid rgba(180,140,180,.3);border-radius:10px;
+  padding:14px 16px;z-index:10;pointer-events:all;display:flex;gap:12px;align-items:flex-start}
+#viewer-banner.hide{display:none}
+.vb-ico{font-size:22px;flex-shrink:0;line-height:1;margin-top:1px}
+.vb-body{flex:1}
+.vb-title{font-size:13px;font-weight:500;color:var(--parch);margin-bottom:3px}
+.vb-desc{font-size:12px;color:var(--ink4);line-height:1.55}
+.vb-x{background:none;border:none;color:var(--ink4);cursor:pointer;
+  font-size:16px;padding:0 2px;flex-shrink:0;line-height:1;align-self:flex-start}
+.vb-x:hover{color:var(--ink3)}
+/* ── Non-admin welcome banner (editor/contributor on empty tree) ─── */
+#member-ob-banner{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  width:min(480px,calc(100vw - 32px));background:var(--bark);
+  border:1px solid var(--copper);border-radius:12px;padding:18px 18px 14px;
+  z-index:10;pointer-events:all}
+#member-ob-banner.hide{display:none}
 
 #ob-key-banner.hide{display:none}
 #ob-key-banner .ob-key-ico{font-size:20px;line-height:1;flex-shrink:0}
@@ -544,7 +590,8 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .member-meta{font-size:10px;color:var(--ink3);margin-top:1px}
 .member-acts{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
 .mbtn{font-size:10px;padding:8px 10px;border-radius:3px;border:none;cursor:pointer;font-weight:500;transition:all .15s;min-height:36px}
-.mbtn-approve{background:#3d6e40;color:white}.mbtn-reject{background:var(--rose);color:white}
+.mbtn-approve{background:#3d6e40;color:white}.mbtn-approve-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.mbtn-reject{background:var(--rose);color:white}
 .mbtn-revoke{background:var(--clay);color:var(--cream)}
 .role-sel{font-size:11px;padding:4px 6px;border:1px solid var(--border);
   border-radius:3px;background:white;color:var(--ink);cursor:pointer;margin-top:4px}
@@ -1231,6 +1278,41 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   </div>
 </div>
 
+<!-- ABOUT / LANDING — shown once to first-time visitors after language pick -->
+<div class="screen hide" id="s-about">
+  <div class="ab-wrap">
+    <div class="ab-icon">🌳</div>
+    <div class="ab-title">Parampara</div>
+    <div class="ab-tagline" id="ab-tagline">Your family lineage</div>
+    <div class="ab-features">
+      <div class="ab-feat">
+        <div class="ab-feat-ico">👨‍👩‍👧‍👦</div>
+        <div class="ab-feat-text">
+          <div class="ab-feat-title" id="ab-f1-title">Build your family tree</div>
+          <div class="ab-feat-desc" id="ab-f1-desc">Add people, draw relationships, and watch your family history come to life — visually.</div>
+        </div>
+      </div>
+      <div class="ab-feat">
+        <div class="ab-feat-ico">🔒</div>
+        <div class="ab-feat-text">
+          <div class="ab-feat-title" id="ab-f2-title">Private by design</div>
+          <div class="ab-feat-desc" id="ab-f2-desc">Your tree is only visible to people you invite. The admin approves every member.</div>
+        </div>
+      </div>
+      <div class="ab-feat">
+        <div class="ab-feat-ico">📱</div>
+        <div class="ab-feat-text">
+          <div class="ab-feat-title" id="ab-f3-title">Works on any device</div>
+          <div class="ab-feat-desc" id="ab-f3-desc">Install on your phone for offline access. Changes sync in real time across everyone's devices.</div>
+        </div>
+      </div>
+    </div>
+    <button class="ab-cta" id="ab-cta-btn" onclick="dismissAbout()">Get Started →</button>
+    <button class="ab-skip" onclick="dismissAbout()">I already have an account</button>
+  </div>
+</div>
+
+
 <!-- FAMILY PICKER -->
 <div class="screen hide" id="s-family">
   <div class="brand" style="font-size:36px;margin-bottom:4px">Parampara</div>
@@ -1291,9 +1373,13 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <div class="fg"><label class="fl" data-i18n="password">Password<small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
         <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
       <div class="aerr" id="j-err"></div>
-      <button class="btn btn-gold" onclick="doJoin()" data-i18n="requestAccess">Request Access</button>
+      <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn" data-i18n="requestAccess">Request Access</button>
       <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
       <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
+      <div class="divider" style="margin:14px 0 10px">or</div>
+      <button class="btn btn-ghost" onclick="enterCreateMode()" id="j-create-btn" style="font-size:12px;padding:10px">
+        🌱 Start a new family tree
+      </button>
     </div>
 
     <!-- FORGOT -->
@@ -1489,6 +1575,27 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
           </div>
         </div>
       </div>
+
+        <!-- Viewer read-only notice -->
+        <div id="viewer-banner" class="hide">
+          <div class="vb-ico">👁</div>
+          <div class="vb-body">
+            <div class="vb-title">You're viewing this family tree</div>
+            <div class="vb-desc">You have view-only access. Contact the family admin if you'd like to contribute.</div>
+          </div>
+          <button class="vb-x" onclick="dismissViewerBanner()" title="Dismiss">✕</button>
+        </div>
+
+        <!-- Non-admin welcome (editor/contributor — empty tree) -->
+        <div id="member-ob-banner" class="hide">
+          <div class="ob-title" style="font-size:16px">👋 Welcome to the family tree</div>
+          <div style="font-size:12px;color:var(--ink4);margin:8px 0 12px;line-height:1.6">
+            The tree is empty right now. You can add the first person using the <b style="color:var(--parch2)">＋ Add</b> button above — or wait for the admin to get started.
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="ob-dismiss" onclick="dismissMemberOb()">Got it</button>
+          </div>
+        </div>
       <!-- Shown in ego view when user has no linked profile -->
       <div id="unlinked-prompt" class="hide">
         <div class="up-ico">👤</div>
@@ -1781,7 +1888,7 @@ async function runDiag() {
 
   // Module / window functions
   log('--- JS Module ---');
-  const fns = ['setLang','doLogin','doJoin','switchTab'];
+  const fns = ['setLang','doLogin','doJoin','switchTab','dismissAbout','enterCreateMode','dismissViewerBanner','dismissMemberOb','approveAs'];
   fns.forEach(fn => log(fn + ': ' + typeof window[fn]));
   log('');
 
@@ -2049,7 +2156,7 @@ function setSyncStatus(state, label) {
 }
 
 // ══ SCREEN MANAGEMENT ══════════════════════════════════════════════
-const SCREENS = ['s-lang','s-family','s-auth','s-pending','s-verify'];
+const SCREENS = ['s-lang','s-about','s-family','s-auth','s-pending','s-verify'];
 function showScreen(id) {
   SCREENS.forEach(s => el(s).classList.toggle('hide', s !== id));
   el('app').classList.remove('show');
@@ -2566,7 +2673,12 @@ function setLang(l) {
     langScreen.querySelector('.lang-opts').style.pointerEvents = 'none';
     const brand = langScreen.querySelector('.brand-sub');
     if (brand) brand.textContent = '…';
-    boot();
+    // First-time visitors see the about screen; returning users go straight to boot
+    if (!localStorage.getItem('para_seen_about')) {
+      showAbout();
+    } else {
+      boot();
+    }
   } else {
     toast(l==='ta'?'மொழி மாற்றப்பட்டது':l==='ml'?'ഭാഷ മാറ്റി':'Language updated');
   }
@@ -2599,6 +2711,57 @@ function openLangMo() {
     </div>
   </div>`;
   document.body.appendChild(mo);
+}
+
+
+// ══ ABOUT / LANDING SCREEN ═════════════════════════════════════════
+// Shown once to first-time visitors after language pick.
+// Returning users (para_seen_about = 'done') skip straight to boot().
+
+const ABOUT_STRINGS = {
+  en: {
+    tagline:'Your family lineage',
+    f1title:'Build your family tree', f1desc:'Add people, draw relationships, and watch your family history come to life — visually.',
+    f2title:'Private by design',      f2desc:'Your tree is only visible to people you invite. The admin approves every member.',
+    f3title:'Works on any device',    f3desc:'Install on your phone for offline access. Changes sync in real time across all devices.',
+    cta:'Get Started →',
+  },
+  ta: {
+    tagline:'உங்கள் குடும்ப வரலாறு',
+    f1title:'குடும்ப மரம் உருவாக்கு', f1desc:'நபர்களை சேர்க்கவும், உறவுகளை வரையவும், உங்கள் குடும்ப வரலாற்றை காட்சியாக காணுங்கள்.',
+    f2title:'தனியுரிமை காப்பாற்றப்படுகிறது', f2desc:'உங்கள் மரம் நீங்கள் அழைத்தவர்களுக்கு மட்டுமே தெரியும். நிர்வாகி ஒவ்வொரு உறுப்பினரையும் அனுமதிக்கிறார்.',
+    f3title:'எந்த சாதனத்திலும் செயல்படும்', f3desc:'ஆஃப்லைன் அணுகலுக்கு உங்கள் தொலைபேசியில் நிறுவவும். மாற்றங்கள் உடனடியாக ஒத்திசைக்கப்படும்.',
+    cta:'தொடங்கு →',
+  },
+  ml: {
+    tagline:'നിങ്ങളുടെ കുടുംബ പരമ്പര',
+    f1title:'കുടുംബ വൃക്ഷം നിർമ്മിക്കുക', f1desc:'ആളുകളെ ചേർക്കുക, ബന്ധങ്ങൾ വരയ്ക്കുക, കുടുംബ ചരിത്രം ദൃശ്യമായി കാണുക.',
+    f2title:'സ്വകാര്യതയോടെ', f2desc:'നിങ്ങൾ ക്ഷണിക്കുന്നവർക്ക് മാത്രം വൃക്ഷം ദൃശ്യമാകും. അഡ്മിൻ ഓരോ അംഗത്തെയും അംഗീകരിക്കുന്നു.',
+    f3title:'ഏത് ഉപകരണത്തിലും', f3desc:'ഓഫ്‌ലൈൻ ആക്‌സസിനായി ഫോണിൽ ഇൻസ്റ്റാൾ ചെയ്യുക. മാറ്റങ്ങൾ എല്ലാ ഉപകരണങ്ങളിലും സമകാലികമാകുന്നു.',
+    cta:'തുടങ്ങൂ →',
+  },
+};
+
+function _applyAboutLang() {
+  const s = ABOUT_STRINGS[LANG] || ABOUT_STRINGS.en;
+  const set = (id, val) => { const e = el(id); if (e) e.textContent = val; };
+  set('ab-tagline',  s.tagline);
+  set('ab-f1-title', s.f1title); set('ab-f1-desc', s.f1desc);
+  set('ab-f2-title', s.f2title); set('ab-f2-desc', s.f2desc);
+  set('ab-f3-title', s.f3title); set('ab-f3-desc', s.f3desc);
+  const cta = el('ab-cta-btn'); if (cta) cta.textContent = s.cta;
+}
+
+function showAbout() {
+  _applyAboutLang();
+  showScreen('s-about');
+}
+
+function dismissAbout() {
+  localStorage.setItem('para_seen_about', 'done');
+  // Hide the about screen and proceed to boot (auth check)
+  el('s-about').classList.add('hide');
+  boot();
 }
 
 // ══ MULTI-FAMILY SESSION ═══════════════════════════════════════════
@@ -3509,6 +3672,8 @@ function updatePermUI() {
   // Start watching for pending members as soon as the admin enters the app
   if (isAdmin) startPendingWatch();
   else stopPendingWatch();
+  // Sync role-sensitive banners immediately on load
+  _syncViewerBanner();
 }
 
 // ══ REAL-TIME SYNC ═════════════════════════════════════════════════════
@@ -3995,7 +4160,11 @@ function memberRow(m, isPending, isRevoked = false) {
   const rb = `<span class="role-badge rb-${safeRole}">${safeRole}</span>`;
   let acts = '';
   if (isPending) {
-    acts = `<button class="mbtn mbtn-approve" onclick="setRole('${m.uid}','editor')">✓ Approve</button>
+    acts = `<div class="mbtn-approve-row">
+              <span style="font-size:11px;color:var(--ink4);margin-right:6px">Approve as:</span>
+              <button class="mbtn mbtn-approve" onclick="approveAs('${m.uid}','contributor')">contributor</button>
+              <button class="mbtn mbtn-approve" style="background:rgba(61,92,58,.5)" onclick="approveAs('${m.uid}','editor')">editor</button>
+            </div>
             <button class="mbtn mbtn-reject"  onclick="setRole('${m.uid}','rejected')">✕ Reject</button>`;
   } else if (!isSelf) {
     if (isRevoked) {
@@ -4028,6 +4197,16 @@ function memberRow(m, isPending, isRevoked = false) {
       <div class="member-acts">${acts}</div>
     </div>
   </div>`;
+}
+
+
+// Approve a pending member with a chosen role — called from approval buttons
+async function approveAs(uid, role) {
+  try {
+    await set(ref(db, `families/${FAM}/members/${uid}/role`), role);
+    toast(`Approved as ${role}`);
+    setTimeout(loadMembers, 300);
+  } catch(e) { toast('Error approving member: ' + e.message); }
 }
 
 async function setRole(uid, role) {
@@ -4774,7 +4953,7 @@ function render(){
   _prevDBHash = h;
   const ids=Object.keys(DB.people);
   el('empty').classList.toggle('hide',ids.length>0);
-  _syncOnboardingBanner(ids.length);
+  _syncAllBanners(ids.length);
   checkKeyBanner(ids.length);
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
   _cycleDetectedInRender = false; // reset before each render pass
@@ -6206,6 +6385,7 @@ function dismissBdayBanner() {
 // Make dismissBdayBanner available to inline onclick
 window.dismissBdayBanner = dismissBdayBanner;
 
+
 // initOnboarding() called from showApp() every time app loads.
 // checkKeyBanner() called from render() when people count crosses 1→N.
 
@@ -6233,6 +6413,13 @@ function _syncOnboardingBanner(peopleCount) {
   if (!banner) return;
   if (!_obPending) { banner.classList.add('hide'); return; }
   banner.classList.toggle('hide', peopleCount > 0);
+}
+
+// Called from render() — syncs all role-sensitive banners at once
+function _syncAllBanners(peopleCount) {
+  _syncOnboardingBanner(peopleCount);
+  _syncViewerBanner();
+  _syncMemberObBanner(peopleCount);
 }
 
 function dismissOnboarding() {
@@ -6269,6 +6456,40 @@ function dismissKeyBanner() {
   const banner = el('ob-key-banner');
   if (banner) banner.classList.add('hide');
   localStorage.setItem('para_ob_key', 'done');
+}
+
+
+// ── Viewer read-only banner ──────────────────────────────────────────
+function _syncViewerBanner() {
+  const banner = el('viewer-banner');
+  if (!banner) return;
+  // Show for viewers who haven't dismissed this session
+  const isViewer = CU && CU.role === 'viewer';
+  const dismissed = sessionStorage.getItem('para_viewer_dismissed');
+  banner.classList.toggle('hide', !isViewer || !!dismissed);
+}
+
+function dismissViewerBanner() {
+  sessionStorage.setItem('para_viewer_dismissed', '1');
+  const banner = el('viewer-banner');
+  if (banner) banner.classList.add('hide');
+}
+
+// ── Non-admin member welcome banner (empty tree) ─────────────────────
+function _syncMemberObBanner(peopleCount) {
+  const banner = el('member-ob-banner');
+  if (!banner) return;
+  // Only for editors/contributors who haven't dismissed
+  const role = CU && CU.role;
+  if (role !== 'editor' && role !== 'contributor') { banner.classList.add('hide'); return; }
+  if (localStorage.getItem('para_member_ob') === 'done') { banner.classList.add('hide'); return; }
+  banner.classList.toggle('hide', peopleCount > 0);
+}
+
+function dismissMemberOb() {
+  localStorage.setItem('para_member_ob', 'done');
+  const banner = el('member-ob-banner');
+  if (banner) banner.classList.add('hide');
 }
 
 // ══ END ONBOARDING ════════════════════════════════════════════════════
@@ -7162,6 +7383,45 @@ async function deleteFamily() {
 }
 
 
+
+// ── Create-mode for join form ────────────────────────────────────────
+// Called when user taps "Start a new family tree" link.
+// Puts the Join tab into explicit creation mode: clears the key field,
+// suggests a key, checks the ack box, and relabels the submit button.
+function enterCreateMode() {
+  // Build a suggested key from the first/last name fields if filled
+  const first = (v('j-first') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const year  = new Date().getFullYear();
+  const suggestedKey = first ? `${first}-${year}` : `FAMILY-${year}`;
+
+  const keyField = el('j-key');
+  if (keyField) {
+    keyField.value = suggestedKey;
+    keyField.focus();
+    keyField.select();
+  }
+
+  // Show the warning box and pre-check the ack box
+  const warn = el('j-newgroup-warn');
+  if (warn) warn.style.display = 'block';
+  const ack = el('j-newgroup-ack');
+  if (ack) ack.checked = true;
+
+  // Update _keyHasFamily so doJoin doesn't re-run the check
+  _keyHasFamily = false;
+
+  // Relabel the submit button
+  const btn = el('j-submit-btn');
+  if (btn) btn.textContent = '🌱 Create Family Tree';
+
+  // Relabel the create button so it's clear they're in create mode
+  const createBtn = el('j-create-btn');
+  if (createBtn) { createBtn.textContent = '✓ Creating new family'; createBtn.disabled = true; }
+
+  // Scroll key field into view on mobile
+  if (keyField) keyField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // ══ KEY-EXISTS CHECK (for join form warning) ═══════════════════════
 let _keyCheckTimer = null;
 let _keyHasFamily = null; // null=unknown, true=exists, false=new
@@ -7184,6 +7444,13 @@ async function onJoinKeyInput() {
       _keyHasFamily = snap.exists();
       if (warn) warn.style.display = _keyHasFamily ? 'none' : 'block';
       if (ack && _keyHasFamily) ack.checked = false;
+      // Reset button labels when an existing family is found
+      if (_keyHasFamily) {
+        const btn = el('j-submit-btn');
+        if (btn) btn.textContent = btn.dataset.i18n ? (window.t && t('requestAccess')) || 'Request Access' : 'Request Access';
+        const createBtn = el('j-create-btn');
+        if (createBtn) { createBtn.textContent = '🌱 Start a new family tree'; createBtn.disabled = false; }
+      }
     } catch(_) { /* network error — don't show warning */ }
   }, 600);
 }
@@ -8424,6 +8691,10 @@ Object.assign(window, {
   exportFamilyData, exportTreeCSV, leaveFamily, deleteMyAccount, deleteFamily,
   logErr,
   dismissOnboarding, dismissKeyBanner,
+  dismissAbout, showAbout,
+  enterCreateMode,
+  dismissViewerBanner, dismissMemberOb,
+  approveAs,
   _getStrings: () => STRINGS,
   undoDelete,
   clearPendingNotices,

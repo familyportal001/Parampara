@@ -1342,7 +1342,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <div class="hbtn-sep"></div>
         <!-- Action group -->
         <button class="hbtn" onclick="openRelMo()" data-i18n="relationships2">⛓</button>
-        <button class="hbtn icon" onclick="openRelFinderMo()" data-i18n="findRelation" data-tip="Find Relationship">🔍</button>
+        <button class="hbtn icon" onclick="openRelFinderMo()" data-i18n="findRelation" data-tip="Find Relationship" data-i18n-tip="rfiTitle">🔍</button>
         <button class="hbtn primary" onclick="openAddMo()" id="btn-add" data-i18n="addBtn">＋ Add</button>
         <div class="hbtn-sep"></div>
         <!-- Account group -->
@@ -1352,7 +1352,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </div>
         <button class="hbtn icon" id="btn-lang" onclick="openLangMo()" data-tip="Language" data-i18n-tip="language">🌐</button>
         <button class="hbtn icon" id="btn-switch-fam" onclick="openFamilySwitcher()" data-tip="Switch Family" data-i18n-tip="switchFamily">⇄</button>
-        <button class="hbtn icon" onclick="openPrivacyMo('account')" data-tip="Account &amp; Privacy">⚙️</button>
+        <button class="hbtn icon" onclick="openPrivacyMo('account')" data-tip="Account &amp; Privacy" data-i18n-tip="accountPrivacy">⚙️</button>
         <button class="hbtn icon" onclick="fullLogout()" data-tip="Sign Out" data-i18n-tip="signOut">⏻</button>
       </span>
       <button id="menu-tog" onclick="toggleMenu()">☰</button>
@@ -1403,7 +1403,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <span class="btn-ico">🌐</span><span class="btn-lbl" data-i18n="language">Language</span>
       </button>
       <button class="hbtn" onclick="openPrivacyMo('account');closeMenu()">
-        <span class="btn-ico">⚙️</span><span class="btn-lbl">Account &amp; Privacy</span>
+        <span class="btn-ico">⚙️</span><span class="btn-lbl" data-i18n="accountPrivacy">Account &amp; Privacy</span>
       </button>
       <button class="hbtn" onclick="fullLogout();closeMenu()">
         <span class="btn-ico">⏻</span><span class="btn-lbl" data-i18n="signOut">Sign Out</span>
@@ -1415,13 +1415,13 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   <!-- ── Mobile tab strip (hidden on desktop via CSS) ── -->
   <div id="mob-tabs">
     <button class="mob-tab on" id="mtab-people" onclick="switchMobTab('people')">
-      <span class="mt-ico">👥</span><span class="mt-lbl">People</span>
+      <span class="mt-ico">👥</span><span class="mt-lbl" data-i18n="tabPeople">People</span>
     </button>
     <button class="mob-tab" id="mtab-tree" onclick="switchMobTab('tree')">
-      <span class="mt-ico">🌳</span><span class="mt-lbl">Tree</span>
+      <span class="mt-ico">🌳</span><span class="mt-lbl" data-i18n="tabTree">Tree</span>
     </button>
     <button class="mob-tab" id="mtab-me" onclick="switchMobTab('me')">
-      <span class="mt-ico">👤</span><span class="mt-lbl">Me</span>
+      <span class="mt-ico">👤</span><span class="mt-lbl" data-i18n="tabMe">Me</span>
     </button>
   </div>
 
@@ -1581,9 +1581,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     </div>
     <!-- Admin tabs -->
     <div style="display:flex;border-bottom:1px solid var(--border);background:var(--parch2);flex-shrink:0">
-      <button class="adm-tab on" id="adm-tab-members" onclick="switchAdminTab('members')">👥 Members</button>
-      <button class="adm-tab" id="adm-tab-import"  onclick="switchAdminTab('import')">📥 Import</button>
-      <button class="adm-tab" id="adm-tab-settings" onclick="switchAdminTab('settings')">⚙️ Settings</button>
+      <button class="adm-tab on" id="adm-tab-members" onclick="switchAdminTab('members')" data-i18n="admTabMembers">👥 Members</button>
+      <button class="adm-tab" id="adm-tab-import"  onclick="switchAdminTab('import')" data-i18n="admTabImport">📥 Import</button>
+      <button class="adm-tab" id="adm-tab-settings" onclick="switchAdminTab('settings')" data-i18n="admTabSettings">⚙️ Settings</button>
     </div>
     <div class="mo-bd" id="amo-bd"></div>
     <div class="mo-ft" id="amo-ft"><button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button></div>
@@ -2176,6 +2176,10 @@ const STRINGS = {
     obStep1:'Tap <b>＋ Add First Person</b> above to add yourself (or any family member) to the tree.',
     obStep2:'Keep adding people, then draw <b>relationships</b> between them using the link button on each card.',
     obStep3:'Share your <b>Family Secret Key</b> so relatives can join and see the tree.',
+    tabPeople:'People', tabTree:'Tree', tabMe:'Me',
+    accountPrivacy:'Account & Privacy',
+    myView:'My View',
+    admTabMembers:'👥 Members', admTabImport:'📥 Import', admTabSettings:'⚙️ Settings',
     obGotIt:"Got it, don't show again",
     rfiIs:'is', personSingular:'person', personPlural:'people',
     onlyOneFamily:'You are only a member of one family tree',
@@ -2310,6 +2314,10 @@ const STRINGS = {
     obStep1:'மேலே உள்ள <b>＋ முதலில் சேர்க்க</b> அழுத்தி உங்களை (அல்லது ஒரு குடும்ப உறுப்பினரை) சேர்க்கவும்.',
     obStep2:'மக்களை சேர்த்துக்கொண்டே, ஒவ்வொரு அட்டையிலுள்ள இணைப்பு பொத்தானை பயன்படுத்தி <b>உறவுகளை</b> வரையவும்.',
     obStep3:'உறவினர்கள் சேர முடியும்படி உங்கள் <b>குடும்ப ரகசிய திறவுகோலை</b> பகிரவும்.',
+    tabPeople:'மக்கள்', tabTree:'மரம்', tabMe:'நான்',
+    accountPrivacy:'கணக்கு & தனியுரிமை',
+    myView:'என் காட்சி',
+    admTabMembers:'👥 உறுப்பினர்கள்', admTabImport:'📥 இறக்குமதி', admTabSettings:'⚙️ அமைப்புகள்',
     obGotIt:'புரிந்தது, மீண்டும் காட்டாதே',
     rfiIs:'என்று', personSingular:'நபர்', personPlural:'நபர்கள்',
     onlyOneFamily:'நீங்கள் ஒரே ஒரு குடும்ப மரத்தில் மட்டுமே உறுப்பினர்',
@@ -2444,6 +2452,10 @@ const STRINGS = {
     obStep1:'മേൽഭാഗത്തുള്ള <b>＋ ആദ്യം ചേർക്കുക</b> ടാപ്പ് ചെയ്ത് നിങ്ങളെ (അല്ലെങ്കിൽ ഒരു അംഗത്തെ) ചേർക്കുക.',
     obStep2:'ആളുകളെ ചേർത്ത് ഓരോ കാർഡിലെ ലിങ്ക് ബട്ടൺ ഉപയോഗിച്ച് <b>ബന്ധങ്ങൾ</b> വരയ്ക്കുക.',
     obStep3:'ബന്ധുക്കൾക്ക് ചേരാൻ നിങ്ങളുടെ <b>കുടുംബ രഹസ്യ കീ</b> പങ്കിടുക.',
+    tabPeople:'ആളുകൾ', tabTree:'വൃക്ഷം', tabMe:'ഞാൻ',
+    accountPrivacy:'അക്കൗണ്ട് & സ്വകാര്യത',
+    myView:'എന്റെ കാഴ്ച',
+    admTabMembers:'👥 അംഗങ്ങൾ', admTabImport:'📥 ഇറക്കുമതി', admTabSettings:'⚙️ ക്രമീകരണങ്ങൾ',
     obGotIt:'മനസ്സിലായി, വീണ്ടും കാണിക്കേണ്ട',
     rfiIs:'ആണ്', personSingular:'വ്യക്തി', personPlural:'ആളുകൾ',
     onlyOneFamily:'നിങ്ങൾ ഒരു കുടുംബ ട്രീയിൽ മാത്രം അംഗമാണ്',
@@ -4179,7 +4191,7 @@ function initEgoView(linkedProfileId) {
     egoId = null; pivotId = null; pivotStack = []; viewMode = 'full';
     renderPivotBar();
     ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
-      const b = el(id); if (b) b.textContent = '\uD83D\uDC64 My View';
+      const b = el(id); if (b) b.textContent = '\uD83D\uDC64 ' + t('myView');
     });
     startSync();
     return;
@@ -4190,7 +4202,7 @@ function initEgoView(linkedProfileId) {
   pivotStack = [];
   viewMode = 'ego';
   ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
-    const b = el(id); if (b) b.textContent = '\uD83C\uDF33 Full Tree';
+    const b = el(id); if (b) b.textContent = '\uD83C\uDF33 ' + t('fullTree');
   });
   el('unlinked-prompt').classList.add('hide');
   startEgoSync(linkedProfileId);
@@ -4256,7 +4268,7 @@ function setViewMode(mode) {
 
   ['btn-view-toggle','btn-view-toggle-m'].forEach(id => {
     const b = el(id);
-    if (b) b.textContent = isEgo ? '\uD83C\uDF33 Full Tree' : '\uD83D\uDC64 My View';
+    if (b) b.textContent = isEgo ? '\uD83C\uDF33 ' + t('fullTree') : '\uD83D\uDC64 ' + t('myView');
   });
   ['btn-centre-me','btn-centre-me-m'].forEach(id => {
     const b = el(id);
@@ -7546,7 +7558,7 @@ function renderPivotBar() {
   html += `<div class="pb-crumb">`;
 
   // Home node — always the user's own linked profile
-  const homeName = egoId && DB.people[egoId] ? fullName(DB.people[egoId]) : 'My View';
+  const homeName = egoId && DB.people[egoId] ? fullName(DB.people[egoId]) : t('myView');
   html += `<button class="pb-crumb-btn" onclick="setPivot('${escHtml(egoId || '')}')" title="${escHtml(homeName)}">🏠</button>`;
 
   // Intermediate crumbs — everything in the stack except the home entry

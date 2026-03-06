@@ -97,7 +97,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 /* ── About / Landing screen ─────────────────────────────────────── */
 #s-about{z-index:990}
-.ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0}
+.ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;overflow-y:auto;max-height:calc(100dvh - 60px);padding-bottom:8px}
 .ab-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(200,137,58,.35))}
 .ab-title{font-family:'Crimson Pro',serif;font-size:34px;font-weight:300;color:var(--gold);
   letter-spacing:.06em;text-align:center;line-height:1.1;margin-bottom:6px}
@@ -154,6 +154,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   cursor:pointer;font-size:16px;padding:0 2px;line-height:1}
 .bday-x:hover{color:var(--copper)}
 
+
+/* ── Performance warning banner (full-tree, large families) ─────── */
+#perf-banner{position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:min(520px,calc(100vw - 32px));background:rgba(90,55,10,.85);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(200,137,58,.45);border-radius:10px;
+  padding:12px 14px 12px 16px;z-index:20;pointer-events:all;
+  display:flex;gap:12px;align-items:center;
+  animation:perfBannerIn .3s ease both}
+#perf-banner.hide{display:none}
+@keyframes perfBannerIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.pb-ico{font-size:20px;flex-shrink:0}
+.pb-body{flex:1;min-width:0}
+.pb-title{font-size:12px;font-weight:500;color:var(--gold2);margin-bottom:2px}
+.pb-desc{font-size:11px;color:var(--parch2);line-height:1.5}
+.pb-switch{flex-shrink:0;background:var(--gold);border:none;color:var(--night);
+  font-size:11px;font-weight:500;font-family:inherit;border-radius:5px;
+  padding:5px 10px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.pb-switch:hover{background:var(--gold2)}
+.pb-x{background:none;border:none;color:var(--ink4);cursor:pointer;
+  font-size:15px;padding:0 2px 0 6px;flex-shrink:0;line-height:1;align-self:center}
+.pb-x:hover{color:var(--parch)}
 
 /* ── Viewer read-only banner ────────────────────────────────────── */
 #viewer-banner{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
@@ -1308,7 +1330,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       </div>
     </div>
     <button class="ab-cta" id="ab-cta-btn" onclick="dismissAbout()">Get Started →</button>
-    <button class="ab-skip" onclick="dismissAbout()">I already have an account</button>
+    <button class="ab-skip" onclick="dismissAbout()" data-i18n="alreadyAccount">I already have an account</button>
+    <div style="font-size:10px;color:var(--ink4);text-align:center;margin-top:16px;line-height:1.7">
+      <a href="./privacy.html" target="_blank" style="color:var(--ink4);text-decoration:underline">Privacy Policy</a>
+      &nbsp;·&nbsp;
+      <a href="./terms.html" target="_blank" style="color:var(--ink4);text-decoration:underline">Terms of Service</a>
+    </div>
   </div>
 </div>
 
@@ -1376,6 +1403,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn" data-i18n="requestAccess">Request Access</button>
       <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
       <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
+      <div style="font-size:10px;color:var(--ink4);text-align:center;margin-top:8px;line-height:1.6">
+        By registering you agree to our
+        <a href="./terms.html" target="_blank" style="color:var(--copper);text-decoration:underline">Terms of Service</a>
+        and
+        <a href="./privacy.html" target="_blank" style="color:var(--copper);text-decoration:underline">Privacy Policy</a>
+      </div>
       <div class="divider" style="margin:14px 0 10px">or</div>
       <button class="btn btn-ghost" onclick="enterCreateMode()" id="j-create-btn" style="font-size:12px;padding:10px">
         🌱 Start a new family tree
@@ -1387,7 +1420,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       <div style="font-size:13px;color:var(--ink4);line-height:1.65;margin-bottom:14px">
         <span data-i18n="forgotNote">Enter your email address and we'll send you a password reset link instantly.</span>
       </div>
-      <div class="fg"><label class="fl">Email Address</label>
+      <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
         <input class="fi" id="f-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
       <div class="aerr" id="f-err"></div>
       <button class="btn btn-gold" onclick="doForgot()" data-i18n="sendReset">Send Reset Email</button>
@@ -1447,6 +1480,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <!-- View group -->
         <button class="hbtn icon" onclick="autoLayout()" data-tip="Auto Layout" data-i18n-tip="autoLayout">⚡</button>
         <button class="hbtn icon" onclick="fitScreen()" data-tip="Fit to Screen" data-i18n-tip="fitScreen">⊡</button>
+        <button class="hbtn icon" id="btn-export-img" onclick="exportTreeImage()" data-tip="Save as Image" data-i18n-tip="exportImage" style="display:none">📷</button>
         <button class="hbtn icon" id="btn-centre-me" onclick="centreOnEgo()" style="display:none" data-tip="Centre on Me" data-i18n-tip="centreMe">◎</button>
         <button class="hbtn icon" id="btn-view-toggle" onclick="toggleViewMode()" style="display:none" data-tip="Toggle View" data-i18n-tip="toggleView">🌳</button>
         <div class="hbtn-sep"></div>
@@ -1493,6 +1527,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       </button>
       <button class="hbtn" onclick="fitScreen();closeMenu()">
         <span class="btn-ico">⊡</span><span class="btn-lbl" data-i18n="fitScreen">Fit Screen</span>
+      </button>
+      <button class="hbtn" id="btn-export-img-m" onclick="exportTreeImage();closeMenu()" style="display:none">
+        <span class="btn-ico">📷</span><span class="btn-lbl" data-i18n="exportImage">Save as Image</span>
       </button>
       <button class="hbtn" id="btn-centre-me-m" onclick="centreOnEgo();closeMenu()" style="display:none">
         <span class="btn-ico">◎</span><span class="btn-lbl" data-i18n="centreMe">Centre Me</span>
@@ -1576,24 +1613,35 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </div>
       </div>
 
+        <!-- Performance warning (full-tree, large families) -->
+        <div id="perf-banner" class="hide">
+          <div class="pb-ico">⚡</div>
+          <div class="pb-body">
+            <div class="pb-title">Large tree — loading may slow down</div>
+            <div class="pb-desc" id="perf-banner-desc">This tree has many people. Switch to My View for a faster experience focused on you.</div>
+          </div>
+          <button class="pb-switch" onclick="dismissPerfBanner(true)">Switch to My View</button>
+          <button class="pb-x" onclick="dismissPerfBanner(false)" title="Dismiss">✕</button>
+        </div>
+
         <!-- Viewer read-only notice -->
         <div id="viewer-banner" class="hide">
           <div class="vb-ico">👁</div>
           <div class="vb-body">
-            <div class="vb-title">You're viewing this family tree</div>
-            <div class="vb-desc">You have view-only access. Contact the family admin if you'd like to contribute.</div>
+            <div class="vb-title" data-i18n="viewerBannerTitle">You're viewing this family tree</div>
+            <div class="vb-desc" data-i18n="viewerBannerDesc">You have view-only access. Contact the family admin if you'd like to contribute.</div>
           </div>
           <button class="vb-x" onclick="dismissViewerBanner()" title="Dismiss">✕</button>
         </div>
 
         <!-- Non-admin welcome (editor/contributor — empty tree) -->
         <div id="member-ob-banner" class="hide">
-          <div class="ob-title" style="font-size:16px">👋 Welcome to the family tree</div>
-          <div style="font-size:12px;color:var(--ink4);margin:8px 0 12px;line-height:1.6">
+          <div class="ob-title" style="font-size:16px" id="mob-title">👋 Welcome to the family tree</div>
+          <div style="font-size:12px;color:var(--ink4);margin:8px 0 12px;line-height:1.6" id="mob-desc">
             The tree is empty right now. You can add the first person using the <b style="color:var(--parch2)">＋ Add</b> button above — or wait for the admin to get started.
           </div>
           <div style="display:flex;justify-content:flex-end">
-            <button class="ob-dismiss" onclick="dismissMemberOb()">Got it</button>
+            <button class="ob-dismiss" onclick="dismissMemberOb()" id="mob-got-it">Got it</button>
           </div>
         </div>
       <!-- Shown in ego view when user has no linked profile -->
@@ -2207,7 +2255,7 @@ const STRINGS = {
     addFirst:'＋ Add First Person',
     // App header & drawer
     addPerson:'Add Person', relationships:'Relationships', findRelation2:'Find Relation',
-    autoLayout:'Auto Layout', fitScreen:'Fit Screen',
+    autoLayout:'Auto Layout', fitScreen:'Fit Screen', exportImage:'Save as Image',
     centreMe:'Centre Me', fullTree:'Full Tree',
     adminPanel:'Admin', language:'Language',
     // Header tooltips
@@ -2333,6 +2381,19 @@ const STRINGS = {
     settExportDesc:'Download the family tree as CSV files compatible with the import tool. Includes all people and relationships.',
     settExportPeople:'⬇ People CSV',
     settExportRels:'⬇ Relationships CSV',
+    // ── Viewer banner ────────────────────────────────────────────
+    viewerBannerTitle:"You're viewing this family tree",
+    viewerBannerDesc:'You have view-only access. Contact the family admin if you\'d like to contribute.',
+    // ── Member welcome banner ─────────────────────────────────────
+    memberObTitle:'👋 Welcome to the family tree',
+    memberObDesc:'The tree is empty right now. You can add the first person using the <b style="color:var(--parch2)">＋ Add</b> button above — or wait for the admin to get started.',
+    memberObGotIt:'Got it',
+    // ── About screen ─────────────────────────────────────────────
+    alreadyAccount:'I already have an account',
+    // ── Approval ─────────────────────────────────────────────────
+    approvedAs:'Approved as',
+    // ── Arrow key nav (keyboard shortcut help) ────────────────────
+    arrowNavHint:'Use arrow keys to navigate between connected family members',
   },
   ta: {
     signIn:'உள்நுழை', joinFamily:'குடும்பம் சேர்', forgot:'மறந்தீர்களா?',
@@ -2353,7 +2414,7 @@ const STRINGS = {
     emptyBody:'முதல் குடும்ப உறுப்பினரை சேர்ப்பதன் மூலம் தொடங்குங்கள்',
     addFirst:'＋ முதலில் சேர்க்க',
     addPerson:'நபர் சேர்க்க', relationships:'உறவுகள்', findRelation2:'உறவுமுறை',
-    autoLayout:'தானியங்கி அமைப்பு', fitScreen:'திரையில் பொருத்து',
+    autoLayout:'தானியங்கி அமைப்பு', fitScreen:'திரையில் பொருத்து', exportImage:'படமாக சேமி',
     centreMe:'என்னை மையப்படுத்து', fullTree:'முழு மரம்',
     adminPanel:'நிர்வாகி', language:'மொழி',
     toggleView:'காட்சி மாற்று',
@@ -2473,6 +2534,14 @@ const STRINGS = {
     settExportDesc:'குடும்ப மரத்தை CSV கோப்புகளாக பதிவிறக்கவும். நபர்கள் மற்றும் உறவுகள் அனைத்தும் சேர்க்கப்படும்.',
     settExportPeople:'⬇ நபர்கள் CSV',
     settExportRels:'⬇ உறவுகள் CSV',
+    viewerBannerTitle:'நீங்கள் இந்த குடும்ப மரத்தை பார்க்கிறீர்கள்',
+    viewerBannerDesc:'உங்களுக்கு பார்வை மட்டும் அணுகல் உள்ளது. பங்களிக்க விரும்பினால் குடும்ப நிர்வாகியை தொடர்பு கொள்ளுங்கள்.',
+    memberObTitle:'👋 குடும்ப மரத்திற்கு வரவேற்கிறோம்',
+    memberObDesc:'மரம் இப்போது காலியாக உள்ளது. மேலே உள்ள <b style="color:var(--parch2)">＋ சேர்</b> பொத்தானை பயன்படுத்தி முதல் நபரை சேர்க்கலாம் — அல்லது நிர்வாகி தொடங்கும் வரை காத்திருக்கலாம்.',
+    memberObGotIt:'சரி',
+    alreadyAccount:'என்னிடம் ஏற்கனவே கணக்கு உள்ளது',
+    approvedAs:'அனுமதிக்கப்பட்டது',
+    arrowNavHint:'தொடர்புடைய குடும்ப உறுப்பினர்களுக்கு செல்ல அம்பு விசைகளை பயன்படுத்தவும்',
   },
   ml: {
     signIn:'സൈൻ ഇൻ', joinFamily:'കുടുംബം ചേരുക', forgot:'മറന്നോ?',
@@ -2493,7 +2562,7 @@ const STRINGS = {
     emptyBody:'ആദ്യ അംഗത്തെ ചേർക്കുന്നതിലൂടെ ആരംഭിക്കുക',
     addFirst:'＋ ആദ്യം ചേർക്കുക',
     addPerson:'ആളെ ചേർക്കുക', relationships:'ബന്ധങ്ങൾ', findRelation2:'ബന്ധം',
-    autoLayout:'ഓട്ടോ ലേഔട്ട്', fitScreen:'സ്ക്രീനിൽ ഒതുക്കുക',
+    autoLayout:'ഓട്ടോ ലേഔട്ട്', fitScreen:'സ്ക്രീനിൽ ഒതുക്കുക', exportImage:'ചിത്രമായി സേവ് ചെയ്യുക',
     centreMe:'എന്നെ കേന്ദ്രീകരിക്കുക', fullTree:'പൂർണ്ണ വൃക്ഷം',
     adminPanel:'അഡ്മിൻ', language:'ഭാഷ',
     toggleView:'കാഴ്ച മാറ്റുക',
@@ -2739,6 +2808,14 @@ const ABOUT_STRINGS = {
     f2title:'സ്വകാര്യതയോടെ', f2desc:'നിങ്ങൾ ക്ഷണിക്കുന്നവർക്ക് മാത്രം വൃക്ഷം ദൃശ്യമാകും. അഡ്മിൻ ഓരോ അംഗത്തെയും അംഗീകരിക്കുന്നു.',
     f3title:'ഏത് ഉപകരണത്തിലും', f3desc:'ഓഫ്‌ലൈൻ ആക്‌സസിനായി ഫോണിൽ ഇൻസ്റ്റാൾ ചെയ്യുക. മാറ്റങ്ങൾ എല്ലാ ഉപകരണങ്ങളിലും സമകാലികമാകുന്നു.',
     cta:'തുടങ്ങൂ →',
+    viewerBannerTitle:'നിങ്ങൾ ഈ കുടുംബ വൃക്ഷം കാണുകയാണ്',
+    viewerBannerDesc:'നിങ്ങൾക്ക് കാഴ്ചാ-മാത്രം ആക്സസ് ഉണ്ട്. സംഭാവന ചെയ്യാൻ ആഗ്രഹിക്കുന്നുവെങ്കിൽ കുടുംബ അഡ്മിനെ ബന്ധപ്പെടുക.',
+    memberObTitle:'👋 കുടുംബ വൃക്ഷത്തിലേക്ക് സ്വാഗതം',
+    memberObDesc:'വൃക്ഷം ഇപ്പോൾ ശൂന്യമാണ്. മുകളിലുള്ള <b style="color:var(--parch2)">＋ ചേർക്കുക</b> ബട്ടൺ ഉപയോഗിച്ച് ആദ്യ വ്യക്തിയെ ചേർക്കാം — അല്ലെങ്കിൽ അഡ്മിൻ ആരംഭിക്കുന്നതുവരെ കാത്തിരിക്കാം.',
+    memberObGotIt:'ശരി',
+    alreadyAccount:'എനിക്ക് ഇതിനകം ഒരു അക്കൗണ്ട് ഉണ്ട്',
+    approvedAs:'അംഗീകരിച്ചു',
+    arrowNavHint:'ബന്ധപ്പെട്ട കുടുംബ അംഗങ്ങളിലേക്ക് നാവിഗേറ്റ് ചെയ്യാൻ ആരോ കീകൾ ഉപയോഗിക്കുക',
   },
 };
 
@@ -3669,6 +3746,9 @@ function updatePermUI() {
   // Show switch-family buttons only when user belongs to more than one family
   const canSwitch = getSessions().families.length > 1;
   ['btn-switch-fam','btn-switch-fam-m'].forEach(id => { const e=el(id); if(e) e.style.display=canSwitch?'':'none'; });
+  // Show export-image button for all logged-in members (all roles can save tree image)
+  const hasTree = CU && Object.keys(DB.people).length > 0;
+  ['btn-export-img','btn-export-img-m'].forEach(id => { const e=el(id); if(e) e.style.display=hasTree?'':'none'; });
   // Start watching for pending members as soon as the admin enters the app
   if (isAdmin) startPendingWatch();
   else stopPendingWatch();
@@ -4204,7 +4284,7 @@ function memberRow(m, isPending, isRevoked = false) {
 async function approveAs(uid, role) {
   try {
     await set(ref(db, `families/${FAM}/members/${uid}/role`), role);
-    toast(`Approved as ${role}`);
+    toast(`${t('approvedAs')} ${role}`);
     setTimeout(loadMembers, 300);
   } catch(e) { toast('Error approving member: ' + e.message); }
 }
@@ -4326,6 +4406,77 @@ wrap.addEventListener('wheel',e=>{
 },{passive:false});
 
 // Keyboard shortcuts: +/= zoom in, - zoom out, 0 fit screen, F fit, space/home centre ego
+
+// ── Arrow key card navigation ────────────────────────────────────────
+// Navigate between connected family members using keyboard arrow keys.
+// Only active when the tree view is visible and a card is selected.
+//
+//  ↑  parent     ↓  child     →  partner     ←  sibling
+//  Tab  cycle through all connected people
+//  Enter  scroll selected card into view
+//
+function _arrowNav(direction) {
+  if (!selId || !DB.rels) return null;
+
+  const rels = Object.values(DB.rels);
+  let candidates = [];
+
+  if (direction === 'up') {
+    // Find parents: rels where type=Parent and to===selId  → from is the parent
+    candidates = rels
+      .filter(r => r.type === 'Parent' && r.to === selId && DB.people[r.from])
+      .map(r => r.from);
+  } else if (direction === 'down') {
+    // Find children: rels where type=Parent and from===selId → to is the child
+    candidates = rels
+      .filter(r => r.type === 'Parent' && r.from === selId && DB.people[r.to])
+      .map(r => r.to);
+  } else if (direction === 'right') {
+    // Find partners: type=Partner, bidirectional
+    candidates = rels
+      .filter(r => r.type === 'Partner' && (r.from === selId || r.to === selId))
+      .map(r => r.from === selId ? r.to : r.from)
+      .filter(id => DB.people[id]);
+  } else if (direction === 'left') {
+    // Find siblings: type=Sibling, bidirectional
+    candidates = rels
+      .filter(r => r.type === 'Sibling' && (r.from === selId || r.to === selId))
+      .map(r => r.from === selId ? r.to : r.from)
+      .filter(id => DB.people[id]);
+  } else if (direction === 'tab') {
+    // All connected people in any direction
+    candidates = rels
+      .filter(r => r.from === selId || r.to === selId)
+      .map(r => r.from === selId ? r.to : r.from)
+      .filter(id => DB.people[id] && id !== selId);
+    // Remove duplicates
+    candidates = [...new Set(candidates)];
+    // Cycle: find current position in sorted candidates, go to next
+    if (candidates.length === 0) return null;
+    const sortedCands = candidates.sort();
+    const currentIdx = sortedCands.indexOf(selId);
+    return sortedCands[(currentIdx + 1) % sortedCands.length];
+  }
+
+  return candidates.length > 0 ? candidates[0] : null;
+}
+
+function _scrollCardIntoView(id) {
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (!card) return;
+  // Scroll within canvas-wrap, not window
+  const wrap = el('canvas-wrap');
+  if (!wrap) return;
+  // Get card position in world coords and pan viewport to it
+  const p = DB.people[id];
+  if (!p) return;
+  const cw = wrap.clientWidth, ch = wrap.clientHeight;
+  // Centre the viewport on this card
+  vp.x = cw/2 - (p.x + CW/2) * vp.s;
+  vp.y = ch/2 - (p.y + CH/2) * vp.s;
+  applyVP();
+}
+
 document.addEventListener('keydown', e => {
   // Don't fire when typing in inputs/textareas
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
@@ -4336,6 +4487,21 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); fitScreen(); }
   else if (e.key === 'Escape') { closePanel(); }
   else if ((e.key === ' ' || e.key === 'Home') && egoId) { e.preventDefault(); centreOnEgo(); }
+  else if (selId && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+    const dirMap = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+    const target = _arrowNav(dirMap[e.key]);
+    if (target) { selectPerson(target); _scrollCardIntoView(target); }
+  }
+  else if (e.key === 'Tab' && selId) {
+    e.preventDefault();
+    const target = _arrowNav('tab');
+    if (target) { selectPerson(target); _scrollCardIntoView(target); }
+  }
+  else if (e.key === 'Enter' && selId) {
+    e.preventDefault();
+    _scrollCardIntoView(selId);
+  }
 });
 
 // ── Node drag ──────────────────────────────────────────────────────
@@ -4561,6 +4727,8 @@ function setViewMode(mode) {
     });
     if (prev === 'ego') startSync();
   }
+  // Re-evaluate perf banner — hide in ego mode, re-show if back to full and over threshold
+  _syncPerfBanner(Object.keys(DB.people).length);
 }
 
 function toggleViewMode() {
@@ -6420,7 +6588,41 @@ function _syncAllBanners(peopleCount) {
   _syncOnboardingBanner(peopleCount);
   _syncViewerBanner();
   _syncMemberObBanner(peopleCount);
+  _syncPerfBanner(peopleCount);
 }
+
+// ── Performance warning banner ──────────────────────────────────────────
+const PERF_WARN_THRESHOLD = 200; // people in full-tree mode
+
+function _syncPerfBanner(peopleCount) {
+  const banner = el('perf-banner');
+  if (!banner) return;
+
+  // Only fire in full-tree mode — ego mode already handles large trees gracefully
+  const inFullTree = typeof viewMode !== 'undefined' && viewMode === 'full';
+  const isDismissed = localStorage.getItem('para_perf_warn') === 'done';
+  const shouldShow  = inFullTree && peopleCount >= PERF_WARN_THRESHOLD && !isDismissed;
+
+  // Update people count in description
+  if (shouldShow) {
+    const desc = el('perf-banner-desc');
+    if (desc) {
+      desc.textContent = `This tree has ${peopleCount} people in full view. Switch to My View for a faster, focused experience centred on you.`;
+    }
+  }
+
+  banner.classList.toggle('hide', !shouldShow);
+}
+
+function dismissPerfBanner(switchToEgo) {
+  localStorage.setItem('para_perf_warn', 'done');
+  const banner = el('perf-banner');
+  if (banner) banner.classList.add('hide');
+  if (switchToEgo && typeof setViewMode === 'function') {
+    setViewMode('ego');
+  }
+}
+
 
 function dismissOnboarding() {
   _obPending = false;
@@ -6483,6 +6685,13 @@ function _syncMemberObBanner(peopleCount) {
   const role = CU && CU.role;
   if (role !== 'editor' && role !== 'contributor') { banner.classList.add('hide'); return; }
   if (localStorage.getItem('para_member_ob') === 'done') { banner.classList.add('hide'); return; }
+  // Apply translations each time (language may have changed)
+  const titleEl = el('mob-title');
+  const descEl  = el('mob-desc');
+  const gotItEl = el('mob-got-it');
+  if (titleEl) titleEl.textContent = t('memberObTitle');
+  if (descEl)  descEl.innerHTML    = t('memberObDesc');   // innerHTML — desc contains <b>
+  if (gotItEl) gotItEl.textContent = t('memberObGotIt');
   banner.classList.toggle('hide', peopleCount > 0);
 }
 
@@ -7018,6 +7227,8 @@ function loadSettingsTab() {
     </div>
     <div style="margin-top:12px;text-align:center">
       <button onclick="openPrivacyMo('notice')" style="background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit">Privacy &amp; Data Policy</button>
+      <span style="color:var(--clay);font-size:11px;margin:0 6px">·</span>
+      <a href="./terms.html" target="_blank" style="color:var(--ink4);font-size:11px;text-decoration:underline">Terms of Service</a>
     </div>`;
 }
 
@@ -7086,6 +7297,7 @@ function openPrivacyMo(tab) {
         </div>
       </div>`;
     ft.innerHTML = `
+      <a href="./privacy.html" target="_blank" style="font-size:11px;color:var(--ink4);text-decoration:underline;text-underline-offset:2px;margin-right:auto">Full Privacy Policy ↗</a>
       <button class="hbtn" onclick="closePrivacyMo()">Close</button>
       ${fbUser ? '<button class="hbtn primary" onclick="openPrivacyMo(\'account\')">My Account →</button>' : ''}`;
   } else {
@@ -7205,6 +7417,242 @@ function _csvDownload(csv, filename) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+// ══ TREE IMAGE EXPORT ═══════════════════════════════════════════════════════
+// Pure Canvas 2D render — no external libraries, no html2canvas.
+// Reads directly from DB.people / DB.rels using the same layout data
+// that drives the live tree.
+
+const _STRIPE_COLORS = ['#8b5e2a','#2e4a5c','#3d5c3a','#7a3030','#5c4a7a','#6b4a28'];
+
+function _rrect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function exportTreeImage() {
+  const ids = Object.keys(DB.people);
+  if (!ids.length) { toast('No people to export'); return; }
+
+  toast('Preparing image\u2026');
+
+  const PAD  = 60;
+  const CW_E = CW;   // 158
+  const CH_E = CH;   // 92
+  const R    = 5;
+
+  const xs   = ids.map(id => DB.people[id].x || 0);
+  const ys   = ids.map(id => DB.people[id].y || 0);
+  const minX = Math.min(...xs) - PAD;
+  const minY = Math.min(...ys) - PAD;
+  const maxX = Math.max(...xs) + CW_E + PAD;
+  const maxY = Math.max(...ys) + CH_E + PAD;
+  const W    = maxX - minX;
+  const H    = maxY - minY;
+
+  const MAX_DIM = 4096;
+  const scale   = Math.min(1, MAX_DIM / Math.max(W, H));
+  const cW = Math.round(W * scale);
+  const cH = Math.round(H * scale);
+
+  const cv  = document.createElement('canvas');
+  cv.width  = cW;
+  cv.height = cH;
+  const ctx = cv.getContext('2d');
+
+  ctx.fillStyle = '#0f0800';
+  ctx.fillRect(0, 0, cW, cH);
+
+  const tx = x => (x - minX) * scale;
+  const ty = y => (y - minY) * scale;
+  const sc = v => v * scale;
+
+  // Load photos (best-effort, 2s timeout each)
+  const photoCache = {};
+  const photoPromises = ids
+    .filter(id => DB.people[id].photo)
+    .map(id => new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      const timer = setTimeout(() => resolve(), 2000);
+      img.onload  = () => { photoCache[id] = img; clearTimeout(timer); resolve(); };
+      img.onerror = () => { clearTimeout(timer); resolve(); };
+      img.src = DB.people[id].photo;
+    }));
+  await Promise.all(photoPromises);
+
+  // Draw relationship lines
+  const drawn = new Set();
+  Object.values(DB.rels).forEach(r => {
+    const a = DB.people[r.from], b = DB.people[r.to];
+    if (!a || !b) return;
+    const key = [r.from, r.to].sort().join('-') + r.type;
+    if (r.type === 'Partner' && drawn.has(key)) return;
+    drawn.add(key);
+
+    const ax = (a.x||0)+CW_E/2, ay = (a.y||0)+CH_E/2;
+    const bx = (b.x||0)+CW_E/2, by = (b.y||0)+CH_E/2;
+    const abotx = (a.x||0)+CW_E/2, aboty = (a.y||0)+CH_E;
+    const btopx = (b.x||0)+CW_E/2, btopy = (b.y||0);
+
+    ctx.save();
+    if (r.type === 'Parent') {
+      ctx.strokeStyle = 'rgba(155,122,80,.55)';
+      ctx.lineWidth   = sc(1.8);
+      ctx.setLineDash([]);
+      const my = (aboty + btopy) / 2;
+      ctx.beginPath();
+      ctx.moveTo(tx(abotx), ty(aboty));
+      ctx.bezierCurveTo(tx(abotx), ty(my), tx(btopx), ty(my), tx(btopx), ty(btopy));
+      ctx.stroke();
+    } else if (r.type === 'Partner') {
+      ctx.strokeStyle = 'rgba(200,137,58,.65)';
+      ctx.lineWidth   = sc(1.8);
+      ctx.setLineDash([sc(6), sc(3)]);
+      const mx = (ax + bx) / 2, my = Math.min(ay, by) - 36;
+      ctx.beginPath();
+      ctx.moveTo(tx(ax), ty(ay));
+      ctx.quadraticCurveTo(tx(mx), ty(my), tx(bx), ty(by));
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = 'rgba(92,171,106,.45)';
+      ctx.lineWidth   = sc(1.5);
+      ctx.setLineDash([sc(2), sc(6)]);
+      ctx.beginPath();
+      ctx.moveTo(tx(ax), ty(ay));
+      ctx.lineTo(tx(bx), ty(by));
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+
+  // Ensure fonts loaded
+  if (document.fonts) {
+    try { await document.fonts.load('600 13px "Crimson Pro"'); } catch(e) {}
+  }
+
+  // Draw person cards
+  ids.forEach(id => {
+    const p = DB.people[id];
+    const x = tx(p.x || 0);
+    const y = ty(p.y || 0);
+    const w = sc(CW_E);
+    const h = sc(CH_E);
+    const r = sc(R);
+
+    let gen = 0;
+    const cardEl = nodesL.querySelector('.card[data-id="' + id + '"]');
+    if (cardEl) {
+      const m = cardEl.className.match(/\bg(\d)\b/);
+      if (m) gen = parseInt(m[1]);
+    }
+    const stripeColor = _STRIPE_COLORS[gen % 6];
+
+    // Card background
+    ctx.fillStyle = '#1e1005';
+    _rrect(ctx, x, y, w, h, r);
+    ctx.fill();
+
+    // Card border
+    ctx.strokeStyle = 'rgba(74,46,16,.8)';
+    ctx.lineWidth   = sc(1.5);
+    _rrect(ctx, x, y, w, h, r);
+    ctx.stroke();
+
+    // Generation stripe (top 4px)
+    ctx.fillStyle = stripeColor;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + sc(4));
+    ctx.lineTo(x, y + sc(4));
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Avatar circle
+    const avR  = sc(20);
+    const avCx = x + w / 2;
+    const avCy = y + sc(4) + sc(8) + avR;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(avCx, avCy, avR, 0, Math.PI * 2);
+    ctx.clip();
+    if (photoCache[id]) {
+      ctx.drawImage(photoCache[id], avCx - avR, avCy - avR, avR * 2, avR * 2);
+    } else {
+      const avColor = p.gender === 'Male' ? '#2e4a5c' : p.gender === 'Female' ? '#7a3030' : '#3a2510';
+      ctx.fillStyle = avColor;
+      ctx.fillRect(avCx - avR, avCy - avR, avR * 2, avR * 2);
+      const initials = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
+      ctx.fillStyle = '#f5ead8';
+      ctx.font = '500 ' + sc(12) + 'px "Crimson Pro", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(initials, avCx, avCy);
+    }
+    ctx.restore();
+
+    // Name
+    const nameY = avCy + avR + sc(6);
+    ctx.fillStyle = '#ede0c4';
+    ctx.font = '600 ' + sc(12) + 'px "Crimson Pro", Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const maxNameW = w - sc(12);
+    let name = fullName(p);
+    while (name.length > 2 && ctx.measureText(name).width > maxNameW) {
+      name = name.slice(0, -2) + '\u2026';
+    }
+    ctx.fillText(name, x + w / 2, nameY);
+
+    // Meta line
+    const meta = lifeSpan(p) || p.occupation || '';
+    if (meta) {
+      ctx.fillStyle = '#9b7a50';
+      ctx.font = '300 ' + sc(9) + 'px "DM Sans", sans-serif';
+      let metaTxt = meta;
+      while (metaTxt.length > 2 && ctx.measureText(metaTxt).width > maxNameW) {
+        metaTxt = metaTxt.slice(0, -2) + '\u2026';
+      }
+      ctx.fillText(metaTxt, x + w / 2, nameY + sc(13));
+    }
+  });
+
+  // Watermark
+  ctx.fillStyle = 'rgba(155,122,80,.25)';
+  ctx.font      = '300 ' + sc(11) + 'px "Crimson Pro", Georgia, serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('Parampara', cW - sc(12), cH - sc(8));
+
+  // Download
+  const familyName = (CU && CU.famKey) ? CU.famKey : (FAM || 'tree');
+  const filename = 'parampara-' + familyName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.png';
+  cv.toBlob(blob => {
+    if (!blob) { toast('Export failed'); return; }
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    toast('Image saved as ' + filename);
+  }, 'image/png');
+}
+// ══ END TREE IMAGE EXPORT ════════════════════════════════════════════════════
+
 
 async function exportFamilyData() {
   if (!FAM || !CU) { toast('No family loaded'); return; }
@@ -8688,13 +9136,15 @@ Object.assign(window, {
   restoreM, deleteM,
   _onPhotoUrlChange, _handlePhotoFile,
   openPrivacyMo, closePrivacyMo,
-  exportFamilyData, exportTreeCSV, leaveFamily, deleteMyAccount, deleteFamily,
+  exportFamilyData, exportTreeCSV, exportTreeImage, leaveFamily, deleteMyAccount, deleteFamily,
   logErr,
   dismissOnboarding, dismissKeyBanner,
   dismissAbout, showAbout,
+  dismissPerfBanner,
   enterCreateMode,
   dismissViewerBanner, dismissMemberOb,
   approveAs,
+  _arrowNav, _scrollCardIntoView,
   _getStrings: () => STRINGS,
   undoDelete,
   clearPendingNotices,

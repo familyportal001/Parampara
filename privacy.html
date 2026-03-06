@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a0f00">
+<title>Privacy Policy — Parampara</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:  #0f0800;
+  --bark:   #1e1005;
+  --soil:   #2e1a08;
+  --clay:   #4a2e10;
+  --copper: #8b5e2a;
+  --gold:   #c8893a;
+  --gold2:  #e0aa5a;
+  --cream:  #f5ead8;
+  --parch:  #ede0c4;
+  --parch2: #e0cea8;
+  --ink3:   #6b4a28;
+  --ink4:   #9b7a50;
+  --border: #d4b88a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--parch);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────── */
+.page-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.site-header {
+  padding: 32px 0 0;
+  border-bottom: 1px solid rgba(200,137,58,.2);
+  margin-bottom: 48px;
+}
+
+.header-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.brand-logo {
+  font-family: 'Crimson Pro', serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+
+.brand-logo:hover { color: var(--gold2); }
+
+.header-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--clay);
+  flex-shrink: 0;
+}
+
+.header-doc-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink4);
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.doc-hero {
+  margin-bottom: 48px;
+}
+
+.doc-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: .04em;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.doc-meta {
+  font-size: 12px;
+  color: var(--ink4);
+  letter-spacing: .06em;
+}
+
+.doc-meta span { color: var(--copper); }
+
+.doc-intro {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  padding: 16px 20px;
+  background: rgba(200,137,58,.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── Table of Contents ────────────────────────────────────────────── */
+.toc {
+  background: var(--bark);
+  border: 1px solid var(--clay);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 48px;
+}
+
+.toc-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink4);
+  margin-bottom: 12px;
+}
+
+.toc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toc-list li a {
+  font-size: 13px;
+  color: var(--parch2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color .15s;
+}
+
+.toc-list li a:hover { color: var(--gold2); }
+
+.toc-num {
+  font-size: 10px;
+  color: var(--copper);
+  min-width: 18px;
+  font-weight: 500;
+}
+
+/* ── Sections ────────────────────────────────────────────────────── */
+.section {
+  margin-bottom: 44px;
+  padding-bottom: 44px;
+  border-bottom: 1px solid rgba(74,46,16,.5);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.section-num {
+  font-size: 10px;
+  color: var(--copper);
+  font-weight: 500;
+  letter-spacing: .1em;
+  min-width: 22px;
+}
+
+.section-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: .02em;
+}
+
+h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--parch);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin: 20px 0 8px;
+}
+
+p {
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+
+p:last-child { margin-bottom: 0; }
+
+ul, ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+li {
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  margin-bottom: 4px;
+}
+
+strong {
+  color: var(--parch);
+  font-weight: 500;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:hover { color: var(--gold2); }
+
+/* ── Data table ───────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px;
+  font-size: 13px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--soil);
+  color: var(--ink4);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  border: 1px solid var(--clay);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border: 1px solid var(--clay);
+  color: var(--parch2);
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+.data-table tr:nth-child(odd) td { background: rgba(30,16,5,.4); }
+.data-table tr:nth-child(even) td { background: rgba(46,26,8,.3); }
+
+/* ── Rights grid ─────────────────────────────────────────────────── */
+.rights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.right-card {
+  background: var(--bark);
+  border: 1px solid var(--clay);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.right-card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.right-card-desc {
+  font-size: 12px;
+  color: var(--ink4);
+  line-height: 1.55;
+}
+
+/* ── Contact box ─────────────────────────────────────────────────── */
+.contact-box {
+  background: var(--bark);
+  border: 1px solid var(--clay);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 12px;
+}
+
+.contact-line {
+  font-size: 13px;
+  color: var(--parch2);
+  line-height: 1.8;
+}
+
+.contact-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink4);
+  margin-bottom: 8px;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.site-footer {
+  margin-top: 64px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(200,137,58,.15);
+}
+
+.footer-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footer-brand {
+  font-family: 'Crimson Pro', serif;
+  font-size: 16px;
+  color: var(--copper);
+  letter-spacing: .06em;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  font-size: 12px;
+  color: var(--ink4);
+  text-decoration: none;
+  letter-spacing: .04em;
+}
+
+.footer-links a:hover { color: var(--parch2); }
+
+/* ── Back to app ────────────────────────────────────────────────── */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink4);
+  text-decoration: none;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: color .15s;
+  margin-bottom: 32px;
+}
+
+.back-link:hover { color: var(--parch2); }
+
+@media (max-width: 600px) {
+  .rights-grid { grid-template-columns: 1fr; }
+  .data-table { font-size: 12px; }
+  .data-table th, .data-table td { padding: 7px 9px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand-logo" href="./index.html">Parampara</a>
+    <div class="header-sep"></div>
+    <div class="header-doc-type">Legal</div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <a class="back-link" href="./index.html">← Back to app</a>
+
+  <div class="doc-hero">
+    <h1 class="doc-title">Privacy Policy</h1>
+    <div class="doc-meta">
+      Last updated: <span>March 2026</span> &nbsp;·&nbsp; Applies to Parampara web application
+    </div>
+    <div class="doc-intro">
+      Parampara is a private family tree service. We collect only what is necessary to operate the service,
+      store it securely in the EU, and never sell or share it with advertisers. This policy explains exactly
+      what we collect, why, and what rights you have over it.
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol class="toc-list">
+      <li><a href="#who-we-are"><span class="toc-num">1</span> Who we are and how to contact us</a></li>
+      <li><a href="#what-we-collect"><span class="toc-num">2</span> What personal data we collect</a></li>
+      <li><a href="#why-we-collect"><span class="toc-num">3</span> Why we collect it and legal basis</a></li>
+      <li><a href="#who-can-see"><span class="toc-num">4</span> Who can see your data</a></li>
+      <li><a href="#third-parties"><span class="toc-num">5</span> Third-party services</a></li>
+      <li><a href="#retention"><span class="toc-num">6</span> How long we keep your data</a></li>
+      <li><a href="#your-rights"><span class="toc-num">7</span> Your rights</a></li>
+      <li><a href="#security"><span class="toc-num">8</span> Security</a></li>
+      <li><a href="#cookies"><span class="toc-num">9</span> Cookies and local storage</a></li>
+      <li><a href="#children"><span class="toc-num">10</span> Children</a></li>
+      <li><a href="#changes"><span class="toc-num">11</span> Changes to this policy</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── 1 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="who-we-are">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Who we are and how to contact us</h2>
+    </div>
+    <p>
+      Parampara is a personal project operated by an individual developer based in the United Kingdom.
+      Parampara is the <strong>data controller</strong> for the personal data you provide when using this service.
+    </p>
+    <p>
+      For any privacy-related questions, requests, or complaints, please contact us:
+    </p>
+    <div class="contact-box">
+      <div class="contact-label">Data Controller Contact</div>
+      <div class="contact-line">
+        <strong>Service:</strong> Parampara Family Tree<br>
+        <strong>Email:</strong> <a href="mailto:privacy@parampara.app">privacy@parampara.app</a><br>
+        <strong>Location:</strong> United Kingdom
+      </div>
+    </div>
+    <p style="margin-top:14px">
+      We aim to respond to all privacy enquiries within <strong>30 days</strong>.
+    </p>
+  </section>
+
+  <!-- ── 2 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="what-we-collect">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">What personal data we collect</h2>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>What it is</th>
+          <th>Where stored</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Email address</strong></td>
+          <td>Provided when you register or join a family</td>
+          <td>Firebase Authentication (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Password</strong></td>
+          <td>Hashed by Firebase — we never see plaintext passwords</td>
+          <td>Firebase Authentication (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Display name</strong></td>
+          <td>First and last name you enter when joining a family</td>
+          <td>Firebase Realtime Database (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Family tree content</strong></td>
+          <td>People, dates, relationships, and notes you add to the tree</td>
+          <td>Firebase Realtime Database (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Edit history</strong></td>
+          <td>Timestamps and your user ID recorded when you add or edit a person</td>
+          <td>Firebase Realtime Database (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Member record</strong></td>
+          <td>Your role, join date, and approval status within each family you belong to</td>
+          <td>Firebase Realtime Database (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Photos</strong></td>
+          <td>Images you upload to people's profiles (optional)</td>
+          <td>Firebase Storage (EU)</td>
+        </tr>
+        <tr>
+          <td><strong>Device preferences</strong></td>
+          <td>Language choice, dismissed banners, view mode (stored locally only)</td>
+          <td>Your device (localStorage)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      We do <strong>not</strong> collect: IP addresses, device identifiers, browsing behaviour, advertising IDs,
+      or any data about your use of other websites or apps.
+    </p>
+  </section>
+
+  <!-- ── 3 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="why-we-collect">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Why we collect it and legal basis</h2>
+    </div>
+    <p>
+      Under UK GDPR and the EU GDPR, we must have a lawful basis for processing personal data.
+      Our processing activities and their legal bases are:
+    </p>
+
+    <h3>Contract performance (Article 6(1)(b))</h3>
+    <p>
+      We process your email address, name, and account credentials to provide the Parampara service —
+      specifically to authenticate you, identify you to other members of your family tree,
+      and enable collaboration. Without this data, the service cannot function.
+    </p>
+
+    <h3>Legitimate interests (Article 6(1)(f))</h3>
+    <p>
+      We retain edit history (timestamps and user IDs attached to changes) to allow family admins
+      to review edits and maintain data quality. This is proportionate and does not override your
+      privacy interests, given that this data is only visible to admins of families you belong to.
+    </p>
+
+    <h3>Consent (Article 6(1)(a))</h3>
+    <p>
+      Photos you upload to people profiles are processed only with your explicit action.
+      You can remove photos at any time by editing the person's profile.
+    </p>
+  </section>
+
+  <!-- ── 4 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="who-can-see">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Who can see your data</h2>
+    </div>
+
+    <h3>Other family members</h3>
+    <p>
+      Members of a family tree you belong to can see the <strong>people and relationships</strong> in that tree,
+      including content you added. Your <strong>display name</strong> is visible to all members.
+    </p>
+
+    <h3>Family admins</h3>
+    <p>
+      Admins of a family tree can also see your <strong>email address</strong>, your role, your join date,
+      and the edit history showing which changes you made.
+    </p>
+
+    <h3>No third-party sharing</h3>
+    <p>
+      We do not sell, rent, or share your personal data with any third parties for marketing,
+      advertising, or analytics purposes. Your data is not visible to other families on Parampara.
+    </p>
+
+    <h3>Legal disclosure</h3>
+    <p>
+      We may be required to disclose data if compelled by a court order or other legal obligation
+      under UK law. We will notify you where legally permitted.
+    </p>
+  </section>
+
+  <!-- ── 5 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="third-parties">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Third-party services</h2>
+    </div>
+    <p>
+      Parampara uses <strong>Google Firebase</strong> (a Google LLC product) to store and process data.
+      Firebase operates under Google's data processing terms and stores data in the
+      <strong>EU (europe-west1, Belgium)</strong> region.
+    </p>
+    <p>
+      Firebase is covered by Google's Standard Contractual Clauses for international data transfers.
+      You can review Google's privacy terms at
+      <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a>.
+    </p>
+    <p>
+      We also load fonts from <strong>Google Fonts</strong> (fonts.googleapis.com). This causes your browser to
+      make a request to Google's servers when you load Parampara. Google may log the font request.
+      If you prefer to avoid this, you can use a content blocker; the app remains fully functional
+      with system fonts.
+    </p>
+    <p>
+      No other third-party services, analytics platforms, advertising networks, or tracking tools are used.
+    </p>
+  </section>
+
+  <!-- ── 6 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="retention">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">How long we keep your data</h2>
+    </div>
+    <p>
+      We retain personal data for as long as you have an active account and are a member of at least one family.
+    </p>
+    <ul>
+      <li>
+        <strong>Deleting your account</strong> removes your Firebase Auth credentials and member records from all
+        families immediately. Family tree content (people and relationships you added) remains in those trees
+        for other members unless the family admin deletes the entire tree.
+      </li>
+      <li>
+        <strong>Leaving a family</strong> removes your member record from that family.
+        Your contributions to that family's tree are preserved.
+      </li>
+      <li>
+        <strong>Inactive accounts</strong> are not automatically deleted. You may delete your account at any time
+        via Account &amp; Privacy in the app menu.
+      </li>
+    </ul>
+    <p>
+      If you wish to have specific content removed from a family tree (such as information about you added by
+      another member), please contact the family admin or contact us at the address in section 1.
+    </p>
+  </section>
+
+  <!-- ── 7 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="your-rights">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Your rights</h2>
+    </div>
+    <p>Under UK GDPR (and EU GDPR where applicable), you have the following rights:</p>
+
+    <div class="rights-grid">
+      <div class="right-card">
+        <div class="right-card-title">Right to access</div>
+        <div class="right-card-desc">Request a copy of the personal data we hold about you.</div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">Right to rectification</div>
+        <div class="right-card-desc">Correct inaccurate data. You can update your name directly in the app.</div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">Right to erasure</div>
+        <div class="right-card-desc">Request deletion of your account and personal data.</div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">Right to portability</div>
+        <div class="right-card-desc">Export your family tree data as JSON via Account &amp; Privacy in the app.</div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">Right to object</div>
+        <div class="right-card-desc">Object to processing based on legitimate interests.</div>
+      </div>
+      <div class="right-card">
+        <div class="right-card-title">Right to restrict</div>
+        <div class="right-card-desc">Ask us to pause processing of your data while a dispute is resolved.</div>
+      </div>
+    </div>
+
+    <p style="margin-top:16px">
+      To exercise any of these rights, use the <strong>Account &amp; Privacy</strong> menu in the app, or contact us
+      at <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+      We will respond within 30 days. We may need to verify your identity before fulfilling a request.
+    </p>
+    <p>
+      If you are dissatisfied with our response, you have the right to lodge a complaint with the
+      <strong>Information Commissioner's Office (ICO)</strong> at
+      <a href="https://ico.org.uk/make-a-complaint" target="_blank" rel="noopener">ico.org.uk</a>.
+    </p>
+  </section>
+
+  <!-- ── 8 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="security">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Security</h2>
+    </div>
+    <p>
+      All data is transmitted over HTTPS (TLS). Passwords are hashed by Firebase Authentication —
+      we never store or access your plaintext password.
+    </p>
+    <p>
+      Access to family data is controlled by Firebase Security Rules, which enforce role-based permissions
+      at the database level. Only authenticated members of a family can read that family's data.
+    </p>
+    <p>
+      Email verification is required before a new account can access any family data, reducing the risk
+      of unauthorised access via typo'd email addresses.
+    </p>
+    <p>
+      No security system is perfect. If you discover a vulnerability, please report it to
+      <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+    </p>
+  </section>
+
+  <!-- ── 9 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="cookies">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">Cookies and local storage</h2>
+    </div>
+    <p>
+      Parampara does not use advertising cookies or third-party tracking cookies.
+    </p>
+    <p>
+      We use <strong>browser localStorage</strong> (not cookies) to store:
+    </p>
+    <ul>
+      <li>Your language preference</li>
+      <li>Session information linking your account to your family trees (stored locally to avoid repeated Firebase lookups)</li>
+      <li>Dismissed banners and onboarding state</li>
+      <li>An offline snapshot of your family tree for faster loading and offline use</li>
+    </ul>
+    <p>
+      This data lives only on your device and is not transmitted anywhere other than back to Firebase
+      to keep your session alive. You can clear it by clearing your browser's site data for this origin.
+    </p>
+    <p>
+      Firebase Authentication uses its own cookies to maintain your signed-in session.
+      These are strictly necessary for the app to function and do not require consent under UK GDPR's
+      "strictly necessary" exemption.
+    </p>
+  </section>
+
+  <!-- ── 10 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="children">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title">Children</h2>
+    </div>
+    <p>
+      Parampara requires users to be at least <strong>13 years old</strong> to create an account,
+      in accordance with Firebase Authentication's terms of service.
+    </p>
+    <p>
+      Family tree profiles (the "people" in the tree) may include data about children and minors —
+      for example, a family might record a child's name and date of birth. This data is entered by
+      adult members and is only visible to other approved members of the family.
+      We do not use this data for any purpose other than displaying it within the family tree.
+    </p>
+    <p>
+      If you believe a child's data has been recorded without appropriate consent, please contact us
+      and we will work with the family admin to address it.
+    </p>
+  </section>
+
+  <!-- ── 11 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="changes">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2 class="section-title">Changes to this policy</h2>
+    </div>
+    <p>
+      We may update this Privacy Policy from time to time. The "Last updated" date at the top of this page
+      will always reflect the most recent revision.
+    </p>
+    <p>
+      For significant changes — particularly those that affect how your data is used or shared —
+      we will notify signed-in users via a notice in the application.
+    </p>
+    <p>
+      Continued use of Parampara after a policy update constitutes acceptance of the revised terms.
+      If you do not agree, you may delete your account at any time via the app.
+    </p>
+  </section>
+
+</div><!-- .page-wrap -->
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Parampara</div>
+    <nav class="footer-links">
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="./index.html">Back to App</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>

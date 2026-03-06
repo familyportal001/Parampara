@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a0f00">
+<title>Terms of Service — Parampara</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:  #0f0800;
+  --bark:   #1e1005;
+  --soil:   #2e1a08;
+  --clay:   #4a2e10;
+  --copper: #8b5e2a;
+  --gold:   #c8893a;
+  --gold2:  #e0aa5a;
+  --cream:  #f5ead8;
+  --parch:  #ede0c4;
+  --parch2: #e0cea8;
+  --ink3:   #6b4a28;
+  --ink4:   #9b7a50;
+  --border: #d4b88a;
+  --sage:   #3d5c3a;
+  --rose:   #7a3030;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--parch);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+.page-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.site-header {
+  padding: 32px 0 0;
+  border-bottom: 1px solid rgba(200,137,58,.2);
+  margin-bottom: 48px;
+}
+
+.header-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.brand-logo {
+  font-family: 'Crimson Pro', serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+
+.brand-logo:hover { color: var(--gold2); }
+
+.header-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--clay);
+  flex-shrink: 0;
+}
+
+.header-doc-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink4);
+}
+
+.doc-hero { margin-bottom: 48px; }
+
+.doc-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: .04em;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.doc-meta {
+  font-size: 12px;
+  color: var(--ink4);
+  letter-spacing: .06em;
+}
+
+.doc-meta span { color: var(--copper); }
+
+.doc-intro {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  padding: 16px 20px;
+  background: rgba(200,137,58,.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 4px 4px 0;
+}
+
+.toc {
+  background: var(--bark);
+  border: 1px solid var(--clay);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 48px;
+}
+
+.toc-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink4);
+  margin-bottom: 12px;
+}
+
+.toc-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toc-list li a {
+  font-size: 13px;
+  color: var(--parch2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color .15s;
+}
+
+.toc-list li a:hover { color: var(--gold2); }
+
+.toc-num {
+  font-size: 10px;
+  color: var(--copper);
+  min-width: 18px;
+  font-weight: 500;
+}
+
+.section {
+  margin-bottom: 44px;
+  padding-bottom: 44px;
+  border-bottom: 1px solid rgba(74,46,16,.5);
+}
+
+.section:last-child { border-bottom: none; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.section-num {
+  font-size: 10px;
+  color: var(--copper);
+  font-weight: 500;
+  letter-spacing: .1em;
+  min-width: 22px;
+}
+
+.section-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: .02em;
+}
+
+h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--parch);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin: 20px 0 8px;
+}
+
+p {
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+
+p:last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 20px; margin-bottom: 12px; }
+
+li {
+  font-size: 14px;
+  color: var(--parch2);
+  line-height: 1.75;
+  margin-bottom: 4px;
+}
+
+strong {
+  color: var(--parch);
+  font-weight: 500;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:hover { color: var(--gold2); }
+
+/* Callout boxes */
+.callout {
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.callout-info {
+  background: rgba(61,92,58,.15);
+  border: 1px solid rgba(61,92,58,.4);
+  color: #a8d4a0;
+}
+
+.callout-warn {
+  background: rgba(122,48,48,.12);
+  border: 1px solid rgba(122,48,48,.35);
+  color: #e0a0a0;
+}
+
+.callout strong { color: inherit; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink4);
+  text-decoration: none;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: color .15s;
+  margin-bottom: 32px;
+}
+
+.back-link:hover { color: var(--parch2); }
+
+.site-footer {
+  margin-top: 64px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(200,137,58,.15);
+}
+
+.footer-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footer-brand {
+  font-family: 'Crimson Pro', serif;
+  font-size: 16px;
+  color: var(--copper);
+  letter-spacing: .06em;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  font-size: 12px;
+  color: var(--ink4);
+  text-decoration: none;
+  letter-spacing: .04em;
+}
+
+.footer-links a:hover { color: var(--parch2); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand-logo" href="./index.html">Parampara</a>
+    <div class="header-sep"></div>
+    <div class="header-doc-type">Legal</div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <a class="back-link" href="./index.html">← Back to app</a>
+
+  <div class="doc-hero">
+    <h1 class="doc-title">Terms of Service</h1>
+    <div class="doc-meta">
+      Last updated: <span>March 2026</span> &nbsp;·&nbsp; Applies to Parampara web application
+    </div>
+    <div class="doc-intro">
+      By creating an account or using Parampara, you agree to these Terms. Please read them — they are
+      written in plain language. The short version: use Parampara to build real family trees, treat
+      other members with respect, and don't do anything that would harm other users or the service.
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol class="toc-list">
+      <li><a href="#the-service"><span class="toc-num">1</span> The service</a></li>
+      <li><a href="#your-account"><span class="toc-num">2</span> Your account</a></li>
+      <li><a href="#acceptable-use"><span class="toc-num">3</span> Acceptable use</a></li>
+      <li><a href="#your-content"><span class="toc-num">4</span> Your content</a></li>
+      <li><a href="#family-admins"><span class="toc-num">5</span> Family admins</a></li>
+      <li><a href="#availability"><span class="toc-num">6</span> Service availability</a></li>
+      <li><a href="#liability"><span class="toc-num">7</span> Limitation of liability</a></li>
+      <li><a href="#termination"><span class="toc-num">8</span> Termination</a></li>
+      <li><a href="#governing-law"><span class="toc-num">9</span> Governing law</a></li>
+      <li><a href="#changes"><span class="toc-num">10</span> Changes to these terms</a></li>
+      <li><a href="#contact"><span class="toc-num">11</span> Contact</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── 1 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="the-service">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">The service</h2>
+    </div>
+    <p>
+      Parampara is a private family tree web application. It allows families to collaboratively build,
+      view, and share genealogical records — people, relationships, photos, and biographies —
+      in a private, invitation-only space.
+    </p>
+    <p>
+      Parampara is provided as a personal project by an individual developer based in the United Kingdom.
+      It is currently offered free of charge, with no advertising.
+    </p>
+  </section>
+
+  <!-- ── 2 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="your-account">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Your account</h2>
+    </div>
+
+    <h3>Eligibility</h3>
+    <p>
+      You must be at least <strong>13 years old</strong> to create an account. By registering, you confirm
+      that you meet this requirement.
+    </p>
+
+    <h3>Accuracy</h3>
+    <p>
+      You agree to provide a real email address and accurate information when registering.
+      You are responsible for keeping your account credentials secure.
+    </p>
+
+    <h3>One account per person</h3>
+    <p>
+      Each person should have one account. Creating multiple accounts to circumvent access restrictions
+      (for example, after being removed from a family) is not permitted.
+    </p>
+
+    <h3>Account security</h3>
+    <p>
+      You are responsible for all activity that occurs under your account.
+      If you believe your account has been compromised, change your password immediately and
+      contact us at <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+    </p>
+  </section>
+
+  <!-- ── 3 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="acceptable-use">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Acceptable use</h2>
+    </div>
+    <p>You agree to use Parampara only for its intended purpose: building and sharing genuine family trees.</p>
+
+    <h3>You must not:</h3>
+    <ul>
+      <li>Add false, defamatory, or deliberately misleading information about real people</li>
+      <li>Upload content that is offensive, abusive, or inappropriate for a family context</li>
+      <li>Use the service to harass, stalk, or harm any person</li>
+      <li>Attempt to access family trees you have not been invited to join</li>
+      <li>Share your family secret key publicly or with people who are not intended members</li>
+      <li>Use automated tools, bots, or scripts to access the service</li>
+      <li>Attempt to reverse-engineer, decompile, or extract the Firebase configuration or security rules</li>
+      <li>Use Parampara for commercial purposes, data mining, or market research</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <strong>Family context:</strong> Parampara is designed for real families. Content should be factual,
+      respectful, and appropriate for all members — including children who may be shown the tree.
+    </div>
+  </section>
+
+  <!-- ── 4 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="your-content">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Your content</h2>
+    </div>
+
+    <h3>Ownership</h3>
+    <p>
+      You retain ownership of content you add to Parampara — names, dates, notes, photos, and
+      relationship records. We claim no intellectual property rights over your family data.
+    </p>
+
+    <h3>Licence to operate the service</h3>
+    <p>
+      By adding content to Parampara, you grant us a limited, non-exclusive licence to store,
+      display, and transmit that content for the purpose of operating the service
+      (including syncing it to other members of the same family tree).
+      This licence ends when you delete the content or your account.
+    </p>
+
+    <h3>Data about living people</h3>
+    <p>
+      You are responsible for obtaining appropriate consent before adding personal information
+      about living individuals — particularly sensitive information such as health conditions or
+      dates of birth — to a family tree. UK GDPR applies to the processing of personal data about
+      living people; as a user, you act as a data controller for content you input.
+    </p>
+
+    <h3>Content you export</h3>
+    <p>
+      You may export your family data at any time using the Export feature in Account &amp; Privacy.
+      You are responsible for how you use exported data outside of Parampara.
+    </p>
+  </section>
+
+  <!-- ── 5 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="family-admins">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Family admins</h2>
+    </div>
+    <p>
+      The person who creates a family tree becomes its <strong>admin</strong> and takes on specific responsibilities:
+    </p>
+    <ul>
+      <li>Approving or rejecting join requests from prospective members</li>
+      <li>Managing member roles and access levels</li>
+      <li>Ensuring the content in the tree complies with these Terms</li>
+      <li>Removing members who violate these Terms</li>
+    </ul>
+    <p>
+      Admins should take care when sharing the family secret key. Anyone with the key can request to join.
+      The admin's approval step is the primary access control.
+    </p>
+    <div class="callout callout-warn">
+      <strong>Note:</strong> If you are the only admin of a family and you delete your account,
+      the family tree will become inaccessible to all members. We recommend appointing at least one
+      additional admin before leaving or deleting your account.
+    </div>
+  </section>
+
+  <!-- ── 6 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="availability">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Service availability</h2>
+    </div>
+    <p>
+      Parampara is provided on an <strong>"as available"</strong> basis. We do not guarantee continuous,
+      uninterrupted access to the service.
+    </p>
+    <p>
+      The service depends on Google Firebase. Any outages, maintenance windows, or service changes
+      by Google may temporarily affect availability. We will communicate planned downtime where possible
+      via a notice in the application.
+    </p>
+    <p>
+      Parampara includes offline functionality — your most recent family tree data is cached on your
+      device and accessible without a connection. Changes made offline will sync when you reconnect.
+    </p>
+    <p>
+      We reserve the right to modify, suspend, or discontinue any part of the service at any time.
+      In the event of permanent discontinuation, we will provide at least <strong>30 days' notice</strong>
+      to allow users to export their data.
+    </p>
+  </section>
+
+  <!-- ── 7 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="liability">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Limitation of liability</h2>
+    </div>
+    <p>
+      Parampara is a personal project provided free of charge.
+      To the fullest extent permitted by applicable law:
+    </p>
+    <ul>
+      <li>
+        The service is provided <strong>"as is"</strong> without warranty of any kind, express or implied,
+        including warranties of merchantability, fitness for a particular purpose, or non-infringement.
+      </li>
+      <li>
+        We are not liable for any loss of data, loss of access, or consequential, incidental, or indirect
+        damages arising from your use of the service or inability to use it.
+      </li>
+      <li>
+        We are not responsible for the accuracy of content added by users. Family tree data is user-generated
+        and may contain errors.
+      </li>
+      <li>
+        We are not liable for the actions of family admins or other members within a private family tree.
+      </li>
+    </ul>
+    <p>
+      Nothing in these Terms excludes or limits liability for death or personal injury caused by negligence,
+      fraud or fraudulent misrepresentation, or any other liability that cannot be excluded under UK law.
+    </p>
+    <p>
+      If you are a consumer in the UK, you have statutory rights that these Terms do not affect.
+    </p>
+  </section>
+
+  <!-- ── 8 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="termination">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Termination</h2>
+    </div>
+
+    <h3>By you</h3>
+    <p>
+      You may stop using Parampara at any time. To delete your account and associated data,
+      use <strong>Account &amp; Privacy → Delete My Account</strong> in the app menu.
+    </p>
+
+    <h3>By us</h3>
+    <p>
+      We reserve the right to suspend or terminate accounts that violate these Terms,
+      particularly in cases of abusive content, harassment of other members, or attempts to
+      circumvent security controls. We will provide notice where practical.
+    </p>
+
+    <h3>Effect of termination</h3>
+    <p>
+      Upon account deletion, your Firebase credentials and member records are removed immediately.
+      Content you added to family trees remains in those trees for other members.
+      If you wish to have specific content removed, contact the family admin or contact us.
+    </p>
+  </section>
+
+  <!-- ── 9 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="governing-law">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">Governing law</h2>
+    </div>
+    <p>
+      These Terms are governed by the laws of <strong>England and Wales</strong>.
+      Any disputes arising from or relating to these Terms or your use of Parampara
+      shall be subject to the exclusive jurisdiction of the courts of England and Wales,
+      except where mandatory consumer protection laws in your country of residence provide otherwise.
+    </p>
+    <p>
+      If you are a consumer resident in the EU, you may also have access to the
+      EU Online Dispute Resolution platform at
+      <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>.
+    </p>
+  </section>
+
+  <!-- ── 10 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="changes">
+    <div class="section-header">
+      <span class="section-num">10</span>
+      <h2 class="section-title">Changes to these terms</h2>
+    </div>
+    <p>
+      We may update these Terms from time to time. The "Last updated" date at the top of this page
+      reflects the most recent revision.
+    </p>
+    <p>
+      For material changes — particularly those that affect your rights or obligations —
+      we will notify signed-in users via an in-app notice at least <strong>14 days</strong> before the
+      changes take effect.
+    </p>
+    <p>
+      If you do not agree to the revised Terms, you may delete your account before the changes take effect.
+      Continued use of Parampara after the effective date constitutes acceptance of the revised Terms.
+    </p>
+  </section>
+
+  <!-- ── 11 ──────────────────────────────────────────────────────── -->
+  <section class="section" id="contact">
+    <div class="section-header">
+      <span class="section-num">11</span>
+      <h2 class="section-title">Contact</h2>
+    </div>
+    <p>
+      For any questions about these Terms, to report a violation, or to request account deletion:
+    </p>
+    <p>
+      <strong>Email:</strong> <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>
+    </p>
+    <p>
+      We will respond to all enquiries within 30 days.
+    </p>
+  </section>
+
+</div><!-- .page-wrap -->
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">Parampara</div>
+    <nav class="footer-links">
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="./index.html">Back to App</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>

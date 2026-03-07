@@ -4881,9 +4881,6 @@ function _renderMembersPanel(snap) {
     if (!snap || !snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
     const members = [];
     snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
-    if (!snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
-    const members = [];
-    snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
 
     const pending  = members.filter(m => m.role === 'pending');
     const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));

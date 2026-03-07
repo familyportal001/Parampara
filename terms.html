@@ -5,7 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1a0f00">
 <title>Terms of Service — Parampara</title>
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Self-hosted fonts — woff2 files in ./fonts/ subfolder -->
+<style>
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300-italic.woff2') format('woff2');
+  font-weight: 300; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+</style>
 <style>
 :root {
   --night:  #0f0800;
@@ -31,7 +68,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--night);
   color: var(--parch);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-weight: 300;
   line-height: 1.7;
   min-height: 100vh;
@@ -59,7 +96,7 @@ body {
 }
 
 .brand-logo {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 28px;
   font-weight: 300;
   color: var(--gold);
@@ -86,7 +123,7 @@ body {
 .doc-hero { margin-bottom: 48px; }
 
 .doc-title {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: clamp(32px, 6vw, 48px);
   font-weight: 300;
   color: var(--gold);
@@ -180,7 +217,7 @@ body {
 }
 
 .section-title {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 22px;
   font-weight: 400;
   color: var(--gold);
@@ -283,7 +320,7 @@ a:hover { color: var(--gold2); }
 }
 
 .footer-brand {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 16px;
   color: var(--copper);
   letter-spacing: .06em;
@@ -392,7 +429,7 @@ a:hover { color: var(--gold2); }
     <p>
       You are responsible for all activity that occurs under your account.
       If you believe your account has been compromised, change your password immediately and
-      contact us at <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+      contact us at <a href="/cdn-cgi/l/email-protection#c4b4b6adb2a5a7bd84b4a5b6a5a9b4a5b6a5eaa5b4b4"><span class="__cf_email__" data-cfemail="5a2a28332c3b39231a2a3b283b372a3b283b743b2a2a">[email&#160;protected]</span></a>.
     </p>
   </section>
 
@@ -624,7 +661,7 @@ a:hover { color: var(--gold2); }
       For any questions about these Terms, to report a violation, or to request account deletion:
     </p>
     <p>
-      <strong>Email:</strong> <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>
+      <strong>Email:</strong> <a href="/cdn-cgi/l/email-protection#4a3a38233c2b29330a3a2b382b273a2b382b642b3a3a"><span class="__cf_email__" data-cfemail="fd8d8f948b9c9e84bd8d9c8f9c908d9c8f9cd39c8d8d">[email&#160;protected]</span></a>
     </p>
     <p>
       We will respond to all enquiries within 30 days.
@@ -634,15 +671,4 @@ a:hover { color: var(--gold2); }
 </div><!-- .page-wrap -->
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">Parampara</div>
-    <nav class="footer-links">
-      <a href="./privacy.html">Privacy Policy</a>
-      <a href="./terms.html">Terms of Service</a>
-      <a href="./index.html">Back to App</a>
-    </nav>
-  </div>
-</footer>
-
-</body>
-</html>
+  <div class="footer

@@ -7,9 +7,58 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Parampara">
-<title>Parampara</title>
+<meta name="description" content="Parampara — a private, collaborative family tree for your whole family. Build your tree together, explore relationships, and keep your family history alive.">
+<meta name="keywords" content="family tree, genealogy, family history, collaborative, private, parampara">
+<meta property="og:title" content="Parampara — Family Tree">
+<meta property="og:description" content="Build your family tree together. Private, real-time, works on any device.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Parampara — Family Tree">
+<meta name="twitter:description" content="Build your family tree together. Private, real-time, works on any device.">
+<title>Parampara — Family Tree</title>
 <link rel="manifest" href="./manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Self-hosted fonts — woff2 files in ./fonts/ subfolder (see download_fonts.sh) -->
+<!-- Falls back to Georgia / system-ui if files are not yet downloaded -->
+<style>
+/* ── Crimson Pro (serif display) ────────────────────────────── */
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300-italic.woff2') format('woff2');
+  font-weight: 300; font-style: italic; font-display: swap;
+}
+/* ── DM Sans (UI body text) ─────────────────────────────────── */
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+</style>
 <style>
 :root{
   --night:#0f0800;--bark:#1e1005;--soil:#2e1a08;--clay:#4a2e10;
@@ -27,13 +76,13 @@
   --sal: env(safe-area-inset-left,   0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:var(--cream);font-family:'DM Sans',sans-serif}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:var(--cream);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif}
 
 /* ── SCREENS ── */
 .screen{position:fixed;inset:0;z-index:800;background:var(--night);
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 .screen.hide{display:none!important}
-.brand{font-family:'Crimson Pro',serif;font-size:50px;font-weight:300;color:var(--gold);
+.brand{font-family:'Crimson Pro','Georgia',serif;font-size:50px;font-weight:300;color:var(--gold);
   letter-spacing:.06em;text-shadow:0 0 40px rgba(200,137,58,.3);line-height:1}
 .brand-sub{font-size:12px;color:var(--ink4);margin:5px 0 40px;letter-spacing:.14em;text-transform:uppercase}
 
@@ -42,7 +91,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .lang-opts{display:flex;flex-direction:column;gap:10px;width:260px}
 .lang-btn{background:var(--soil);border:1px solid var(--copper);color:var(--cream);
   padding:14px 20px;border-radius:var(--r);cursor:pointer;font-size:16px;
-  text-align:center;transition:all .2s;font-family:'Crimson Pro',serif}
+  text-align:center;transition:all .2s;font-family:'Crimson Pro','Georgia',serif}
 .lang-btn:hover,.lang-btn:active{background:var(--clay);border-color:var(--gold);color:var(--gold2)}
 
 /* family picker */
@@ -52,7 +101,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .fam-row{background:var(--bark);border:1px solid var(--clay);border-radius:var(--r);
   padding:14px 16px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px}
 .fam-row:hover{border-color:var(--gold);background:var(--soil)}
-.fam-info{flex:1}.fam-name{font-family:'Crimson Pro',serif;font-size:17px;color:var(--cream)}
+.fam-info{flex:1}.fam-name{font-family:'Crimson Pro','Georgia',serif;font-size:17px;color:var(--cream)}
 .fam-meta{font-size:11px;color:var(--ink4);margin-top:2px}
 .role-badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase}
 .rb-admin{background:rgba(200,137,58,.15);color:var(--gold);border:1px solid rgba(200,137,58,.3)}
@@ -76,14 +125,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .fl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;
   color:var(--ink4);margin-bottom:4px;font-weight:500}
 .fi{width:100%;background:var(--soil);border:1px solid var(--clay);color:var(--cream);
-  font-family:'DM Sans',sans-serif;font-size:16px;padding:10px 12px;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:16px;padding:10px 12px;
   border-radius:var(--r);outline:none;transition:border-color .15s;
   -webkit-user-select:text;user-select:text}
 .fi::placeholder{color:var(--ink3)}.fi:focus{border-color:var(--gold)}
 .fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:360px){.fi-row{grid-template-columns:1fr}}
 .btn{width:100%;padding:11px;border:none;border-radius:var(--r);
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:13px;font-weight:500;
   letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .btn-gold{background:var(--gold);color:var(--ink)}.btn-gold:hover{background:var(--gold2)}
 .btn-ghost{background:transparent;border:1px solid var(--clay);color:var(--parch2)}
@@ -99,7 +148,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 #s-about{z-index:990}
 .ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;overflow-y:auto;max-height:calc(100dvh - 60px);padding-bottom:8px}
 .ab-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(200,137,58,.35))}
-.ab-title{font-family:'Crimson Pro',serif;font-size:34px;font-weight:300;color:var(--gold);
+.ab-title{font-family:'Crimson Pro','Georgia',serif;font-size:34px;font-weight:300;color:var(--gold);
   letter-spacing:.06em;text-align:center;line-height:1.1;margin-bottom:6px}
 .ab-tagline{font-size:12px;color:var(--ink4);letter-spacing:.14em;text-transform:uppercase;
   margin-bottom:28px;text-align:center}
@@ -111,11 +160,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .ab-feat-title{font-size:13px;font-weight:500;color:var(--parch);margin-bottom:2px}
 .ab-feat-desc{font-size:12px;color:var(--ink4);line-height:1.55}
 .ab-cta{width:100%;padding:13px;background:var(--gold);border:none;border-radius:var(--r);
-  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink);
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:14px;font-weight:500;color:var(--ink);
   letter-spacing:.05em;cursor:pointer;transition:background .2s;margin-bottom:10px}
 .ab-cta:hover{background:var(--gold2)}
 .ab-skip{background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;
-  font-family:'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;
   text-decoration:underline;text-underline-offset:3px}
 .ab-skip:hover{color:var(--ink3)}
 
@@ -132,7 +181,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   display:flex;align-items:center;justify-content:center;margin-top:1px}
 .ob-text{font-size:13px;color:var(--ink3);line-height:1.55}
 .ob-text b{color:var(--parch2)}
-.ob-title{font-family:'Crimson Pro',serif;font-size:19px;color:var(--parch);margin-bottom:2px}
+.ob-title{font-family:'Crimson Pro','Georgia',serif;font-size:19px;color:var(--parch);margin-bottom:2px}
 .ob-acts{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .ob-dismiss{background:none;border:none;color:var(--ink4);font-size:12px;
   cursor:pointer;padding:4px 8px;font-family:inherit}
@@ -207,7 +256,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 /* pending */
 #s-pending{z-index:820;text-align:center}
 .pend-ico{font-size:56px;margin-bottom:18px;opacity:.5}
-.pend-t{font-family:'Crimson Pro',serif;font-size:28px;color:var(--gold);margin-bottom:10px}
+.pend-t{font-family:'Crimson Pro','Georgia',serif;font-size:28px;color:var(--gold);margin-bottom:10px}
 .pend-s{font-size:13px;color:var(--ink4);line-height:1.7;max-width:300px}
 .pend-acts{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
@@ -225,11 +274,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   /* In PWA standalone, status bar overlaps — push header content down */
   padding-top:var(--sat);}
 #hdr-row{height:52px;display:flex;align-items:center;padding:0 12px;gap:8px}
-.app-logo{font-family:'Crimson Pro',serif;font-size:22px;font-weight:400;
+.app-logo{font-family:'Crimson Pro','Georgia',serif;font-size:22px;font-weight:400;
   color:var(--gold);letter-spacing:.04em;flex-shrink:0;cursor:pointer}
 .hgap{flex:1}
 .hbtn{background:none;border:1px solid rgba(200,137,58,.3);color:var(--gold);
-  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;
   text-transform:uppercase;padding:8px 12px;cursor:pointer;border-radius:var(--r);
   transition:all .18s;white-space:nowrap;flex-shrink:0;min-height:36px;position:relative}
 .hbtn:hover,.hbtn.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
@@ -251,7 +300,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   border-radius:var(--r);cursor:pointer;flex-shrink:0;min-height:40px}
 #srch-wrap{position:relative;flex-shrink:1}
 #srch{background:var(--soil);border:1px solid rgba(200,137,58,.25);color:var(--cream);
-  font-family:'DM Sans',sans-serif;font-size:16px;padding:5px 10px 5px 28px;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:16px;padding:5px 10px 5px 28px;
   border-radius:var(--r);width:clamp(80px,16vw,170px);outline:none;
   -webkit-user-select:text;user-select:text}
 #srch::placeholder{color:var(--ink3)}#srch:focus{border-color:var(--gold)}
@@ -294,7 +343,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   border-bottom:1px solid rgba(200,137,58,.15)}
 #srch-wrap-m{position:relative;flex:1}
 #srch-m{width:100%;background:var(--soil);border:1px solid rgba(200,137,58,.2);
-  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:14px;
+  color:var(--cream);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:14px;
   padding:7px 8px 7px 28px;border-radius:8px;outline:none;
   -webkit-user-select:text;user-select:text;transition:border-color .15s}
 #srch-m::placeholder{color:var(--ink4)}#srch-m:focus{border-color:var(--gold)}
@@ -371,10 +420,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
   align-items:center;justify-content:center;pointer-events:none;z-index:1}
 #empty.hide{display:none}
 .em-ico{font-size:64px;margin-bottom:16px;opacity:.3}
-.em-t{font-family:'Crimson Pro',serif;font-size:28px;color:var(--ink4);margin-bottom:8px}
+.em-t{font-family:'Crimson Pro','Georgia',serif;font-size:28px;color:var(--ink4);margin-bottom:8px}
 .em-s{font-size:13px;color:var(--ink4);opacity:.7;margin-bottom:24px}
 .em-btn{pointer-events:all;background:var(--gold);color:var(--ink);border:none;
-  padding:12px 28px;border-radius:var(--r);font-family:'DM Sans',sans-serif;
+  padding:12px 28px;border-radius:var(--r);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 
 /* cards */
@@ -396,7 +445,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 .av-m{background:linear-gradient(135deg,#1a3050,#0e2035)}
 .av-f{background:linear-gradient(135deg,#3a1525,#251020)}
 .av-o{background:linear-gradient(135deg,#1a3020,#102015)}
-.card-name{font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;
+.card-name{font-family:'Crimson Pro','Georgia',serif;font-size:13px;font-weight:600;
   text-align:center;padding:0 7px 2px;line-height:1.3;color:var(--cream)}
 .card-meta{font-size:10px;color:var(--ink4);text-align:center;padding:0 7px 8px}
 .e-parent{fill:none;stroke:rgba(155,122,80,.55);stroke-width:1.8}
@@ -443,7 +492,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   align-items:center;justify-content:center;pointer-events:none;z-index:2;text-align:center;padding:20px}
 #unlinked-prompt.hide{display:none}
 .up-ico{font-size:56px;margin-bottom:14px;opacity:.4}
-.up-t{font-family:'Crimson Pro',serif;font-size:24px;color:var(--ink4);margin-bottom:8px}
+.up-t{font-family:'Crimson Pro','Georgia',serif;font-size:24px;color:var(--ink4);margin-bottom:8px}
 .up-s{font-size:13px;color:var(--ink4);opacity:.75;line-height:1.65;max-width:280px}
 
 /* Link picker modal */
@@ -464,7 +513,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 #panel.open{transform:translateX(0)}
 .pan-hd{padding:16px 18px 13px;border-bottom:1px solid var(--border);
   background:var(--parch2);flex-shrink:0;position:relative}
-.pan-title{font-family:'Crimson Pro',serif;font-size:21px;font-weight:600;
+.pan-title{font-family:'Crimson Pro','Georgia',serif;font-size:21px;font-weight:600;
   color:var(--ink);padding-right:28px;line-height:1.2}
 .pan-sub{font-size:10px;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
 .pan-x{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;
@@ -476,7 +525,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .pan-ft{display:flex;gap:6px;padding:12px 18px;border-top:1px solid var(--border);
   flex-shrink:0;background:var(--panel);flex-wrap:wrap}
 .pan-btn{flex:1;min-width:56px;padding:11px 5px;background:var(--parch2);
-  border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;
+  border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
   cursor:pointer;transition:all .18s;color:var(--ink);min-height:44px}
 .pan-btn:hover{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
@@ -512,7 +561,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .priv-danger p{color:var(--ink3)}
   border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .pf-av img{width:100%;height:100%;object-fit:cover}
-.pf-name{font-family:'Crimson Pro',serif;font-size:23px;font-weight:600;
+.pf-name{font-family:'Crimson Pro','Georgia',serif;font-size:23px;font-weight:600;
   text-align:center;color:var(--ink);line-height:1.2}
 .pf-dates{text-align:center;font-size:11px;color:var(--ink3);margin:3px 0 14px;font-style:italic}
 .sec{margin-bottom:14px}
@@ -547,14 +596,14 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .mo-hd{padding:18px 20px 14px;border-bottom:1px solid var(--border);
   background:var(--parch2);border-radius:8px 8px 0 0;flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between}
-.mo-title{font-family:'Crimson Pro',serif;font-size:20px;font-weight:600;color:var(--ink)}
+.mo-title{font-family:'Crimson Pro','Georgia',serif;font-size:20px;font-weight:600;color:var(--ink)}
 .mo-bd{flex:1;overflow-y:auto;padding:18px 20px;overscroll-behavior:contain}
 .mo-ft{padding:14px 20px;border-top:1px solid var(--border);
   display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
 .pfg{margin-bottom:13px}
 .pfl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;
   color:var(--ink3);font-weight:600;margin-bottom:4px}
-.pfi,.pfs,.pft{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;
+.pfi,.pfs,.pft{width:100%;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:14px;
   padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);
   background:white;color:var(--ink);outline:none;transition:border-color .15s}
 .pfi:focus,.pfs:focus,.pft:focus{border-color:var(--gold)}
@@ -568,7 +617,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 /* admin tabs */
 .adm-tab{flex:1;padding:10px 6px;font-size:11px;font-weight:500;text-transform:uppercase;
   letter-spacing:.06em;cursor:pointer;background:none;border:none;color:var(--ink3);
-  border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif}
+  border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif}
 .adm-tab:hover{color:var(--ink)}
 .adm-tab.on{color:var(--gold);border-bottom-color:var(--gold);background:none}
 /* import wizard */
@@ -597,7 +646,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .imp-mode-btn{flex:1;padding:10px 6px;font-size:11px;font-weight:500;
   text-transform:uppercase;letter-spacing:.05em;cursor:pointer;
   background:var(--soil);border:1px solid var(--clay);border-radius:var(--r);
-  color:var(--ink3);transition:all .15s;font-family:'DM Sans',sans-serif}
+  color:var(--ink3);transition:all .15s;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif}
 .imp-mode-btn.on{background:rgba(200,137,58,.12);border-color:var(--gold);color:var(--gold)}
 .imp-stat{font-size:12px;color:var(--ink3);margin-bottom:8px;line-height:1.6}
 /* archive banner in family picker */
@@ -620,7 +669,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
 /* rel modal person search */
 .rps-wrap{position:relative;margin-bottom:4px}
-.rps-input{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;
+.rps-input{width:100%;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:14px;
   padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);
   background:white;color:var(--ink);outline:none;transition:border-color .15s;box-sizing:border-box}
 .rps-input:focus{border-color:var(--gold)}
@@ -639,7 +688,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   font-size:16px;line-height:1;padding:0 2px;transition:color .12s}
 .rps-sel-clear:hover{color:var(--rose)}
 .rel-direction{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:13px;color:var(--ink)}
-.rel-dir-sel{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;
+.rel-dir-sel{flex:1;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:13px;padding:8px 10px;
   border:1px solid var(--border);border-radius:var(--r);background:white;color:var(--ink);
   outline:none;transition:border-color .15s}
 .rel-dir-sel:focus{border-color:var(--gold)}
@@ -691,7 +740,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 #canvas-legend:focus #legend-body,
 #canvas-legend.open #legend-body{
   opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
-.legend-title{font-family:'Crimson Pro',serif;font-size:13px;color:var(--gold);
+.legend-title{font-family:'Crimson Pro','Georgia',serif;font-size:13px;color:var(--gold);
   margin-bottom:8px;font-weight:600;letter-spacing:.04em}
 .legend-section{font-size:9px;text-transform:uppercase;letter-spacing:.1em;
   color:var(--ink4);margin-bottom:5px;font-weight:600}
@@ -744,7 +793,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .pb-back-btn{
   display:flex;align-items:center;gap:4px;
   background:rgba(200,137,58,.1);border:1px solid rgba(200,137,58,.25);
-  color:var(--gold);font-size:11px;font-family:'DM Sans',sans-serif;
+  color:var(--gold);font-size:11px;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   padding:4px 10px;border-radius:12px;cursor:pointer;
   transition:all .15s;white-space:nowrap;flex-shrink:0;margin-right:8px}
 .pb-back-btn:hover{background:rgba(200,137,58,.2);border-color:var(--gold)}
@@ -754,7 +803,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   white-space:nowrap;flex-shrink:0;min-width:0}
 .pb-crumb-btn{
   background:none;border:none;cursor:pointer;
-  color:var(--copper);font-size:11px;font-family:'DM Sans',sans-serif;
+  color:var(--copper);font-size:11px;font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   padding:3px 5px;border-radius:3px;transition:all .15s;white-space:nowrap;max-width:120px;
   overflow:hidden;text-overflow:ellipsis}
 .pb-crumb-btn:hover{background:var(--soil);color:var(--gold)}
@@ -818,7 +867,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .mob-tab{
   flex:1;padding:0;height:44px;
   background:none;border:none;
-  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:11px;font-weight:500;
   letter-spacing:.05em;text-transform:uppercase;
   color:var(--ink4);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -876,7 +925,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   display:flex;align-items:center;justify-content:center;
   -webkit-tap-highlight-color:transparent}
 #mob-det-title{
-  flex:1;font-family:'Crimson Pro',serif;font-size:18px;
+  flex:1;font-family:'Crimson Pro','Georgia',serif;font-size:18px;
   font-weight:600;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   padding:0 8px}
@@ -902,7 +951,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 #mob-srch{
   width:100%;background:var(--soil);
   border:1px solid rgba(200,137,58,.25);
-  color:var(--cream);font-family:'DM Sans',sans-serif;
+  color:var(--cream);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-size:15px;padding:9px 10px 9px 32px;
   border-radius:8px;outline:none;
   -webkit-user-select:text;user-select:text}
@@ -958,7 +1007,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .mpl-av.av-o{background:linear-gradient(135deg,#1a3020,#102015)}
 .mpl-body{flex:1;min-width:0}
 .mpl-name{
-  font-family:'Crimson Pro',serif;font-size:15px;
+  font-family:'Crimson Pro','Georgia',serif;font-size:15px;
   font-weight:600;color:var(--cream);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mpl-sub{font-size:11px;color:var(--ink4);margin-top:2px;
@@ -983,14 +1032,14 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   font-size:26px;border:3px solid var(--gold);
   overflow:hidden;background:var(--parch2)}
 .mob-me-av img{width:100%;height:100%;object-fit:cover}
-.mob-me-name{font-family:'Crimson Pro',serif;font-size:22px;
+.mob-me-name{font-family:'Crimson Pro','Georgia',serif;font-size:22px;
   font-weight:600;color:var(--cream);margin-bottom:4px}
 .mob-me-sub{font-size:12px;color:var(--ink4)}
 .mob-me-tree-btn{
   margin-top:14px;padding:10px 24px;
   background:var(--gold);color:var(--ink);
   border:none;border-radius:var(--r);
-  font-family:'DM Sans',sans-serif;font-size:12px;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:12px;
   font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mob-me-sect{margin-bottom:16px}
@@ -1012,7 +1061,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .mob-me-unlinked{
   text-align:center;padding:40px 20px;color:var(--ink4)}
 .mob-me-unlinked-ico{font-size:48px;margin-bottom:12px;opacity:.4}
-.mob-me-unlinked-t{font-family:'Crimson Pro',serif;font-size:20px;
+.mob-me-unlinked-t{font-family:'Crimson Pro','Georgia',serif;font-size:20px;
   color:var(--ink3);margin-bottom:8px}
 .mob-me-unlinked-s{font-size:13px;line-height:1.65;max-width:260px;margin:0 auto}
 
@@ -1101,7 +1150,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   font-size:18px;box-shadow:0 2px 8px rgba(200,137,58,.3);
 }
 .rfi-title {
-  font-family:'Crimson Pro',serif;font-size:20px;font-weight:600;color:var(--ink);
+  font-family:'Crimson Pro','Georgia',serif;font-size:20px;font-weight:600;color:var(--ink);
 }
 .rfi-subtitle {
   font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;
@@ -1125,7 +1174,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .rfi-vs {
   display:flex;align-items:center;justify-content:center;
   padding-top:22px;
-  font-size:13px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro',serif;
+  font-size:13px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro','Georgia',serif;
 }
 .rfi-slot-label {
   font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);
@@ -1134,7 +1183,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .rfi-slot-wrap { position:relative; }
 .rfi-slot-input {
   width:100%;background:white;border:1.5px solid var(--border);color:var(--ink);
-  font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;
+  font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:13px;padding:8px 10px;
   border-radius:var(--r);outline:none;transition:border-color .15s;
 }
 .rfi-slot-input:focus { border-color:var(--gold); }
@@ -1180,7 +1229,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 /* Find button */
 .rfi-find-btn {
   margin:0 20px 14px;padding:11px;border:none;border-radius:var(--r);
-  background:var(--gold);color:var(--ink);font-family:'DM Sans',sans-serif;
+  background:var(--gold);color:var(--ink);font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
   cursor:pointer;transition:all .18s;
   display:flex;align-items:center;justify-content:center;gap:8px;
@@ -1204,7 +1253,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   padding:32px 20px;text-align:center;min-height:140px;
 }
 .rfi-state-ico { font-size:40px;margin-bottom:12px;opacity:.5; }
-.rfi-state-t { font-family:'Crimson Pro',serif;font-size:18px;color:var(--ink3);margin-bottom:6px; }
+.rfi-state-t { font-family:'Crimson Pro','Georgia',serif;font-size:18px;color:var(--ink3);margin-bottom:6px; }
 .rfi-state-s { font-size:12px;color:var(--ink4);line-height:1.6; }
 
 /* Result: relationship label banner */
@@ -1215,7 +1264,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   text-align:center;
 }
 .rfi-rel-label {
-  font-family:'Crimson Pro',serif;font-size:22px;font-weight:600;color:var(--gold);
+  font-family:'Crimson Pro','Georgia',serif;font-size:22px;font-weight:600;color:var(--gold);
   line-height:1.2;margin-bottom:4px;
 }
 .rfi-rel-degree {
@@ -1268,7 +1317,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   width:24px;height:2px;background:rgba(200,137,58,.35);flex-shrink:0;
 }
 .rfi-conn-label {
-  font-size:10px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro',serif;
+  font-size:10px;color:var(--ink4);font-style:italic;font-family:'Crimson Pro','Georgia',serif;
   white-space:nowrap;
 }
 
@@ -1278,7 +1327,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   border-radius:8px;padding:16px;text-align:center;margin-top:16px;
 }
 .rfi-no-path-ico { font-size:28px;margin-bottom:8px; }
-.rfi-no-path-t { font-family:'Crimson Pro',serif;font-size:16px;color:var(--rose);margin-bottom:4px; }
+.rfi-no-path-t { font-family:'Crimson Pro','Georgia',serif;font-size:16px;color:var(--rose);margin-bottom:4px; }
 .rfi-no-path-s { font-size:11px;color:var(--ink4);line-height:1.6; }
 
 /* Spin animation */
@@ -1329,8 +1378,8 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         </div>
       </div>
     </div>
-    <button class="ab-cta" id="ab-cta-btn" onclick="dismissAbout()">Get Started →</button>
-    <button class="ab-skip" onclick="dismissAbout()" data-i18n="alreadyAccount">I already have an account</button>
+    <button class="ab-cta" id="ab-cta-btn" onclick="dismissAbout('join')">Get Started →</button>
+    <button class="ab-skip" onclick="dismissAbout('login')" data-i18n="alreadyAccount">I already have an account</button>
     <div style="font-size:10px;color:var(--ink4);text-align:center;margin-top:16px;line-height:1.7">
       <a href="./privacy.html" target="_blank" style="color:var(--ink4);text-decoration:underline">Privacy Policy</a>
       &nbsp;·&nbsp;
@@ -1374,45 +1423,107 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
     <!-- JOIN -->
     <div class="asec" id="asec-join">
-      <div class="fg">
-        <label class="fl" data-i18n="familyKey">Family Secret Key</label>
-        <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" data-i18n-ph="familyKeyPh" autocomplete="off"
-          oninput="onJoinKeyInput()">
+
+      <!-- ── Step 1: upfront choice ──────────────────────────────── -->
+      <div id="j-choice" style="display:block">
+        <div style="font-size:12px;color:var(--ink4);text-align:center;margin-bottom:14px;line-height:1.6">
+          What would you like to do?
+        </div>
+        <button class="btn btn-gold" style="margin-bottom:10px" onclick="showJoinMode('join')">
+          🔑 Join an existing family tree
+        </button>
+        <button class="btn btn-ghost" onclick="showJoinMode('create')">
+          🌱 Start a new family tree
+        </button>
       </div>
-      <!-- New-group warning — shown only when key resolves to no existing family -->
-      <div id="j-newgroup-warn" style="display:none;background:rgba(224,112,112,.1);
-        border:1px solid rgba(224,112,112,.35);border-radius:6px;
-        padding:10px 12px;margin-bottom:10px;font-size:12px;color:#e8a0a0;line-height:1.6">
-        ⚠️ No family found with this key. If you continue, a <b>new family tree</b> will be created and you'll become its admin.
-        <label style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;cursor:pointer;color:var(--parch2)">
-          <input type="checkbox" id="j-newgroup-ack" style="margin-top:2px;accent-color:var(--gold);flex-shrink:0">
-          <span>I understand — I want to start a new family tree with this key</span>
+
+      <!-- ── Step 2a: Join existing family ───────────────────────── -->
+      <div id="j-join-form" style="display:none">
+        <button onclick="showJoinMode(null)" style="background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;margin-bottom:12px;padding:0;display:flex;align-items:center;gap:4px">
+          ← Back
+        </button>
+        <div class="fg">
+          <label class="fl" data-i18n="familyKey">Family Secret Key</label>
+          <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" data-i18n-ph="familyKeyPh" autocomplete="off"
+            oninput="onJoinKeyInput()">
+        </div>
+        <!-- Wrong-key warning -->
+        <div id="j-newgroup-warn" style="display:none;background:rgba(224,112,112,.1);
+          border:1px solid rgba(224,112,112,.35);border-radius:6px;
+          padding:10px 12px;margin-bottom:10px;font-size:12px;color:#e8a0a0;line-height:1.6">
+          ⚠️ No family found with this key — double-check it with your family admin.
+          <input type="checkbox" id="j-newgroup-ack" style="display:none">
+        </div>
+        <div class="fi-row">
+          <div class="fg"><label class="fl" data-i18n="firstName">First Name</label>
+            <input class="fi" id="j-first" type="text" placeholder="First" data-i18n-ph="firstPh"></div>
+          <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
+            <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
+        </div>
+        <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
+          <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
+        <div class="fg"><label class="fl" data-i18n="password">Password<small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
+          <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
+        <div class="aerr" id="j-err"></div>
+        <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
+        <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn">Request Access</button>
+        <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
+        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0">
+          <input type="checkbox" id="j-tos-ack" style="margin-top:2px;flex-shrink:0;accent-color:var(--gold);width:14px;height:14px">
+          <span style="font-size:11px;color:var(--ink4);line-height:1.65">
+            I agree to the
+            <a href="./terms.html" target="_blank" style="color:var(--copper);text-decoration:underline" onclick="event.stopPropagation()">Terms of Service</a>
+            and
+            <a href="./privacy.html" target="_blank" style="color:var(--copper);text-decoration:underline" onclick="event.stopPropagation()">Privacy Policy</a>
+          </span>
         </label>
       </div>
-      <div class="fi-row">
-        <div class="fg"><label class="fl" data-i18n="firstName">First Name</label>
-          <input class="fi" id="j-first" type="text" placeholder="First" data-i18n-ph="firstPh"></div>
-        <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
-          <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
+
+      <!-- ── Step 2b: Create new family ──────────────────────────── -->
+      <div id="j-create-form" style="display:none">
+        <button onclick="showJoinMode(null)" style="background:none;border:none;color:var(--ink4);font-size:11px;cursor:pointer;margin-bottom:12px;padding:0;display:flex;align-items:center;gap:4px">
+          ← Back
+        </button>
+        <div style="font-size:12px;color:var(--ink4);background:rgba(200,137,58,.08);border:1px solid rgba(200,137,58,.2);border-radius:6px;padding:10px 12px;margin-bottom:12px;line-height:1.6">
+          🌱 You'll become the <b style="color:var(--gold)">admin</b> of a new family tree. Share the Family Key with relatives so they can join.
+        </div>
+        <div class="fg">
+          <label class="fl">Family Key <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(your unique tree ID)</small></label>
+          <input class="fi" id="j-key" type="text" placeholder="e.g. KRISHNAN-2024" autocomplete="off"
+            oninput="onJoinKeyInput()">
+        </div>
+        <!-- Duplicate key warning -->
+        <div id="j-newgroup-warn" style="display:none;background:rgba(224,112,112,.1);
+          border:1px solid rgba(224,112,112,.35);border-radius:6px;
+          padding:10px 12px;margin-bottom:10px;font-size:12px;color:#e8a0a0;line-height:1.6">
+          ⚠️ A family tree with this key already exists. Choose a different key.
+          <input type="checkbox" id="j-newgroup-ack" checked style="display:none">
+        </div>
+        <div class="fi-row">
+          <div class="fg"><label class="fl" data-i18n="firstName">First Name</label>
+            <input class="fi" id="j-first" type="text" placeholder="First" data-i18n-ph="firstPh"></div>
+          <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
+            <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
+        </div>
+        <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
+          <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
+        <div class="fg"><label class="fl" data-i18n="password">Password<small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
+          <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
+        <div class="aerr" id="j-err"></div>
+        <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn">🌱 Create Family Tree</button>
+        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0">
+          <input type="checkbox" id="j-tos-ack" style="margin-top:2px;flex-shrink:0;accent-color:var(--gold);width:14px;height:14px">
+          <span style="font-size:11px;color:var(--ink4);line-height:1.65">
+            I agree to the
+            <a href="./terms.html" target="_blank" style="color:var(--copper);text-decoration:underline" onclick="event.stopPropagation()">Terms of Service</a>
+            and
+            <a href="./privacy.html" target="_blank" style="color:var(--copper);text-decoration:underline" onclick="event.stopPropagation()">Privacy Policy</a>
+          </span>
+        </label>
       </div>
-      <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
-        <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
-      <div class="fg"><label class="fl" data-i18n="password">Password<small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
-        <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
-      <div class="aerr" id="j-err"></div>
-      <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn" data-i18n="requestAccess">Request Access</button>
-      <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
-      <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
-      <div style="font-size:10px;color:var(--ink4);text-align:center;margin-top:8px;line-height:1.6">
-        By registering you agree to our
-        <a href="./terms.html" target="_blank" style="color:var(--copper);text-decoration:underline">Terms of Service</a>
-        and
-        <a href="./privacy.html" target="_blank" style="color:var(--copper);text-decoration:underline">Privacy Policy</a>
-      </div>
-      <div class="divider" style="margin:14px 0 10px">or</div>
-      <button class="btn btn-ghost" onclick="enterCreateMode()" id="j-create-btn" style="font-size:12px;padding:10px">
-        🌱 Start a new family tree
-      </button>
+
+      <!-- hidden legacy btn kept for enterCreateMode() compat -->
+      <button id="j-create-btn" style="display:none" onclick="showJoinMode('create')"></button>
     </div>
 
     <!-- FORGOT -->
@@ -1585,7 +1696,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
       </div>
       <div id="empty">
         <div class="em-ico">🌳</div>
-        <div class="em-t" style="font-family:'Crimson Pro',serif" data-i18n="emptyTitle">Your family tree awaits</div>
+        <div class="em-t" style="font-family:'Crimson Pro','Georgia',serif" data-i18n="emptyTitle">Your family tree awaits</div>
         <div class="em-s" data-i18n="emptyBody">Start by adding your first family member</div>
         <button class="em-btn" onclick="openAddMo()" data-i18n="addFirst">＋ Add First Person</button>
 
@@ -2770,7 +2881,7 @@ function openLangMo() {
             style="padding:14px 16px;border-radius:8px;border:1.5px solid ${cur===code?'var(--gold)':'var(--clay)'};
             background:${cur===code?'rgba(200,137,58,.12)':'var(--soil)'};
             color:${cur===code?'var(--gold)':'var(--cream)'};cursor:pointer;
-            font-family:'DM Sans',sans-serif;font-size:14px;text-align:left;
+            font-family:'DM Sans','Inter',system-ui,-apple-system,sans-serif;font-size:14px;text-align:left;
             display:flex;justify-content:space-between;align-items:center">
             <span>${en}</span>
             <span style="color:var(--ink4);font-size:13px">${native}</span>
@@ -2834,10 +2945,16 @@ function showAbout() {
   showScreen('s-about');
 }
 
-function dismissAbout() {
+function dismissAbout(tab) {
   localStorage.setItem('para_seen_about', 'done');
-  // Hide the about screen and proceed to boot (auth check)
   el('s-about').classList.add('hide');
+  // Show the auth screen immediately and synchronously switch to the right tab.
+  // We do this before boot() so the tab is correct regardless of whether
+  // the Firebase onAuthStateChanged path runs (async) or not.
+  showScreen('s-auth');
+  if (tab) switchTab(tab);
+  // boot() then wires up the auth listener — if user is already signed in
+  // it will navigate them past s-auth to the app.
   boot();
 }
 
@@ -3159,6 +3276,8 @@ function boot() {
     const langEl = el('s-lang');
     if (langEl && !langEl.classList.contains('hide')) {
       showScreen('s-auth');
+      const _at = localStorage.getItem('para_about_tab');
+      if (_at) { localStorage.removeItem('para_about_tab'); switchTab(_at); }
       setSyncStatus('off', 'Not signed in');
     }
   }, 6000);
@@ -3172,6 +3291,8 @@ function boot() {
     fbUser = user;
     if (!user) {
       showScreen('s-auth');
+      const _at = localStorage.getItem('para_about_tab');
+      if (_at) { localStorage.removeItem('para_about_tab'); switchTab(_at); }
       setSyncStatus('off', 'Not signed in');
       return;
     }
@@ -3377,6 +3498,11 @@ function switchTab(t) {
   // Reset error styles when switching away
   const joinErr = el('j-err');
   if (joinErr && t !== 'join') { joinErr.style.color = ''; joinErr.textContent = ''; }
+  // Reset ToS checkbox label highlight if user switches away
+  const tosLabel = el('j-tos-label');
+  if (tosLabel) tosLabel.style.color = '';
+  // Reset join tab back to the choice screen when navigating away
+  if (t !== 'join') showJoinMode(null);
   const loginErr = el('l-err');
   if (loginErr && t !== 'login') { loginErr.textContent = ''; }
 }
@@ -3427,6 +3553,16 @@ async function doJoin() {
 
   if (!key || !first || !email || !pass) { errEl.textContent = 'Please fill all required fields'; return; }
 
+  // Require explicit ToS + Privacy Policy consent
+  const tosBox = el('j-tos-ack');
+  if (!tosBox || !tosBox.checked) {
+    errEl.textContent = 'Please agree to the Terms of Service and Privacy Policy to continue.';
+    // Highlight the checkbox label briefly
+    const tosLabel = el('j-tos-label');
+    if (tosLabel) { tosLabel.style.color = 'var(--rose)'; setTimeout(() => tosLabel.style.color = '', 2000); }
+    return;
+  }
+
   // Rate limit: 3 attempts per 60s, then 120s lockout
   const rlJoinMsg = _rlCheck('join', 3, 60_000, 120_000);
   if (rlJoinMsg) { errEl.textContent = rlJoinMsg; return; }
@@ -3435,16 +3571,24 @@ async function doJoin() {
 
   const fh = famHash(key);
 
-  // Guard against accidental new-group creation —
-  // if the key resolves to no existing family, require explicit acknowledgement.
+  // Determine join vs create mode
+  const _isCreate = el('j-create-form') && el('j-create-form').style.display !== 'none';
   const ackBox = el('j-newgroup-ack');
   const warn   = el('j-newgroup-warn');
-  if (warn && warn.style.display !== 'none') {
-    // Warning is visible — user is attempting to create a new family
-    if (!ackBox || !ackBox.checked) {
-      errEl.textContent = 'Tick the checkbox to confirm you want to start a new family tree, or correct the key above.';
+
+  if (_isCreate) {
+    // Create mode: block if the key is ALREADY TAKEN
+    if (warn && warn.style.display !== 'none') {
+      errEl.textContent = 'This Family Key is already taken — choose a different one.';
       return;
     }
+    // Mark as new family so _completeJoin creates it
+    _keyHasFamily = false;
+    if (ackBox) ackBox.checked = true;
+  } else if (warn && warn.style.display !== 'none') {
+    // Join mode: warn if key doesn't exist
+    errEl.textContent = 'Family Key not found — check it with your family admin.';
+    return;
   } else if (_keyHasFamily === null && key.length >= 3) {
     // Check hasn't run yet — do it inline before proceeding
     errEl.textContent = 'Checking family key…';
@@ -6807,7 +6951,7 @@ function loadImportTab() {
     <div class="imp-step" id="imp-step-4">
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:40px;margin-bottom:10px" id="imp-done-ico">✅</div>
-        <div style="font-size:16px;color:var(--ink);font-family:'Crimson Pro',serif;margin-bottom:6px" id="imp-done-title">${t('impComplete')}</div>
+        <div style="font-size:16px;color:var(--ink);font-family:'Crimson Pro','Georgia',serif;margin-bottom:6px" id="imp-done-title">${t('impComplete')}</div>
         <div style="font-size:12px;color:var(--ink3)" id="imp-done-sub"></div>
       </div>
     </div>`;
@@ -7185,11 +7329,11 @@ function loadSettingsTab() {
     <div class="sec-t">Tree Stats</div>
     <div style="background:var(--parch2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:${_oldest ? '10px' : '0'}">
-        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_pp.length}</div>
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro','Georgia',serif">${_pp.length}</div>
           <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">People</div></div>
-        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_rr.length}</div>
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro','Georgia',serif">${_rr.length}</div>
           <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Links</div></div>
-        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro',serif">${_mm.length || '—'}</div>
+        <div><div style="font-size:26px;font-weight:700;color:var(--gold);font-family:'Crimson Pro','Georgia',serif">${_mm.length || '—'}</div>
           <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Members</div></div>
       </div>
       ${_statsDetail}
@@ -7833,41 +7977,51 @@ async function deleteFamily() {
 
 
 // ── Create-mode for join form ────────────────────────────────────────
-// Called when user taps "Start a new family tree" link.
-// Puts the Join tab into explicit creation mode: clears the key field,
-// suggests a key, checks the ack box, and relabels the submit button.
-function enterCreateMode() {
-  // Build a suggested key from the first/last name fields if filled
-  const first = (v('j-first') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
-  const year  = new Date().getFullYear();
-  const suggestedKey = first ? `${first}-${year}` : `FAMILY-${year}`;
+// ── showJoinMode: controls which sub-section of the Join tab is visible ──
+// mode: null = choice screen, 'join' = join existing, 'create' = start new
+function showJoinMode(mode) {
+  const choice  = el('j-choice');
+  const joinFrm = el('j-join-form');
+  const creFrm  = el('j-create-form');
+  if (!choice) return;
 
-  const keyField = el('j-key');
-  if (keyField) {
-    keyField.value = suggestedKey;
-    keyField.focus();
-    keyField.select();
+  choice.style.display  = mode ? 'none' : 'block';
+  if (joinFrm) joinFrm.style.display = mode === 'join'   ? 'block' : 'none';
+  if (creFrm)  creFrm.style.display  = mode === 'create' ? 'block' : 'none';
+
+  // Clear errors + reset key state when switching modes
+  const errEl = el('j-err');
+  if (errEl) { errEl.textContent = ''; errEl.style.color = ''; }
+  _keyHasFamily = null;
+  clearTimeout(_keyCheckTimer);
+
+  if (mode === 'create') {
+    // Pre-suggest a family key and set create mode state
+    const year = new Date().getFullYear();
+    const keyField = el('j-key');
+    if (keyField && !keyField.value) keyField.value = `FAMILY-${year}`;
+    _keyHasFamily = false;
+    // Hide the duplicate-key warning
+    const warn = el('j-newgroup-warn');
+    if (warn) warn.style.display = 'none';
+    // Pre-check the hidden ack so doJoin's guard passes
+    const ack = el('j-newgroup-ack');
+    if (ack) ack.checked = true;
+    if (keyField) { keyField.focus(); keyField.select(); }
+  } else if (mode === 'join') {
+    const keyField = el('j-key');
+    if (keyField) { keyField.value = ''; keyField.focus(); }
+    const warn = el('j-newgroup-warn');
+    if (warn) warn.style.display = 'none';
+    const ack = el('j-newgroup-ack');
+    if (ack) ack.checked = false;
   }
+}
 
-  // Show the warning box and pre-check the ack box
-  const warn = el('j-newgroup-warn');
-  if (warn) warn.style.display = 'block';
-  const ack = el('j-newgroup-ack');
-  if (ack) ack.checked = true;
-
-  // Update _keyHasFamily so doJoin doesn't re-run the check
-  _keyHasFamily = false;
-
-  // Relabel the submit button
-  const btn = el('j-submit-btn');
-  if (btn) btn.textContent = '🌱 Create Family Tree';
-
-  // Relabel the create button so it's clear they're in create mode
-  const createBtn = el('j-create-btn');
-  if (createBtn) { createBtn.textContent = '✓ Creating new family'; createBtn.disabled = true; }
-
-  // Scroll key field into view on mobile
-  if (keyField) keyField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+// Called when user taps "Start a new family tree" link (legacy + internal).
+function enterCreateMode() {
+  switchTab('join');
+  showJoinMode('create');
 }
 
 // ══ KEY-EXISTS CHECK (for join form warning) ═══════════════════════
@@ -7875,31 +8029,33 @@ let _keyCheckTimer = null;
 let _keyHasFamily = null; // null=unknown, true=exists, false=new
 
 async function onJoinKeyInput() {
-  const key = (el('j-key')||{value:''}).value.trim();
+  const key  = (el('j-key')||{value:''}).value.trim();
   const warn = el('j-newgroup-warn');
   const ack  = el('j-newgroup-ack');
   if (!warn) return;
 
-  // Reset on short keys
   if (key.length < 3) { warn.style.display='none'; _keyHasFamily=null; return; }
 
-  // Debounce — only check 600ms after user stops typing
+  // Detect current mode: create form visible = create mode
+  const isCreate = el('j-create-form') && el('j-create-form').style.display !== 'none';
+
   clearTimeout(_keyCheckTimer);
   _keyCheckTimer = setTimeout(async () => {
     try {
-      const fh = famHash(key);
+      const fh   = famHash(key);
       const snap = await get(adminFlagRef(fh));
       _keyHasFamily = snap.exists();
-      if (warn) warn.style.display = _keyHasFamily ? 'none' : 'block';
-      if (ack && _keyHasFamily) ack.checked = false;
-      // Reset button labels when an existing family is found
-      if (_keyHasFamily) {
-        const btn = el('j-submit-btn');
-        if (btn) btn.textContent = btn.dataset.i18n ? (window.t && t('requestAccess')) || 'Request Access' : 'Request Access';
-        const createBtn = el('j-create-btn');
-        if (createBtn) { createBtn.textContent = '🌱 Start a new family tree'; createBtn.disabled = false; }
+
+      if (isCreate) {
+        // In create mode: warn if key is ALREADY TAKEN
+        if (warn) warn.style.display = _keyHasFamily ? 'block' : 'none';
+        if (ack) ack.checked = !_keyHasFamily; // uncheck if taken
+      } else {
+        // In join mode: warn if key DOESN'T EXIST
+        if (warn) warn.style.display = _keyHasFamily ? 'none' : 'block';
+        if (ack) ack.checked = false;
       }
-    } catch(_) { /* network error — don't show warning */ }
+    } catch(_) { /* network error — ignore */ }
   }, 600);
 }
 
@@ -9055,7 +9211,7 @@ function _updateMobTreeFab(id) {
     if (!p) return;
     const initials = ((p.first||'?')[0] + (p.last||'')[0]).toUpperCase();
     fab.classList.add('info-mode');
-    fab.innerHTML = `<span style="font-family:'Crimson Pro',serif;font-size:17px;font-weight:600;letter-spacing:-.02em">${escHtml(initials)}</span>`;
+    fab.innerHTML = `<span style="font-family:'Crimson Pro','Georgia',serif;font-size:17px;font-weight:600;letter-spacing:-.02em">${escHtml(initials)}</span>`;
     fab.setAttribute('aria-label', `View ${fullName(p)}`);
     fab.title = `View ${fullName(p)}`;
     fab.onclick = () => showMobDetail(id);
@@ -9141,7 +9297,7 @@ Object.assign(window, {
   dismissOnboarding, dismissKeyBanner,
   dismissAbout, showAbout,
   dismissPerfBanner,
-  enterCreateMode,
+  enterCreateMode, showJoinMode,
   dismissViewerBanner, dismissMemberOb,
   approveAs,
   _arrowNav, _scrollCardIntoView,

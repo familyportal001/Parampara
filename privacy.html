@@ -5,7 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1a0f00">
 <title>Privacy Policy — Parampara</title>
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Self-hosted fonts — woff2 files in ./fonts/ subfolder -->
+<style>
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Crimson Pro';
+  src: url('./fonts/crimson-pro-300-italic.woff2') format('woff2');
+  font-weight: 300; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dm-sans-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+</style>
 <style>
 :root {
   --night:  #0f0800;
@@ -30,7 +67,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--night);
   color: var(--parch);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans','Inter',system-ui,-apple-system,sans-serif;
   font-weight: 300;
   line-height: 1.7;
   min-height: 100vh;
@@ -60,7 +97,7 @@ body {
 }
 
 .brand-logo {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 28px;
   font-weight: 300;
   color: var(--gold);
@@ -90,7 +127,7 @@ body {
 }
 
 .doc-title {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: clamp(32px, 6vw, 48px);
   font-weight: 300;
   color: var(--gold);
@@ -188,7 +225,7 @@ body {
 }
 
 .section-title {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 22px;
   font-weight: 400;
   color: var(--gold);
@@ -339,7 +376,7 @@ a:hover { color: var(--gold2); }
 }
 
 .footer-brand {
-  font-family: 'Crimson Pro', serif;
+  font-family: 'Crimson Pro','Georgia',serif;
   font-size: 16px;
   color: var(--copper);
   letter-spacing: .06em;
@@ -441,7 +478,7 @@ a:hover { color: var(--gold2); }
       <div class="contact-label">Data Controller Contact</div>
       <div class="contact-line">
         <strong>Service:</strong> Parampara Family Tree<br>
-        <strong>Email:</strong> <a href="mailto:privacy@parampara.app">privacy@parampara.app</a><br>
+        <strong>Email:</strong> <a href="/cdn-cgi/l/email-protection#58282a312e393b211828392a393528392a3976392828"><span class="__cf_email__" data-cfemail="5626243f2037352f16263724373b2637243778372626">[email&#160;protected]</span></a><br>
         <strong>Location:</strong> United Kingdom
       </div>
     </div>
@@ -596,10 +633,8 @@ a:hover { color: var(--gold2); }
       <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a>.
     </p>
     <p>
-      We also load fonts from <strong>Google Fonts</strong> (fonts.googleapis.com). This causes your browser to
-      make a request to Google's servers when you load Parampara. Google may log the font request.
-      If you prefer to avoid this, you can use a content blocker; the app remains fully functional
-      with system fonts.
+      Font files (Crimson Pro and DM Sans) are served directly from the same server as the application.
+      No requests are made to Google Fonts or any third-party font CDN.
     </p>
     <p>
       No other third-party services, analytics platforms, advertising networks, or tracking tools are used.
@@ -673,7 +708,7 @@ a:hover { color: var(--gold2); }
 
     <p style="margin-top:16px">
       To exercise any of these rights, use the <strong>Account &amp; Privacy</strong> menu in the app, or contact us
-      at <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+      at <a href="/cdn-cgi/l/email-protection#5a2a28332c3b39231a2a3b283b372a3b283b743b2a2a"><span class="__cf_email__" data-cfemail="9fefedf6e9fefce6dfeffeedfef2effeedfeb1feefef">[email&#160;protected]</span></a>.
       We will respond within 30 days. We may need to verify your identity before fulfilling a request.
     </p>
     <p>
@@ -703,7 +738,7 @@ a:hover { color: var(--gold2); }
     </p>
     <p>
       No security system is perfect. If you discover a vulnerability, please report it to
-      <a href="mailto:privacy@parampara.app">privacy@parampara.app</a>.
+      <a href="/cdn-cgi/l/email-protection#5e2e2c37283f3d271e2e3f2c3f332e3f2c3f703f2e2e"><span class="__cf_email__" data-cfemail="85f5f7ecf3e4e6fcc5f5e4f7e4e8f5e4f7e4abe4f5f5">[email&#160;protected]</span></a>.
     </p>
   </section>
 
@@ -774,22 +809,4 @@ a:hover { color: var(--gold2); }
     </p>
     <p>
       Continued use of Parampara after a policy update constitutes acceptance of the revised terms.
-      If you do not agree, you may delete your account at any time via the app.
-    </p>
-  </section>
-
-</div><!-- .page-wrap -->
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">Parampara</div>
-    <nav class="footer-links">
-      <a href="./privacy.html">Privacy Policy</a>
-      <a href="./terms.html">Terms of Service</a>
-      <a href="./index.html">Back to App</a>
-    </nav>
-  </div>
-</footer>
-
-</body>
-</html>
+      If you do not agree, you may delet

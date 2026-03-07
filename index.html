@@ -3640,7 +3640,11 @@ async function doJoin() {
         errEl.textContent = 'No family found with this key — see warning above.';
         return;
       }
-    } catch(_) { /* network issue — let it proceed */ }
+    } catch(e) {
+      // Network error — can't verify key. Block rather than risk creating a new family.
+      errEl.textContent = 'Could not verify the Family Key — check your connection and try again.';
+      return;
+    }
   }
 
   errEl.textContent = 'Creating account…';
@@ -7963,17 +7967,21 @@ async function deleteFamily() {
   if (prompt(`Type the family name "${famName}" to confirm:`) !== famName) {
     toast('Name did not match — deletion cancelled'); return;
   }
-  // Phase 1 — fetch member UIDs for userFamilies cleanup (best-effort, non-blocking)
+  // Phase 1 — fetch member UIDs (for userFamilies cleanup) and
+  //             invite tokens (for inviteIndex cleanup). Best-effort, non-blocking.
   let memberUids = [];
+  let inviteTokens = [];
   try {
     const membersSnap = await get(membersRef(FAM));
     if (membersSnap.exists()) membersSnap.forEach(c => memberUids.push(c.key));
   } catch(e) {
-    // Members read failed — proceed with deletion anyway.
-    // userFamilies cleanup will be partial (only admin's own entry will be missed
-    // if the read fails entirely). This is recoverable: resumeFamily checks the
-    // member record and finds nothing, so stale userFamilies entries become harmless.
     logErr('deleteFamily.membersRead', e);
+  }
+  try {
+    const invitesSnap = await get(ref(db, `families/${FAM}/invites`));
+    if (invitesSnap.exists()) invitesSnap.forEach(c => inviteTokens.push(c.key));
+  } catch(e) {
+    logErr('deleteFamily.invitesRead', e);
   }
 
   // Phase 2 — delete all family sub-nodes.
@@ -7981,13 +7989,14 @@ async function deleteFamily() {
   // We do NOT set(families/FAM, null) — that writes to the parent which has no rule.
   try {
     await update(ref(db, `families/${FAM}`), {
-      people:    null,
-      rels:      null,
-      history:   null,
-      members:   null,
-      invites:   null,
-      adminSet:  null,
-      archived:  null,
+      people:     null,
+      rels:       null,
+      personRels: null,   // was missing — caused ghost $fh node to survive
+      history:    null,
+      members:    null,
+      invites:    null,
+      adminSet:   null,
+      archived:   null,
       archivedAt: null,
       archivedBy: null,
     });
@@ -8005,6 +8014,17 @@ async function deleteFamily() {
   await Promise.allSettled(uidsToClean.map(uid =>
     set(ref(db, `userFamilies/${uid}/${FAM}`), null)
   ));
+
+  // Phase 3b — clean up inviteIndex top-level tokens for this family.
+  // inviteIndex/$token has .write: admin of the family — still valid at this point
+  // because we haven't signed out yet. Failures are harmless (orphan tokens can't
+  // be used to join a deleted family — _completeJoin finds no adminSet and treats
+  // the user as pending, then resumeFamily finds no member record and ejects them).
+  if (inviteTokens.length) {
+    await Promise.allSettled(inviteTokens.map(token =>
+      set(ref(db, `inviteIndex/${token}`), null)
+    ));
+  }
 
   // Clear local session and log out — family data is gone regardless of cleanup result
   const s = getSessions();

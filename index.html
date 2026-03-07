@@ -865,6 +865,156 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   .pan-ft{padding-bottom:calc(12px + var(--sab))}
 }
 
+
+/* ══ MEMORIES ══════════════════════════════════════════════════════ */
+.memory-card{background:var(--parch);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.memory-card-img{width:100%;max-height:260px;object-fit:cover;display:block;cursor:pointer}
+.memory-card-body{padding:10px 12px 8px}
+.memory-badge{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);background:var(--parch2);border:1px solid var(--border);
+  padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:6px}
+.memory-caption{font-size:13px;color:var(--ink2);line-height:1.55;margin-bottom:6px}
+.memory-meta{font-size:10px;color:var(--ink4);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.memory-subject{font-size:11px;color:var(--ink3);cursor:pointer;text-decoration:underline dotted}
+.memory-card-actions{display:flex;gap:6px;margin-top:6px}
+
+/* Small memory card (on profile panel) */
+.memory-card-sm{background:var(--parch);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:6px}
+.memory-card-sm-img{width:100%;max-height:160px;object-fit:cover;display:block;cursor:pointer}
+.memory-card-sm-body{padding:8px 10px 6px}
+.memory-card-sm-caption{font-size:12px;color:var(--ink2);line-height:1.5;margin-bottom:4px}
+.memory-card-sm-meta{font-size:10px;color:var(--ink4)}
+
+/* Lightbox */
+#mem-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;
+  display:none;align-items:center;justify-content:center;cursor:pointer}
+#mem-lightbox.open{display:flex}
+#mem-lightbox img{max-width:95vw;max-height:92vh;object-fit:contain;border-radius:4px}
+#mem-lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:28px;
+  cursor:pointer;line-height:1;opacity:.8}
+#mem-lightbox-close:hover{opacity:1}
+
+/* Add choice sheet (fab → story or memory) */
+.mem-add-sheet{position:absolute;bottom:130px;right:16px;display:none;flex-direction:column;gap:8px;z-index:100}
+.mem-add-sheet.open{display:flex}
+.mem-add-choice{display:flex;align-items:center;gap:8px;background:var(--parch);
+  border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;
+  font-size:13px;color:var(--ink);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);
+  white-space:nowrap;transition:background .15s}
+.mem-add-choice:hover{background:var(--parch2)}
+.mem-add-overlay{position:fixed;inset:0;z-index:99}
+
+/* Profile panel section header with two add buttons */
+.panel-stories-header{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.panel-stories-btns{display:flex;gap:8px}
+
+
+/* ══ EVENTS ════════════════════════════════════════════════════════ */
+/* Event card in feed */
+.event-card{background:var(--parch);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.event-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.event-type-badge{font-size:13px;font-weight:700;padding:4px 10px;border-radius:20px;
+  background:var(--parch2);border:1px solid var(--border);color:var(--ink2);white-space:nowrap}
+.event-title{font-family:'Crimson Pro','Georgia',serif;font-size:17px;color:var(--ink);margin-bottom:4px}
+.event-dateline{font-size:12px;color:var(--ink3);margin-bottom:8px}
+.event-people{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.event-person-chip{font-size:11px;background:var(--parch2);border:1px solid var(--border);
+  border-radius:10px;padding:3px 9px;cursor:pointer;color:var(--ink2)}
+.event-person-chip:hover{border-color:var(--gold);color:var(--gold)}
+.event-notes{font-size:12px;color:var(--ink3);line-height:1.55;margin-top:6px;font-style:italic}
+.event-meta{font-size:10px;color:var(--ink4);margin-top:8px;display:flex;justify-content:space-between}
+.event-card-actions{display:flex;gap:6px;margin-top:6px}
+
+/* Event timeline on person profile */
+.event-timeline{display:flex;flex-direction:column;gap:6px}
+.event-tl-item{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;
+  background:var(--parch);border:1px solid var(--border);border-radius:var(--r);cursor:pointer}
+.event-tl-item:hover{border-color:var(--gold)}
+.event-tl-ico{font-size:18px;flex-shrink:0;line-height:1.2}
+.event-tl-body{flex:1;min-width:0}
+.event-tl-title{font-size:13px;color:var(--ink);font-weight:500;line-height:1.3}
+.event-tl-meta{font-size:10px;color:var(--ink4);margin-top:2px}
+.event-empty{font-size:12px;color:var(--ink4);padding:8px 0 4px}
+
+/* Event form */
+.event-type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.event-type-tile{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--parch2);cursor:pointer;transition:all .15s;text-align:center}
+.event-type-tile span:first-child{font-size:20px}
+.event-type-tile span:last-child{font-size:9px;color:var(--ink3);letter-spacing:.04em}
+.event-type-tile.on{border-color:var(--gold);background:var(--bark);color:var(--gold2)}
+.event-type-tile.on span:last-child{color:var(--gold2)}
+/* Tagged people chips */
+.event-tagged-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:24px}
+.event-tagged-chip{display:flex;align-items:center;gap:4px;font-size:11px;
+  background:var(--parch2);border:1px solid var(--border);border-radius:10px;padding:3px 9px;color:var(--ink2)}
+.event-tagged-chip button{background:none;border:none;cursor:pointer;color:var(--rose);
+  font-size:13px;line-height:1;padding:0 0 0 2px}
+.event-person-search-row{display:flex;gap:6px;margin-bottom:6px}
+.event-person-search-row .pfi{flex:1}
+#event-person-drop{background:var(--parch);border:1px solid var(--border);
+  border-radius:var(--r);max-height:140px;overflow-y:auto;display:none;margin-bottom:8px}
+
+/* ══ STORIES ════════════════════════════════════════════════════════ */
+/* Filter bar */
+.mem-filter-bar{display:flex;gap:6px;padding:10px 12px 6px;background:var(--cream);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto}
+.mem-filter-btn{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--parch2);color:var(--ink3);cursor:pointer;white-space:nowrap;transition:all .15s}
+.mem-filter-btn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+/* Feed */
+.mem-feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.mem-feed-empty{padding:40px 20px;text-align:center;color:var(--ink4);font-size:13px;line-height:1.7}
+
+/* Story card (feed / full size) */
+.story-card{background:var(--parch);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:default}
+.story-card-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.story-badge{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--copper);background:var(--parch2);border:1px solid var(--border);padding:2px 7px;border-radius:10px}
+.story-subject{font-size:11px;color:var(--ink3);margin-left:auto;cursor:pointer;text-decoration:underline dotted}
+.story-title{font-family:'Crimson Pro','Georgia',serif;font-size:17px;color:var(--ink);line-height:1.3;margin-bottom:6px}
+.story-body{font-size:13px;color:var(--ink2);line-height:1.65;white-space:pre-wrap}
+.story-body.clamped{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.story-read-more{font-size:11px;color:var(--gold);cursor:pointer;margin-top:4px;display:inline-block}
+.story-photo{width:100%;border-radius:calc(var(--r) - 2px);margin:8px 0;object-fit:cover;max-height:220px}
+.story-meta{font-size:10px;color:var(--ink4);margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+.story-meta-author{display:flex;align-items:center;gap:4px}
+.story-actions{display:flex;gap:6px;margin-top:8px}
+.story-del-btn{font-size:10px;color:var(--rose);background:none;border:none;cursor:pointer;padding:2px 4px;opacity:.6}
+.story-del-btn:hover{opacity:1}
+
+/* Story type / subject chips in Add Story form */
+.story-type-chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.story-type-chip{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--parch2);color:var(--ink3);cursor:pointer;transition:all .15s}
+.story-type-chip.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.story-person-search-wrap{position:relative;margin-bottom:12px}
+#story-person-input{width:100%;box-sizing:border-box}
+#story-person-drop{position:absolute;top:100%;left:0;right:0;background:var(--parch);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);z-index:200;max-height:160px;overflow-y:auto;display:none}
+.story-person-opt{padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)}
+.story-person-opt:hover{background:var(--parch2)}
+.story-ta{width:100%;box-sizing:border-box;min-height:120px;resize:vertical;font-family:inherit;font-size:13px;line-height:1.6;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--parch2);color:var(--ink)}
+.story-char-count{font-size:10px;color:var(--ink4);text-align:right;margin-top:2px}
+
+/* Story card (small / profile panel) */
+.story-card-sm{background:var(--parch);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:6px}
+.story-card-sm-title{font-family:'Crimson Pro','Georgia',serif;font-size:15px;color:var(--ink);margin-bottom:3px}
+.story-card-sm-body{font-size:12px;color:var(--ink2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.story-card-sm-meta{font-size:10px;color:var(--ink4);margin-top:5px}
+.story-card-sm-photo{width:100%;border-radius:calc(var(--r) - 2px);margin:6px 0 2px;object-fit:cover;max-height:140px}
+.story-empty-person{font-size:12px;color:var(--ink4);padding:8px 0 4px}
+
+/* Profile panel Stories / Memories / Events section headers */
+.stories-section,.memories-section,.events-section{margin-top:4px}
+.stories-section .sec-t,.memories-section .sec-t,.events-section .sec-t{display:flex;align-items:center;justify-content:space-between}
+.add-story-btn{font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;padding:0;font-weight:600;letter-spacing:.05em}
+.add-story-btn:hover{color:var(--copper)}
+
+/* Add choice sheet (FAB → story / memory / event) */
+.mem-add-sheet{position:absolute;bottom:130px;right:16px;display:none;flex-direction:column;gap:8px;z-index:100}
+.mem-add-sheet.open{display:flex}
+.mem-add-choice{display:flex;align-items:center;gap:8px;background:var(--parch);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--ink);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;transition:background .15s}
+.mem-add-choice:hover{background:var(--parch2)}
+.mem-add-overlay{position:fixed;inset:0;z-index:99}
+
 /* ══ MOBILE TAB SHELL (≤720px only) ══════════════════════════════════ */
 
 /* Tab strip — sits just below the header as a flex child of #app */
@@ -909,6 +1059,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   display:none;flex-direction:column;
   flex:1;overflow:hidden;min-height:0;
   background:var(--night)}
+
+/* Memories tab view */
+#mob-memories{
+  display:none;flex-direction:column;
+  flex:1;overflow:hidden;min-height:0;
+  background:var(--cream)}
 
 /* Full-screen person detail (mobile) */
 #mob-detail{
@@ -1701,6 +1857,9 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     <button class="mob-tab" id="mtab-tree" onclick="switchMobTab('tree')">
       <span class="mt-ico">🌳</span><span class="mt-lbl" data-i18n="tabTree">Tree</span>
     </button>
+    <button class="mob-tab" id="mtab-memories" onclick="switchMobTab('memories')">
+      <span class="mt-ico">📖</span><span class="mt-lbl" data-i18n="tabMemories">Memories</span>
+    </button>
     <button class="mob-tab" id="mtab-me" onclick="switchMobTab('me')">
       <span class="mt-ico">👤</span><span class="mt-lbl" data-i18n="tabMe">Me</span>
     </button>
@@ -1828,6 +1987,31 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     <div id="mob-me-inner"></div>
   </div>
 
+  <!-- ── Memories tab view ── -->
+  <div id="mob-memories">
+    <div class="mem-filter-bar">
+      <button class="mem-filter-btn on" data-mf="all"      onclick="setMemFilter('all')"      data-i18n="memAll">All</button>
+      <button class="mem-filter-btn"    data-mf="stories"  onclick="setMemFilter('stories')"  data-i18n="memStories">Stories</button>
+      <button class="mem-filter-btn"    data-mf="memories" onclick="setMemFilter('memories')" data-i18n="memMemories">Memories</button>
+      <button class="mem-filter-btn"    data-mf="events"   onclick="setMemFilter('events')"   data-i18n="memEvents">Events</button>
+    </div>
+    <div class="mem-feed" id="mem-feed"></div>
+    <!-- FAB opens choice sheet -->
+    <div class="mem-add-overlay" id="mem-add-overlay" onclick="closeMemAddSheet()" style="display:none"></div>
+    <div class="mem-add-sheet" id="mem-add-sheet">
+      <div class="mem-add-choice" onclick="closeMemAddSheet();openStoryMo()">
+        📖 <span data-i18n="addStory">Add Story</span>
+      </div>
+      <div class="mem-add-choice" onclick="closeMemAddSheet();openMemoryMo()">
+        📸 <span data-i18n="addMemory">Add Memory</span>
+      </div>
+      <div class="mem-add-choice" onclick="closeMemAddSheet();openEventMo()">
+        🗓 <span data-i18n="addEvent">Add Event</span>
+      </div>
+    </div>
+    <button class="mob-tree-fab" id="mem-fab" onclick="toggleMemAddSheet()" style="bottom:72px" aria-label="Add">＋</button>
+  </div>
+
   <!-- ── Full-screen person detail (mobile only, replaces panel) ── -->
   <div id="mob-detail">
     <div id="mob-det-hd">
@@ -1897,6 +2081,57 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
     <div class="mo-ft"><button class="hbtn" onclick="closeRMo()" data-i18n="done">Done</button><button class="hbtn primary" onclick="addRel()" data-i18n="addRel">Add Link</button></div>
   </div>
 </div>
+<!-- ── Lightbox for full-screen memory photo ── -->
+<div id="mem-lightbox" onclick="closeLightbox()">
+  <span id="mem-lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="mem-lightbox-img" src="" alt="">
+</div>
+
+<!-- ── Event add modal ── -->
+<div class="mo-ov" id="event-mo">
+  <div class="mo" style="max-width:500px">
+    <div class="mo-hd">
+      <div class="mo-title" id="event-mo-title" data-i18n="addEvent">Add Event</div>
+      <button class="pan-x" onclick="closeEventMo()">✕</button>
+    </div>
+    <div class="mo-bd" id="event-mo-bd"></div>
+    <div class="mo-ft">
+      <button class="hbtn" onclick="closeEventMo()" data-i18n="cancel">Cancel</button>
+      <button class="hbtn primary" onclick="saveEvent()" data-i18n="save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Memory add modal ── -->
+<div class="mo-ov" id="memory-mo">
+  <div class="mo">
+    <div class="mo-hd">
+      <div class="mo-title" id="memory-mo-title" data-i18n="addMemory">Add Memory</div>
+      <button class="pan-x" onclick="closeMemoryMo()">✕</button>
+    </div>
+    <div class="mo-bd" id="memory-mo-bd"></div>
+    <div class="mo-ft">
+      <button class="hbtn" onclick="closeMemoryMo()" data-i18n="cancel">Cancel</button>
+      <button class="hbtn primary" onclick="saveMemory()" data-i18n="save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Story / Memory add modal ── -->
+<div class="mo-ov" id="story-mo">
+  <div class="mo">
+    <div class="mo-hd">
+      <div class="mo-title" id="story-mo-title" data-i18n="addStory">Add Story</div>
+      <button class="pan-x" onclick="closeStoryMo()">✕</button>
+    </div>
+    <div class="mo-bd" id="story-mo-bd"></div>
+    <div class="mo-ft">
+      <button class="hbtn" onclick="closeStoryMo()" data-i18n="cancel">Cancel</button>
+      <button class="hbtn primary" onclick="saveStory()" data-i18n="save">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="mo-ov" id="admin-mo">
   <div class="mo" style="max-width:560px">
     <div class="mo-hd">
@@ -2237,6 +2472,74 @@ function showDiagI18n() {
 <script type="module">
 'use strict';
 
+// ████████████████████████████████████████████████████████████████████████████
+// ██                                                                         ██
+// ██   PARAMPARA — index.html                                                ██
+// ██   Single-file PWA. Stack: Firebase Auth + Realtime DB + Storage.       ██
+// ██   Hosted: GitHub Pages (static). No build step.                        ██
+// ██                                                                         ██
+// ██   TABLE OF CONTENTS  (search for the ══ marker to jump to section)     ██
+// ██   ─────────────────────────────────────────────────────────────────    ██
+// ██   §01  FIREBASE CONFIG          ln ~2244                               ██
+// ██   §02  HELPERS                  ln ~2276                               ██
+// ██   §03  APP STATE                ln ~2321                               ██
+// ██   §04  SYNC STATUS              ln ~2338                               ██
+// ██   §05  SCREEN MANAGEMENT        ln ~2344                               ██
+// ██   §06  LANGUAGE / i18n          ln ~2363                               ██
+// ██   §07  ABOUT / LANDING          ln ~2942                               ██
+// ██   §08  MULTI-FAMILY SESSION     ln ~3006                               ██
+// ██   §09  BOOT                     ln ~3020                               ██
+// ██   §10  CROSS-DEVICE RECOVERY    ln ~3390                               ██
+// ██   §11  AUTH (sign in/join)      ln ~3569                               ██
+// ██   §12  PERMISSIONS              ln ~3886                               ██
+// ██   §13  REAL-TIME SYNC           ln ~4009                               ██
+// ██   §14  FIREBASE SECURITY        ln ~4242                               ██
+// ██   §15  ADMIN PANEL              ln ~4410                               ██
+// ██   §16  VIEWPORT / CANVAS        ln ~4586                               ██
+// ██   §17  EGO VIEW ENGINE          ln ~4792                               ██
+// ██   §18  PROFILE LINKING          ln ~5236                               ██
+// ██   §19  RENDER                   ln ~5320                               ██
+// ██   §20  SVG LINES                ln ~5480                               ██
+// ██   §21  AUTO LAYOUT              ln ~5525                               ██
+// ██   §22  SELECT + PANEL           ln ~5566                               ██
+// ██   §23  PERSON FORM              ln ~5683                               ██
+// ██   §24  RELATIONS                ln ~6082                               ██
+// ██   §25  HISTORY                  ln ~6305                               ██
+// ██   §26  SEARCH                   ln ~6319                               ██
+// ██   §27  HEADER / MOBILE MENU     ln ~6374                               ██
+// ██   §28  PWA INSTALL              ln ~6435                               ██
+// ██   §29  TOAST                    ln ~6469                               ██
+// ██   §30  OFFLINE ENGINE           ln ~6474                               ██
+// ██   §31  ERROR TRACKING           ln ~6666                               ██
+// ██   §32  RATE LIMITER             ln ~6710                               ██
+// ██   §33  ONBOARDING               ln ~6747                               ██
+// ██   §34  SERVICE WORKER           ln ~7004                               ██
+// ██   §35  INIT                     ln ~7007                               ██
+// ██   §36  ADMIN TABS               ln ~7033                               ██
+// ██   §37  BULK IMPORT              ln ~7058                               ██
+// ██   §38  ARCHIVE FAMILY           ln ~7416                               ██
+// ██   §39  PRIVACY & DATA           ln ~7533                               ██
+// ██   §40  TREE IMAGE EXPORT        ln ~7719                               ██
+// ██   §41  KEY-EXISTS CHECK         ln ~8200                               ██
+// ██   §42  BFS PATH FINDER          ln ~8383                               ██
+// ██   §43  RELATIONSHIP ENGINE      ln ~8439                               ██
+// ██   §44  MOBILE TAB SHELL         ln ~8819                               ██
+// ██                                                                         ██
+// ██   FUTURE SECTIONS (add here as you build):                             ██
+// ██   §45  STORIES                  (Phase 2)                              ██
+// ██   §46  EVENTS                   (Phase 2)                              ██
+// ██   §47  PHOTOS (multi)           (Phase 2)                              ██
+// ██   §48  HERITAGE ROOM            (Phase 3)                              ██
+// ██   §49  MONETISATION             (Phase 5)                              ██
+// ██                                                                         ██
+// ██   DEPLOY CHECKLIST:                                                    ██
+// ██   □ node tests.js → all green                                          ██
+// ██   □ bump CACHE_VERSION in sw.js                                        ██
+// ██   □ push index.html, sw.js, privacy.html, terms.html                  ██
+// ██   □ update Firebase Realtime DB rules if changed                       ██
+// ██                                                                         ██
+// ████████████████████████████████████████████████████████████████████████████
+
 // ══ FIREBASE CONFIG ════════════════════════════════════════════════
 import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword,
@@ -2325,6 +2628,10 @@ let _listeners = [];
 function clearListeners() {
   _listeners.forEach(({ r, fn }) => off(r, 'value', fn));
   _listeners = [];
+  stopStoriesSync();  // stop stories listener when family changes
+  stopMemoriesSync(); // stop memories listener when family changes
+  stopEventsSync();   // stop events listener when family changes
+  _stopMembersLiveListener(); // stop members panel listener if open
 }
 function listen(r, fn) {
   onValue(r, fn);
@@ -2408,6 +2715,43 @@ const STRINGS = {
     invShareWA:'Share on WhatsApp', invShareMore:'Share…',
     invShareTitle:'Join {famName} on Parampara',
     invWAMessage:"You've been invited to join {famName} on Parampara — a private family tree. Tap to request access: {url}",
+    tabMemories:'Memories',
+    addStory:'Add Story', editStory:'Edit Story',
+    storyTitle:'Title', storyBody:'What do you remember?',
+    storyAbout:'About', storyAboutFamily:'General family story',
+    storyAboutPerson:'About a person', storyAboutEvent:'About an event',
+    storyPhotoOpt:'Add a photo (optional)',
+    storyTitlePh:'Give this memory a title…',
+    storyBodyPh:'Write your memory here… There are no rules. Write as much or as little as you like.',
+    memAll:'All', memStories:'Stories', memMemories:'Memories', memEvents:'Events',
+    storiesSection:'Stories & Memories',
+    noStoriesYet:'No stories or memories yet.',
+    noStoriesFamily:'No stories added yet. Be the first to share a memory.',
+    storyBy:'by', storyAboutLabel:'about',
+    expand:'Show more', searchPeople:'Search people…',
+    deleteStoryConfirm:'Delete this story? This cannot be undone.',
+    addMemory:'Add Memory', editMemory:'Edit Memory',
+    memoryCaption:'Caption', memoryCaptionPh:'Describe this photo… who, where, when…',
+    memoryWhen:'When was this taken?', memoryWhenPh:'e.g. 1985, Summer 1992',
+    noMemoriesYet:'No photos added yet.',
+    noMemoriesFamily:'No memories added yet. Upload the first photo.',
+    deleteMemoryConfirm:'Delete this memory? The photo will also be removed.',
+    memAddStory:'Add Story', memAddMemory:'Add Memory',
+    addEvent:'Add Event', editEvent:'Edit Event',
+    eventTitle:'Event Title', eventTitlePh:'e.g. Arjun & Priya's Wedding',
+    eventDate:'Date', eventPlace:'Place', eventPlacePh:'e.g. Chennai, Tamil Nadu',
+    eventNotes:'Notes', eventNotesPh:'Any additional details…',
+    eventPeople:'People involved',
+    eventPeoplePh:'Search and add people…',
+    eventTypes:{
+      wedding:'Wedding', birth:'Birth', death:'Death',
+      griha:'Griha Pravesh', puja:'Puja', graduation:'Graduation',
+      reunion:'Reunion', other:'Other'
+    },
+    noEventsYet:'No events recorded yet.',
+    noEventsFamily:'No events recorded yet. Add the first family milestone.',
+    deleteEventConfirm:'Delete this event? This cannot be undone.',
+    eventsSection:'Family Events',
     gMale:'Male', gFemale:'Female', gOther:'Other/Unknown',
     save:'Save', cancel:'Cancel', delete:'Delete Person', done:'Done',
     addRel:'Add Link',
@@ -2569,6 +2913,43 @@ const STRINGS = {
     invShareWA:'WhatsApp-ல் பகிர்', invShareMore:'பகிர்…',
     invShareTitle:'{famName} குடும்பத்தில் இணையுங்கள்',
     invWAMessage:"{famName} குடும்ப மரக்கலை Parampara-வில் இணைய அழைக்கப்பட்டீர்கள். இணையும் இணைப்புக்கு தட்டவும்: {url}",
+    tabMemories:'நினைவுகள்',
+    addStory:'கதை சேர்', editStory:'கதை திருத்து',
+    storyTitle:'தலைப்பு', storyBody:'நீங்கள் என்ன நினைவில் வைத்திருக்கிறீர்கள்?',
+    storyAbout:'பற்றி', storyAboutFamily:'குடும்பக் கதை',
+    storyAboutPerson:'ஒருவரைப் பற்றி', storyAboutEvent:'நிகழ்வைப் பற்றி',
+    storyPhotoOpt:'படம் சேர் (விரும்பினால்)',
+    storyTitlePh:'இந்த நினைவுக்கு ஒரு தலைப்பு கொடுங்கள்…',
+    storyBodyPh:'உங்கள் நினைவை இங்கே எழுதுங்கள்… விதிகள் எதுவும் இல்லை.',
+    memAll:'அனைத்தும்', memStories:'கதைகள்', memMemories:'நினைவுகள்', memEvents:'நிகழ்வுகள்',
+    storiesSection:'கதைகள் & நினைவுகள்',
+    noStoriesYet:'இன்னும் கதைகள் எதுவும் இல்லை.',
+    noStoriesFamily:'இன்னும் கதைகள் எதுவும் சேர்க்கப்படவில்லை.',
+    storyBy:'எழுதியவர்', storyAboutLabel:'பற்றி',
+    expand:'மேலும் காட்டு', searchPeople:'நபர்களை தேடுங்கள்…',
+    deleteStoryConfirm:'இந்தக் கதையை நீக்கவா? இதை மீட்டெடுக்க முடியாது.',
+    addMemory:'நினைவு சேர்', editMemory:'நினைவு திருத்து',
+    memoryCaption:'விளக்கம்', memoryCaptionPh:'யார், எங்கே, எப்போது என்று விவரிக்கவும்…',
+    memoryWhen:'இது எப்போது எடுக்கப்பட்டது?', memoryWhenPh:'எ.கா. 1985, கோடை 1992',
+    noMemoriesYet:'இன்னும் புகைப்படங்கள் எதுவும் இல்லை.',
+    noMemoriesFamily:'இன்னும் நினைவுகள் எதுவும் சேர்க்கப்படவில்லை.',
+    deleteMemoryConfirm:'இந்த நினைவை நீக்கவா? புகைப்படமும் நீக்கப்படும்.',
+    memAddStory:'கதை சேர்', memAddMemory:'நினைவு சேர்',
+    addEvent:'நிகழ்வு சேர்', editEvent:'நிகழ்வு திருத்து',
+    eventTitle:'நிகழ்வு தலைப்பு', eventTitlePh:'எ.கா. அர்ஜுன் & பிரியாவின் திருமணம்',
+    eventDate:'தேதி', eventPlace:'இடம்', eventPlacePh:'எ.கா. சென்னை, தமிழ்நாடு',
+    eventNotes:'குறிப்புகள்', eventNotesPh:'கூடுதல் விவரங்கள்…',
+    eventPeople:'பங்கேற்பவர்கள்',
+    eventPeoplePh:'நபர்களை தேடி சேர்க்கவும்…',
+    eventTypes:{
+      wedding:'திருமணம்', birth:'பிறப்பு', death:'மரணம்',
+      griha:'கிரஹ பிரவேசம்', puja:'பூஜை', graduation:'பட்டப்படிப்பு',
+      reunion:'குடும்பகூட்டம்', other:'மற்றவை'
+    },
+    noEventsYet:'இன்னும் நிகழ்வுகள் பதிவு செய்யப்படவில்லை.',
+    noEventsFamily:'இன்னும் நிகழ்வுகள் எதுவும் இல்லை.',
+    deleteEventConfirm:'இந்த நிகழ்வை நீக்கவா? இதை மீட்டெடுக்க முடியாது.',
+    eventsSection:'குடும்ப நிகழ்வுகள்',
     gMale:'ஆண்', gFemale:'பெண்', gOther:'பிற/தெரியாத',
     save:'சேமி', cancel:'ரத்துசெய்', delete:'நபரை நீக்கு', done:'முடிந்தது',
     addRel:'இணைப்பு சேர்',
@@ -2723,6 +3104,43 @@ const STRINGS = {
     invShareWA:'WhatsApp-ൽ ഷേയർ ചെയ്ക', invShareMore:'ഷേയർ ചെയ്ക…',
     invShareTitle:'{famName} കുടുംബത്തിൽ ചേരുക',
     invWAMessage:"{famName} കുടുംബത്തിന്റെ Parampara അപ്പിൽ ചേരാൻ ക്ഷണിച്ചു. പ്രവേശനാനുമതി അഭ്യർത്ഥിക്കാൻ ക്ലിക്ക് ചെയ്യൂ: {url}",
+    tabMemories:'ഓർമ്മകൾ',
+    addStory:'കഥ ചേർക്കുക', editStory:'കഥ തിരുത്തുക',
+    storyTitle:'തലക്കെട്ട്', storyBody:'നിങ്ങൾ എന്ത് ഓർക്കുന്നു?',
+    storyAbout:'കുറിച്ച്', storyAboutFamily:'കുടുംബ കഥ',
+    storyAboutPerson:'ഒരാളെ കുറിച്ച്', storyAboutEvent:'ഒരു സംഭവത്തെ കുറിച്ച്',
+    storyPhotoOpt:'ഫോട്ടോ ചേർക്കുക (ഐച്ഛികം)',
+    storyTitlePh:'ഈ ഓർമ്മയ്ക്ക് ഒരു തലക്കെട്ട് നൽകൂ…',
+    storyBodyPh:'നിങ്ങളുടെ ഓർമ്മ ഇവിടെ എഴുതൂ… നിയമങ്ങൾ ഒന്നുമില്ല.',
+    memAll:'എല്ലാം', memStories:'കഥകൾ', memMemories:'ഓർമ്മകൾ', memEvents:'സംഭവങ്ങൾ',
+    storiesSection:'കഥകളും ഓർമ്മകളും',
+    noStoriesYet:'ഇതുവരെ കഥകൾ ഒന്നും ഇല്ല.',
+    noStoriesFamily:'ഇതുവരെ കഥകൾ ഒന്നും ചേർത്തിട്ടില്ല.',
+    storyBy:'എഴുതിയത്', storyAboutLabel:'കുറിച്ച്',
+    expand:'കൂടുതൽ കാണിക്കുക', searchPeople:'ആളുകളെ തിരയുക…',
+    deleteStoryConfirm:'ഈ കഥ നീക്കം ചെയ്യണോ? ഇത് പഴയപടി ആക്കാൻ കഴിയില്ല.',
+    addMemory:'ഓർമ്മ ചേർക്കുക', editMemory:'ഓർമ്മ തിരുത്തുക',
+    memoryCaption:'അടിക്കുറിപ്പ്', memoryCaptionPh:'ആര്, എവിടെ, എപ്പോൾ എന്ന് വിവരിക്കൂ…',
+    memoryWhen:'ഇത് എപ്പോൾ എടുത്തു?', memoryWhenPh:'ഉദാ. 1985, വേനൽ 1992',
+    noMemoriesYet:'ഇതുവരെ ഫോട്ടോകൾ ഒന്നും ഇല്ല.',
+    noMemoriesFamily:'ഇതുവരെ ഓർമ്മകൾ ഒന്നും ചേർത്തിട്ടില്ല.',
+    deleteMemoryConfirm:'ഈ ഓർമ്മ നീക്കം ചെയ്യണോ? ഫോട്ടോയും നീക്കം ചെയ്യും.',
+    memAddStory:'കഥ ചേർക്കുക', memAddMemory:'ഓർമ്മ ചേർക്കുക',
+    addEvent:'സംഭവം ചേർക്കുക', editEvent:'സംഭവം തിരുത്തുക',
+    eventTitle:'സംഭവ തലക്കെട്ട്', eventTitlePh:'ഉദാ. അർജുൻ & പ്രിയയുടെ വിവാഹം',
+    eventDate:'തീയതി', eventPlace:'സ്ഥലം', eventPlacePh:'ഉദാ. ചെന്നൈ, തമിഴ്‌നാട്',
+    eventNotes:'കുറിപ്പുകൾ', eventNotesPh:'അധിക വിവരങ്ങൾ…',
+    eventPeople:'പങ്കെടുത്തവർ',
+    eventPeoplePh:'ആളുകളെ തിരയുക…',
+    eventTypes:{
+      wedding:'വിവാഹം', birth:'ജനനം', death:'മരണം',
+      griha:'ഗൃഹ പ്രവേശം', puja:'പൂജ', graduation:'ബിരുദദാനം',
+      reunion:'കൂടിച്ചേരൽ', other:'മറ്റുള്ളവ'
+    },
+    noEventsYet:'ഇതുവരെ സംഭവങ്ങൾ ഒന്നും രേഖപ്പെടുത്തിയിട്ടില്ല.',
+    noEventsFamily:'ഇതുവരെ സംഭവങ്ങൾ ഒന്നും ഇല്ല.',
+    deleteEventConfirm:'ഈ സംഭവം നീക്കം ചെയ്യണോ? ഇത് പഴയപടി ആക്കാൻ കഴിയില്ല.',
+    eventsSection:'കുടുംബ സംഭവങ്ങൾ',
     gMale:'പുരുഷൻ', gFemale:'സ്ത്രീ', gOther:'മറ്റ്/അജ്ഞാതം',
     save:'സേവ്', cancel:'റദ്ദാക്കുക', delete:'ആളെ നീക്കം ചെയ്യുക', done:'പൂർത്തിയായി',
     addRel:'ലിങ്ക് ചേർക്കുക',
@@ -4079,6 +4497,9 @@ async function startSync() {
       setSyncStatus('ok', 'Synced ✓');
       saveSnapshot(); // persist to IDB for offline use
       checkBirthdayReminders(); // show upcoming birthdays once per day
+      startStoriesSync();  // start stories listener once tree is ready
+      startMemoriesSync(); // start memories listener once tree is ready
+      startEventsSync();   // start events listener once tree is ready
     }
   });
 }
@@ -4183,6 +4604,11 @@ async function startEgoSync(fetchPid) {
     render();
     buildSearchCache();
     saveSnapshot(); // persist neighbourhood to IDB for offline use
+    // Start phase 2 listeners — stories/memories/events are family-wide,
+    // independent of ego neighbourhood, so safe to start here too
+    startStoriesSync();
+    startMemoriesSync();
+    startEventsSync();
 
     // 8. Layout + visuals after render
     setTimeout(async () => {
@@ -4406,6 +4832,11 @@ function gid() { return 'p' + Date.now() + '_' + Math.random().toString(36).slic
 // ══ ADMIN PANEL ════════════════════════════════════════════════════
 const ALL_ROLES = ['admin','editor','contributor','viewer'];
 
+// Live listener handle for the admin members panel — keeps the list
+// auto-refreshing so a newly-joined pending member appears instantly
+// without the admin needing to close and reopen the panel.
+let _membersUnsub = null;
+
 function openAdminMo() {
   _adminTab = 'members';
   ['members','import','settings'].forEach(t => {
@@ -4416,13 +4847,40 @@ function openAdminMo() {
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   el('admin-mo').classList.add('on');
   clearPendingNotices(); // reset badge when admin opens panel
-  loadMembers();
+  _startMembersLiveListener();
 }
-function closeAMo() { el('admin-mo').classList.remove('on'); }
+function closeAMo() {
+  el('admin-mo').classList.remove('on');
+  _stopMembersLiveListener();
+}
 
-async function loadMembers() {
+function _startMembersLiveListener() {
+  _stopMembersLiveListener(); // clear any previous listener
+  const r = membersRef(FAM);
+  const fn = snap => { _renderMembersPanel(snap); };
+  onValue(r, fn, err => {
+    if (el('amo-bd')) el('amo-bd').innerHTML =
+      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
+  });
+  _membersUnsub = () => off(r, 'value', fn);
+}
+
+function _stopMembersLiveListener() {
+  if (_membersUnsub) { _membersUnsub(); _membersUnsub = null; }
+}
+
+// loadMembers kept as a one-shot refresh for post-action reloads (approve, reject, etc.)
+// It now just re-attaches the live listener which fires immediately with fresh data.
+function loadMembers() {
+  _startMembersLiveListener();
+}
+
+function _renderMembersPanel(snap) {
+  if (!el('amo-bd')) return; // panel was closed
   try {
-    const snap = await get(membersRef(FAM));
+    if (!snap || !snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
+    const members = [];
+    snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
     if (!snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
     const members = [];
     snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
@@ -4474,7 +4932,8 @@ async function loadMembers() {
 
     el('amo-bd').innerHTML = html;
   } catch(e) {
-    el('amo-bd').innerHTML = `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;
+    if (el('amo-bd')) el('amo-bd').innerHTML =
+      `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;
   }
   applyLang(el('admin-mo')); // translate any data-i18n inside the modal
 }
@@ -5661,6 +6120,12 @@ function closePanel(){
     ${p.notes?`<div class="sec"><div class="sec-t">${t('biography')}</div><div class="notes-box">${escHtml(p.notes)}</div></div>`:''}
     ${chipG(t('parents'),parents)}${chipG(t('partners'),partners)}${chipG(t('children'),children)}${chipG(t('siblings'),siblings)}
     <div class="sec"><div class="sec-t">${t('auditTrail')}</div>${audit}</div>`;
+  // Append stories section (populated by startStoriesSync listener)
+  el('pan-bd').insertAdjacentHTML('beforeend', _personStoriesHtml(id));
+  // Append memories section (populated by startMemoriesSync listener)
+  el('pan-bd').insertAdjacentHTML('beforeend', _personMemoriesHtml(id));
+  // Append events section (populated by startEventsSync listener)
+  el('pan-bd').insertAdjacentHTML('beforeend', _personEventsHtml(id));
 
   const canEd=canEditPerson(p),canDel=can('delete'),canLink=can('add');
   el('pan-ft').innerHTML=`
@@ -6458,7 +6923,7 @@ const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.navigator.sta
 if(isIOS) setTimeout(()=>{if(!window.navigator.standalone){el('install-bar').querySelector('span').innerHTML='📱 Install: tap Share ⎙ → Add to Home Screen';el('install-bar').classList.add('show');}},5000);
 
 // ══ MODAL BACKDROP CLOSE ═══════════════════════════════════════════
-['person-mo','rel-mo','admin-mo','hist-mo','link-mo'].forEach(id=>{
+['person-mo','rel-mo','admin-mo','hist-mo','link-mo','story-mo','memory-mo','event-mo'].forEach(id=>{
   el(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
 });
 
@@ -8820,7 +9285,7 @@ function renderPivotBar() {
 function isMobile() { return window.innerWidth <= 720; }
 
 // ── Active mobile tab state ──────────────────────────────────────────
-let _mobTab = 'people';   // 'people' | 'tree' | 'me'
+let _mobTab = 'people';   // 'people' | 'tree' | 'memories' | 'me'
 
 function switchMobTab(tab) {
   if (!isMobile()) return;
@@ -8831,28 +9296,28 @@ function switchMobTab(tab) {
     _updateMobTreeFab(null);
     _setTreeFabVisible(false);
   }
+  // Leaving memories tab: close the add choice sheet if open
+  if (_mobTab === 'memories' && tab !== 'memories') {
+    closeMemAddSheet();
+  }
   _mobTab = tab;
 
   // Tab buttons
-  ['people','tree','me'].forEach(t => {
+  ['people','tree','memories','me'].forEach(t => {
     const btn = el('mtab-' + t);
     if (btn) btn.classList.toggle('on', t === tab);
   });
 
   // Views: tree lives in mob-tree-view; others in their own divs
-  const treeView   = el('mob-tree-view');
-  const peopleView = el('mob-people');
-  const meView     = el('mob-me');
+  const treeView     = el('mob-tree-view');
+  const peopleView   = el('mob-people');
+  const meView       = el('mob-me');
+  const memoriesView = el('mob-memories');
 
-  if (treeView) {
-    treeView.style.display   = tab === 'tree'   ? 'flex' : 'none';
-  }
-  if (peopleView) {
-    peopleView.style.display = tab === 'people' ? 'flex' : 'none';
-  }
-  if (meView) {
-    meView.style.display     = tab === 'me'     ? 'flex' : 'none';
-  }
+  if (treeView)     treeView.style.display     = tab === 'tree'     ? 'flex' : 'none';
+  if (peopleView)   peopleView.style.display   = tab === 'people'   ? 'flex' : 'none';
+  if (meView)       meView.style.display       = tab === 'me'       ? 'flex' : 'none';
+  if (memoriesView) memoriesView.style.display = tab === 'memories' ? 'flex' : 'none';
 
   // Show tree-only overlays (FAB, zoom, sync-bar, legend) — only on tree tab
   const onTree = tab === 'tree';
@@ -8863,8 +9328,9 @@ function switchMobTab(tab) {
   });
 
   // Lazy-render the newly-visible tab
-  if (tab === 'people') renderMobPeople();
-  if (tab === 'me')     renderMobMe();
+  if (tab === 'people')   renderMobPeople();
+  if (tab === 'me')       renderMobMe();
+  if (tab === 'memories') renderMemFeed();
 }
 
 // Called after DB loads so mobile views start populated.
@@ -9026,6 +9492,12 @@ function _renderMobDetail(id) {
     ${chipGroup(t('children'), children)}
     ${chipGroup(t('siblings'), siblings)}
     <div class="sec"><div class="sec-t">${t('auditTrail')}</div>${audit}</div>`;
+  // Append stories section
+  el('mob-det-bd').insertAdjacentHTML('beforeend', _personStoriesHtml(id));
+  // Append memories section
+  el('mob-det-bd').insertAdjacentHTML('beforeend', _personMemoriesHtml(id));
+  // Append events section
+  el('mob-det-bd').insertAdjacentHTML('beforeend', _personEventsHtml(id));
 
   // Footer actions
   const canDel  = can('delete');
@@ -9419,6 +9891,1167 @@ window.addEventListener('resize', () => {
   }
 });
 
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  §45  STORIES                                                           ██
+// ████████████████████████████████████████████████████████████████████████████
+
+// ── State ────────────────────────────────────────────────────────────────────
+let _stories      = {};   // sid → story record (live synced)
+let _storiesUnsub = null; // Firebase onValue unsubscriber
+let _storySubjectType = 'person';  // 'person' | 'family'
+let _storySubjectId   = null;      // pid if person, null if family
+let _storyEditId      = null;      // sid if editing, null if adding
+let _storyPhotoFile   = null;      // File object pending upload
+let _memFilter        = 'all';     // 'all' | 'stories' | 'memories' | 'events'
+
+// ── Firebase sync ────────────────────────────────────────────────────────────
+function startStoriesSync() {
+  if (_storiesUnsub) return; // already listening
+  const storiesRef = ref(db, `families/${FAM}/stories`);
+  _storiesUnsub = onValue(storiesRef, snap => {
+    _stories = snap.exists() ? snap.val() : {};
+    // Refresh any open panel or feed
+    if (selId) _refreshPanelStories(selId);
+    if (_mobTab === 'memories') renderMemFeed();
+    // Refresh mobile detail if open
+    const det = el('mob-detail');
+    if (det && det.classList.contains('open') && _mobDetailStack.length) {
+      _refreshMobDetailStories(_mobDetailStack[_mobDetailStack.length - 1]);
+    }
+  }, err => console.warn('stories sync error', err));
+}
+
+function stopStoriesSync() {
+  if (_storiesUnsub) { _storiesUnsub(); _storiesUnsub = null; }
+  _stories = {};
+}
+
+// ── Open / close modal ───────────────────────────────────────────────────────
+// Called from:
+//   profile panel "＋ Add Story" button → openStoryMo(pid)
+//   Memories tab FAB → openStoryMo()
+function openStoryMo(personId) {
+  _storyEditId      = null;
+  _storyPhotoFile   = null;
+  _storySubjectType = personId ? 'person' : 'family';
+  _storySubjectId   = personId || null;
+  el('story-mo-title').textContent = t('addStory');
+  _renderStoryForm();
+  el('story-mo').classList.add('on');
+}
+
+function closeStoryMo() {
+  el('story-mo').classList.remove('on');
+  _storyEditId    = null;
+  _storyPhotoFile = null;
+}
+
+// ── Form render ──────────────────────────────────────────────────────────────
+function _renderStoryForm() {
+  const isPersonSubject = _storySubjectType === 'person';
+  const personName = isPersonSubject && _storySubjectId && DB.people[_storySubjectId]
+    ? fullName(DB.people[_storySubjectId]) : '';
+
+  // Subject selector — show chips if opened from feed (no preset person)
+  const subjectHtml = isPersonSubject && personName
+    ? `<div class="story-form-subject">
+        <span>📖</span>
+        <span>${escHtml(t('storyAbout'))}: <strong>${escHtml(personName)}</strong></span>
+      </div>`
+    : `<div style="margin-bottom:12px">
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">${escHtml(t('storyAbout'))}</div>
+        <div class="story-type-chips">
+          <button class="story-type-chip${_storySubjectType==='person'?' on':''}"
+            onclick="_setStorySubjectType('person')">${t('storyAboutPerson')}</button>
+          <button class="story-type-chip${_storySubjectType==='family'?' on':''}"
+            onclick="_setStorySubjectType('family')">${t('storyAboutFamily')}</button>
+        </div>
+        ${_storySubjectType === 'person' ? `
+        <div class="story-person-search-wrap">
+          <input class="pfi" id="story-person-input" placeholder="${escHtml(t('searchPeople'))}"
+            oninput="_storyPersonSearch(this.value)" autocomplete="off"
+            value="${_storySubjectId && DB.people[_storySubjectId] ? escHtml(fullName(DB.people[_storySubjectId])) : ''}">
+          <div id="story-person-drop"></div>
+        </div>` : ''}
+      </div>`;
+
+  const existingStory = _storyEditId ? _stories[_storyEditId] : null;
+
+  el('story-mo-bd').innerHTML = `
+    ${subjectHtml}
+    <div class="pfg" style="margin-bottom:10px">
+      <label class="pfl">${t('storyTitle')} *</label>
+      <input class="pfi" id="story-title-input" placeholder="${escHtml(t('storyTitlePh'))}"
+        value="${escHtml(existingStory?.title||'')}">
+    </div>
+    <div class="pfg" style="margin-bottom:6px">
+      <label class="pfl">${t('storyBody')}</label>
+      <textarea class="story-ta" id="story-body-input"
+        placeholder="${escHtml(t('storyBodyPh'))}"
+        oninput="_storyCharCount(this)">${escHtml(existingStory?.body||'')}</textarea>
+      <div class="story-char-count" id="story-char-count"></div>
+    </div>
+    <div class="pfg">
+      <label class="pfl">${t('storyPhotoOpt')}</label>
+      <div class="photo-upload-wrap">
+        <div class="photo-thumb" id="story-photo-thumb">
+          ${existingStory?.photo
+            ? `<img src="${escHtml(existingStory.photo)}" alt="">`
+            : '📷'}
+        </div>
+        <div class="photo-actions">
+          <div class="photo-url-row">
+            <input class="pfi" id="story-photo-url" value="${escHtml(existingStory?.photo||'')}"
+              placeholder="https://… or upload →"
+              oninput="_onStoryPhotoUrlChange(this.value)">
+            <button type="button" class="photo-upload-btn"
+              onclick="document.getElementById('story-photo-file-input').click()">📤 Upload</button>
+            <input type="file" id="story-photo-file-input" accept="image/*" style="display:none"
+              onchange="_handleStoryPhotoFile(this)">
+          </div>
+          <div class="photo-hint">Max 5 MB · JPEG/PNG/WEBP</div>
+          <div id="story-upload-status" style="font-size:10px;color:var(--gold);min-height:14px"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _setStorySubjectType(type) {
+  _storySubjectType = type;
+  if (type === 'family') _storySubjectId = null;
+  _renderStoryForm();
+}
+
+function _storyCharCount(ta) {
+  const len = ta.value.length;
+  el('story-char-count').textContent = len > 0 ? `${len} characters` : '';
+}
+
+function _storyPersonSearch(q) {
+  const drop = el('story-person-drop');
+  if (!drop) return;
+  if (!q.trim()) { drop.style.display = 'none'; return; }
+  const results = Object.entries(DB.people)
+    .filter(([,p]) => fullName(p).toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 6);
+  if (!results.length) { drop.style.display = 'none'; return; }
+  drop.style.display = 'block';
+  drop.innerHTML = results.map(([pid, p]) =>
+    `<div class="story-person-opt" data-pid="${escHtml(pid)}" onclick="window._selectStoryPerson(this.dataset.pid,this.textContent)">${escHtml(fullName(p))}</div>`
+  ).join('');
+}
+
+function _selectStoryPerson(pid, name) {
+  _storySubjectId = pid;
+  const inp = el('story-person-input');
+  if (inp) inp.value = name;
+  const drop = el('story-person-drop');
+  if (drop) drop.style.display = 'none';
+}
+
+function _onStoryPhotoUrlChange(url) {
+  const thumb = el('story-photo-thumb');
+  if (!thumb) return;
+  if (url) {
+    thumb.innerHTML = `<img src="${escHtml(url)}" alt="" onerror="this.remove();el('story-photo-thumb').textContent='📷'">`;
+  } else {
+    thumb.textContent = '📷';
+  }
+  _storyPhotoFile = null;
+}
+
+function _handleStoryPhotoFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('Photo must be under 5 MB'); return; }
+  _storyPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const thumb = el('story-photo-thumb');
+    if (thumb) thumb.innerHTML = `<img src="${e.target.result}" alt="">`;
+    el('story-photo-url').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Save story ────────────────────────────────────────────────────────────────
+async function saveStory() {
+  const title = (el('story-title-input')?.value || '').trim();
+  const body  = (el('story-body-input')?.value  || '').trim();
+  if (!title) { toast('Please add a title'); el('story-title-input')?.focus(); return; }
+
+  const saveBtn = el('story-mo')?.querySelector('.hbtn.primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '…'; }
+
+  try {
+    // Upload photo if a file was selected
+    let photoUrl = (el('story-photo-url')?.value || '').trim();
+    if (_storyPhotoFile) {
+      const status = el('story-upload-status');
+      if (status) status.textContent = 'Uploading photo…';
+      const ext  = _storyPhotoFile.name.split('.').pop() || 'jpg';
+      const path = `photos/${FAM}/stories/${Date.now()}.${ext}`;
+      const fileRef = sref(storage, path);
+      await uploadBytes(fileRef, _storyPhotoFile);
+      photoUrl = await getDownloadURL(fileRef);
+      if (status) status.textContent = '';
+    }
+
+    const now  = Date.now();
+    const who  = fbUser.uid;
+    const name = CU.displayName || fbUser.email || 'Member';
+
+    if (_storyEditId) {
+      // Edit existing
+      await update(ref(db, `families/${FAM}/stories/${_storyEditId}`), {
+        title, body, photo: photoUrl,
+        editedAt: now, editedBy: who
+      });
+      toast('Story updated ✓');
+    } else {
+      // New story
+      const sid = 'st_' + now + '_' + Math.random().toString(36).slice(2, 7);
+      const record = {
+        title, body,
+        photo:       photoUrl || null,
+        subjectType: _storySubjectType,
+        subjectId:   _storySubjectId || null,
+        authorId:    who,
+        authorName:  name,
+        createdAt:   now,
+      };
+      await set(ref(db, `families/${FAM}/stories/${sid}`), record);
+      toast('Story saved ✓');
+    }
+    closeStoryMo();
+  } catch(e) {
+    toast('Error saving story: ' + e.message);
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('save'); }
+  }
+}
+
+// ── Delete story ─────────────────────────────────────────────────────────────
+async function deleteStory(sid) {
+  if (!confirm(t('deleteStoryConfirm'))) return;
+  try {
+    await set(ref(db, `families/${FAM}/stories/${sid}`), null);
+    toast('Story deleted');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+// ── Story card HTML helpers ──────────────────────────────────────────────────
+function _storyCardHtml(sid, story, opts = {}) {
+  const { small = false, showSubject = true } = opts;
+  const subjectName = story.subjectType === 'person' && story.subjectId && DB.people[story.subjectId]
+    ? fullName(DB.people[story.subjectId]) : null;
+  const subjectClick = story.subjectType === 'person' && story.subjectId
+    ? `onclick="isMobile()?showMobDetail('${story.subjectId}'):selectPerson('${story.subjectId}')"` : '';
+
+  const canDelete = story.authorId === fbUser?.uid || can('delete');
+  const deleteBtn = canDelete
+    ? `<button class="story-del-btn" onclick="deleteStory('${sid}')">🗑 Delete</button>` : '';
+
+  const photoHtml = story.photo
+    ? `<img class="${small?'story-card-sm-photo':'story-photo'}" src="${escHtml(story.photo)}" alt="" onerror="this.remove()" loading="lazy">` : '';
+
+  const date = story.createdAt
+    ? new Date(story.createdAt).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '';
+
+  if (small) {
+    return `
+    <div class="story-card-sm">
+      <div class="story-card-sm-title">${escHtml(story.title)}</div>
+      ${photoHtml}
+      ${story.body ? `<div class="story-card-sm-body">${escHtml(story.body)}</div>` : ''}
+      <div class="story-card-sm-meta">${t('storyBy')} ${escHtml(story.authorName||'?')} · ${date}</div>
+      <div class="story-actions">${deleteBtn}</div>
+    </div>`;
+  }
+
+  const bodyId = 'sbody_' + sid;
+  return `
+  <div class="story-card">
+    <div class="story-card-header">
+      <span class="story-badge">📖 ${t('memStories')}</span>
+      ${showSubject && subjectName
+        ? `<span class="story-subject" ${subjectClick}>${t('storyAboutLabel')}: ${escHtml(subjectName)}</span>`
+        : story.subjectType === 'family'
+          ? `<span class="story-subject">${t('storyAboutFamily')}</span>` : ''}
+    </div>
+    <div class="story-title">${escHtml(story.title)}</div>
+    ${photoHtml}
+    ${story.body ? `
+      <div class="story-body clamped" id="${bodyId}">${escHtml(story.body)}</div>
+      <span class="story-read-more" onclick="_toggleStoryBody('${bodyId}',this)">${t('expand')}</span>` : ''}
+    <div class="story-meta">
+      <span class="story-meta-author">✍ ${escHtml(story.authorName||'?')}</span>
+      <span>${date}</span>
+    </div>
+    <div class="story-actions">${deleteBtn}</div>
+  </div>`;
+}
+
+function _toggleStoryBody(id, btn) {
+  const el_ = document.getElementById(id);
+  if (!el_) return;
+  const clamped = el_.classList.toggle('clamped');
+  btn.textContent = clamped ? t('expand') : '▲ Less';
+}
+
+// ── Memories feed (tab) ───────────────────────────────────────────────────────
+function setMemFilter(f) {
+  _memFilter = f;
+  document.querySelectorAll('.mem-filter-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.mf === f);
+  });
+  renderMemFeed();
+}
+
+function renderMemFeed() {
+  const feed = el('mem-feed');
+  if (!feed) return;
+
+  // Combine stories + memories + events, sorted newest first
+  const storyItems = Object.entries(_stories).map(([id, s]) => ({ id, data: s, kind: 'story' }));
+  const memItems   = Object.entries(_memories).map(([id, m]) => ({ id, data: m, kind: 'memory' }));
+  const evtItems   = Object.entries(_events).map(([id, e]) => ({ id, data: e, kind: 'event' }));
+
+  let allItems = [...storyItems, ...memItems, ...evtItems]
+    .sort((a, b) => (b.data.createdAt||0) - (a.data.createdAt||0));
+
+  // Apply filter
+  if (_memFilter === 'stories')  allItems = allItems.filter(i => i.kind === 'story');
+  if (_memFilter === 'memories') allItems = allItems.filter(i => i.kind === 'memory');
+  if (_memFilter === 'events')   allItems = allItems.filter(i => i.kind === 'event');
+
+  if (!allItems.length) {
+    const emptyMsg = _memFilter === 'memories' ? t('noMemoriesFamily')
+      : _memFilter === 'events' ? t('noEventsFamily')
+      : t('noStoriesFamily');
+    feed.innerHTML = `<div class="mem-feed-empty">${emptyMsg}<br><br>
+      <button class="btn btn-ghost btn-sm" onclick="toggleMemAddSheet()">＋ Add</button></div>`;
+    return;
+  }
+
+  feed.innerHTML = allItems.map(({ id, data, kind }) =>
+    kind === 'story'  ? _storyCardHtml(id, data, { showSubject: true })
+    : kind === 'memory' ? _memoryCardHtml(id, data, { showSubject: true })
+    : _eventCardHtml(id, data)
+  ).join('');
+}
+
+// ── Person panel Stories section ──────────────────────────────────────────────
+function _personStoriesHtml(pid) {
+  const personStories = Object.entries(_stories)
+    .filter(([, s]) => s.subjectType === 'person' && s.subjectId === pid)
+    .sort(([,a],[,b]) => (b.createdAt||0) - (a.createdAt||0));
+
+  const addBtn = `<button class="add-story-btn" onclick="openStoryMo('${pid}')">＋ ${t('addStory')}</button>`;
+
+  const body = personStories.length
+    ? personStories.map(([sid, story]) => _storyCardHtml(sid, story, { small: true, showSubject: false })).join('')
+    : `<div class="story-empty-person">${t('noStoriesYet')}</div>`;
+
+  return `<div class="stories-section">
+    <div class="sec">
+      <div class="sec-t">
+        <span>${t('storiesSection')}</span>
+        ${addBtn}
+      </div>
+      ${body}
+    </div>
+  </div>`;
+}
+
+// Refresh just the stories section in the open desktop panel
+function _refreshPanelStories(pid) {
+  const panBd = el('pan-bd');
+  if (!panBd) return;
+  if (!el('panel')?.classList.contains('open')) return; // panel is closed
+  // Replace or append stories section
+  const existing = panBd.querySelector('.stories-section');
+  const newHtml = _personStoriesHtml(pid);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = newHtml;
+  const newSection = tmp.firstElementChild;
+  if (existing) {
+    existing.replaceWith(newSection);
+  } else {
+    panBd.appendChild(newSection);
+  }
+}
+
+// Refresh just the stories section in the open mobile detail
+function _refreshMobDetailStories(pid) {
+  const bd = el('mob-det-bd');
+  if (!bd) return;
+  if (!el('mob-detail')?.classList.contains('open')) return;
+  const existing = bd.querySelector('.stories-section');
+  const newHtml = _personStoriesHtml(pid);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = newHtml;
+  const newSection = tmp.firstElementChild;
+  if (existing) {
+    existing.replaceWith(newSection);
+  } else {
+    bd.appendChild(newSection);
+  }
+}
+
+// ── Hook into existing sync start/stop ───────────────────────────────────────
+// Called from the existing startSync / stopSync functions
+function _onFamilyLoaded_stories() {
+  startStoriesSync();
+}
+
+function _onFamilyUnloaded_stories() {
+  stopStoriesSync();
+}
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  END §45  STORIES                                                       ██
+// ████████████████████████████████████████████████████████████████████████████
+
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  §46  MEMORIES                                                          ██
+// ████████████████████████████████████████████████████████████████████████████
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let _memories      = {};   // mid → memory record (live synced)
+let _memoriesUnsub = null; // Firebase onValue unsubscriber
+let _memSubjectType = 'person'; // 'person' | 'family'
+let _memSubjectId   = null;     // pid if person, null if family
+let _memEditId      = null;     // mid if editing, null if adding
+let _memPhotoFile   = null;     // File object pending upload
+
+// ── Firebase sync ─────────────────────────────────────────────────────────────
+function startMemoriesSync() {
+  if (_memoriesUnsub) return;
+  const memoriesRef = ref(db, `families/${FAM}/memories`);
+  _memoriesUnsub = onValue(memoriesRef, snap => {
+    _memories = snap.exists() ? snap.val() : {};
+    if (selId) _refreshPanelMemories(selId);
+    if (_mobTab === 'memories') renderMemFeed();
+    const det = el('mob-detail');
+    if (det && det.classList.contains('open') && _mobDetailStack.length) {
+      _refreshMobDetailMemories(_mobDetailStack[_mobDetailStack.length - 1]);
+    }
+  }, err => console.warn('memories sync error', err));
+}
+
+function stopMemoriesSync() {
+  if (_memoriesUnsub) { _memoriesUnsub(); _memoriesUnsub = null; }
+  _memories = {};
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function openLightbox(src) {
+  const lb = el('mem-lightbox');
+  if (!lb) return;
+  el('mem-lightbox-img').src = src;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const lb = el('mem-lightbox');
+  if (!lb) return;
+  lb.classList.remove('open');
+  el('mem-lightbox-img').src = '';
+  document.body.style.overflow = '';
+}
+
+// ── FAB choice sheet ──────────────────────────────────────────────────────────
+function toggleMemAddSheet() {
+  const sheet = el('mem-add-sheet');
+  const overlay = el('mem-add-overlay');
+  if (!sheet) return;
+  const isOpen = sheet.classList.contains('open');
+  sheet.classList.toggle('open', !isOpen);
+  if (overlay) overlay.style.display = isOpen ? 'none' : 'block';
+  // Rotate FAB
+  const fab = el('mem-fab');
+  if (fab) fab.style.transform = isOpen ? '' : 'rotate(45deg)';
+}
+
+function closeMemAddSheet() {
+  const sheet = el('mem-add-sheet');
+  const overlay = el('mem-add-overlay');
+  if (sheet) sheet.classList.remove('open');
+  if (overlay) overlay.style.display = 'none';
+  const fab = el('mem-fab');
+  if (fab) fab.style.transform = '';
+}
+
+// ── Open / close modal ────────────────────────────────────────────────────────
+function openMemoryMo(personId) {
+  _memEditId    = null;
+  _memPhotoFile = null;
+  _memSubjectType = personId ? 'person' : 'family';
+  _memSubjectId   = personId || null;
+  el('memory-mo-title').textContent = t('addMemory');
+  _renderMemoryForm();
+  el('memory-mo').classList.add('on');
+}
+
+function closeMemoryMo() {
+  el('memory-mo').classList.remove('on');
+  _memEditId    = null;
+  _memPhotoFile = null;
+}
+
+// ── Form render ───────────────────────────────────────────────────────────────
+function _renderMemoryForm() {
+  const isPersonSubject = _memSubjectType === 'person';
+  const personName = isPersonSubject && _memSubjectId && DB.people[_memSubjectId]
+    ? fullName(DB.people[_memSubjectId]) : '';
+  const existingMem = _memEditId ? _memories[_memEditId] : null;
+
+  const subjectHtml = isPersonSubject && personName
+    ? `<div class="story-form-subject">
+        <span>📸</span>
+        <span>${escHtml(t('storyAbout'))}: <strong>${escHtml(personName)}</strong></span>
+      </div>`
+    : `<div style="margin-bottom:12px">
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">${escHtml(t('storyAbout'))}</div>
+        <div class="story-type-chips">
+          <button class="story-type-chip${_memSubjectType==='person'?' on':''}"
+            onclick="_setMemSubjectType('person')">${t('storyAboutPerson')}</button>
+          <button class="story-type-chip${_memSubjectType==='family'?' on':''}"
+            onclick="_setMemSubjectType('family')">${t('storyAboutFamily')}</button>
+        </div>
+        ${_memSubjectType === 'person' ? `
+        <div class="story-person-search-wrap">
+          <input class="pfi" id="mem-person-input" placeholder="${escHtml(t('searchPeople'))}"
+            oninput="_memPersonSearch(this.value)" autocomplete="off"
+            value="${_memSubjectId && DB.people[_memSubjectId] ? escHtml(fullName(DB.people[_memSubjectId])) : ''}">
+          <div id="mem-person-drop" style="position:absolute;top:100%;left:0;right:0;background:var(--parch);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);z-index:200;max-height:160px;overflow-y:auto;display:none"></div>
+        </div>` : ''}
+      </div>`;
+
+  el('memory-mo-bd').innerHTML = `
+    ${subjectHtml}
+    <div class="pfg" style="margin-bottom:12px">
+      <label class="pfl" style="font-weight:600">📷 Photo *</label>
+      <div class="photo-upload-wrap" style="flex-direction:column;align-items:stretch">
+        <div id="mem-photo-preview" style="width:100%;min-height:120px;background:var(--parch2);
+          border:2px dashed var(--border);border-radius:var(--r);display:flex;align-items:center;
+          justify-content:center;margin-bottom:8px;overflow:hidden;cursor:pointer"
+          onclick="document.getElementById('mem-photo-file-input').click()">
+          ${existingMem?.photo
+            ? `<img src="${escHtml(existingMem.photo)}" style="width:100%;max-height:220px;object-fit:cover" alt="">`
+            : `<div style="text-align:center;color:var(--ink4)">
+                <div style="font-size:28px">📷</div>
+                <div style="font-size:12px;margin-top:6px">Tap to upload a photo</div>
+              </div>`}
+        </div>
+        <input type="file" id="mem-photo-file-input" accept="image/*" style="display:none"
+          onchange="_handleMemPhotoFile(this)">
+        <div id="mem-upload-status" style="font-size:10px;color:var(--gold);min-height:14px"></div>
+      </div>
+    </div>
+    <div class="pfg" style="margin-bottom:10px">
+      <label class="pfl">${t('memoryCaption')}</label>
+      <textarea class="story-ta" id="mem-caption-input" style="min-height:72px"
+        placeholder="${escHtml(t('memoryCaptionPh'))}">${escHtml(existingMem?.caption||'')}</textarea>
+    </div>
+    <div class="pfg">
+      <label class="pfl">${t('memoryWhen')}</label>
+      <input class="pfi" id="mem-when-input" placeholder="${escHtml(t('memoryWhenPh'))}"
+        value="${escHtml(existingMem?.takenAt||'')}">
+    </div>`;
+}
+
+function _setMemSubjectType(type) {
+  _memSubjectType = type;
+  if (type === 'family') _memSubjectId = null;
+  _renderMemoryForm();
+}
+
+function _memPersonSearch(q) {
+  const drop = el('mem-person-drop');
+  if (!drop) return;
+  if (!q.trim()) { drop.style.display = 'none'; return; }
+  const results = Object.entries(DB.people)
+    .filter(([,p]) => fullName(p).toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 6);
+  if (!results.length) { drop.style.display = 'none'; return; }
+  drop.style.display = 'block';
+  drop.innerHTML = results.map(([pid, p]) =>
+    `<div class="story-person-opt" data-pid="${escHtml(pid)}" onclick="window._selectMemPerson(this.dataset.pid,this.textContent)">${escHtml(fullName(p))}</div>`
+  ).join('');
+}
+
+function _selectMemPerson(pid, name) {
+  _memSubjectId = pid;
+  const inp = el('mem-person-input');
+  if (inp) inp.value = name;
+  const drop = el('mem-person-drop');
+  if (drop) drop.style.display = 'none';
+}
+
+function _handleMemPhotoFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('Photo must be under 5 MB'); return; }
+  _memPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = el('mem-photo-preview');
+    if (preview) preview.innerHTML =
+      `<img src="${e.target.result}" style="width:100%;max-height:220px;object-fit:cover" alt="">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Save memory ───────────────────────────────────────────────────────────────
+async function saveMemory() {
+  const caption = (el('mem-caption-input')?.value || '').trim();
+  const takenAt = (el('mem-when-input')?.value   || '').trim();
+  const existingPhoto = _memEditId ? (_memories[_memEditId]?.photo || '') : '';
+
+  if (!_memPhotoFile && !existingPhoto) {
+    toast('Please add a photo'); return;
+  }
+
+  const saveBtn = el('memory-mo')?.querySelector('.hbtn.primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '…'; }
+
+  try {
+    let photoUrl = existingPhoto;
+    if (_memPhotoFile) {
+      const status = el('mem-upload-status');
+      if (status) status.textContent = 'Uploading…';
+      const ext  = _memPhotoFile.name.split('.').pop() || 'jpg';
+      const path = `photos/${FAM}/memories/${Date.now()}.${ext}`;
+      const fileRef = sref(storage, path);
+      await uploadBytes(fileRef, _memPhotoFile);
+      photoUrl = await getDownloadURL(fileRef);
+      if (status) status.textContent = '';
+    }
+
+    const now  = Date.now();
+    const who  = fbUser.uid;
+    const name = CU.displayName || fbUser.email || 'Member';
+
+    if (_memEditId) {
+      await update(ref(db, `families/${FAM}/memories/${_memEditId}`), {
+        caption, takenAt, photo: photoUrl, editedAt: now, editedBy: who
+      });
+      toast('Memory updated ✓');
+    } else {
+      const mid = 'mm_' + now + '_' + Math.random().toString(36).slice(2, 7);
+      await set(ref(db, `families/${FAM}/memories/${mid}`), {
+        photo:       photoUrl,
+        caption:     caption || null,
+        takenAt:     takenAt || null,
+        subjectType: _memSubjectType,
+        subjectId:   _memSubjectId || null,
+        authorId:    who,
+        authorName:  name,
+        createdAt:   now,
+      });
+      toast('Memory saved ✓');
+    }
+    closeMemoryMo();
+  } catch(e) {
+    toast('Error saving memory: ' + e.message);
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('save'); }
+  }
+}
+
+// ── Delete memory ─────────────────────────────────────────────────────────────
+async function deleteMemory(mid) {
+  if (!confirm(t('deleteMemoryConfirm'))) return;
+  try {
+    // Delete photo from Storage if it's a Firebase Storage URL
+    const mem = _memories[mid];
+    if (mem?.photo && mem.photo.includes('firebasestorage')) {
+      try {
+        const photoRef = sref(storage, mem.photo);
+        await deleteObject(photoRef);
+      } catch(e) { /* ignore if already deleted */ }
+    }
+    await set(ref(db, `families/${FAM}/memories/${mid}`), null);
+    toast('Memory deleted');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+// ── Memory card HTML helpers ──────────────────────────────────────────────────
+function _memoryCardHtml(mid, mem, opts = {}) {
+  const { small = false, showSubject = true } = opts;
+  const subjectName = mem.subjectType === 'person' && mem.subjectId && DB.people[mem.subjectId]
+    ? fullName(DB.people[mem.subjectId]) : null;
+  const subjectClick = mem.subjectType === 'person' && mem.subjectId
+    ? `onclick="isMobile()?showMobDetail('${mem.subjectId}'):selectPerson('${mem.subjectId}')"` : '';
+
+  const canDel = mem.authorId === fbUser?.uid || can('delete');
+  const deleteBtn = canDel
+    ? `<button class="story-del-btn" onclick="deleteMemory('${mid}')">🗑 Delete</button>` : '';
+
+  const date = mem.createdAt
+    ? new Date(mem.createdAt).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '';
+  const takenLine = mem.takenAt ? `📅 ${escHtml(mem.takenAt)} · ` : '';
+
+  if (small) {
+    return `
+    <div class="memory-card-sm">
+      <img class="memory-card-sm-img" src="${escHtml(mem.photo)}" alt=""
+        onclick="openLightbox('${escHtml(mem.photo)}')" loading="lazy"
+        onerror="this.closest('.memory-card-sm').style.display='none'">
+      <div class="memory-card-sm-body">
+        ${mem.caption ? `<div class="memory-card-sm-caption">${escHtml(mem.caption)}</div>` : ''}
+        <div class="memory-card-sm-meta">${takenLine}${t('storyBy')} ${escHtml(mem.authorName||'?')}</div>
+        <div class="memory-card-actions">${deleteBtn}</div>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="memory-card">
+    <img class="memory-card-img" src="${escHtml(mem.photo)}" alt=""
+      onclick="openLightbox('${escHtml(mem.photo)}')" loading="lazy"
+      onerror="this.closest('.memory-card').style.display='none'">
+    <div class="memory-card-body">
+      <span class="memory-badge">📸 ${t('memMemories')}</span>
+      ${mem.caption ? `<div class="memory-caption">${escHtml(mem.caption)}</div>` : ''}
+      <div class="memory-meta">
+        <span>${takenLine}${escHtml(mem.authorName||'?')}</span>
+        ${showSubject && subjectName
+          ? `<span class="memory-subject" ${subjectClick}>${t('storyAboutLabel')}: ${escHtml(subjectName)}</span>`
+          : mem.subjectType === 'family'
+            ? `<span class="memory-subject">${t('storyAboutFamily')}</span>` : ''}
+      </div>
+      <div class="memory-card-actions">${deleteBtn}</div>
+    </div>
+  </div>`;
+}
+
+// ── Person panel Memories section ─────────────────────────────────────────────
+function _personMemoriesHtml(pid) {
+  const personMems = Object.entries(_memories)
+    .filter(([, m]) => m.subjectType === 'person' && m.subjectId === pid)
+    .sort(([,a],[,b]) => (b.createdAt||0) - (a.createdAt||0));
+
+  const addBtn = `<button class="add-story-btn" onclick="openMemoryMo('${pid}')">＋ ${t('addMemory')}</button>`;
+
+  const body = personMems.length
+    ? personMems.map(([mid, mem]) => _memoryCardHtml(mid, mem, { small: true, showSubject: false })).join('')
+    : `<div class="story-empty-person">${t('noMemoriesYet')}</div>`;
+
+  return `<div class="memories-section">
+    <div class="sec">
+      <div class="sec-t">
+        <span>📸 ${t('memMemories')}</span>
+        ${addBtn}
+      </div>
+      ${body}
+    </div>
+  </div>`;
+}
+
+function _refreshPanelMemories(pid) {
+  const panBd = el('pan-bd');
+  if (!panBd) return;
+  if (!el('panel')?.classList.contains('open')) return;
+  const existing = panBd.querySelector('.memories-section');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = _personMemoriesHtml(pid);
+  const newSection = tmp.firstElementChild;
+  if (existing) existing.replaceWith(newSection);
+  else panBd.appendChild(newSection);
+}
+
+function _refreshMobDetailMemories(pid) {
+  const bd = el('mob-det-bd');
+  if (!bd) return;
+  if (!el('mob-detail')?.classList.contains('open')) return;
+  const existing = bd.querySelector('.memories-section');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = _personMemoriesHtml(pid);
+  const newSection = tmp.firstElementChild;
+  if (existing) existing.replaceWith(newSection);
+  else bd.appendChild(newSection);
+}
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  END §46  MEMORIES                                                      ██
+// ████████████████████████████████████████████████████████████████████████████
+
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  §47  EVENTS                                                            ██
+// ████████████████████████████████████████████████████████████████████████████
+
+// ── Event type config ─────────────────────────────────────────────────────────
+const EVENT_TYPES = [
+  { key: 'wedding',    ico: '💍' },
+  { key: 'birth',      ico: '👶' },
+  { key: 'death',      ico: '✝' },
+  { key: 'griha',      ico: '🏠' },
+  { key: 'puja',       ico: '🙏' },
+  { key: 'graduation', ico: '🎓' },
+  { key: 'reunion',    ico: '👨‍👩‍👧‍👦' },
+  { key: 'other',      ico: '🎉' },
+];
+
+function _eventIco(type) {
+  return (EVENT_TYPES.find(e => e.key === type) || { ico: '🗓' }).ico;
+}
+
+function _eventTypeName(type) {
+  const names = t('eventTypes');
+  return (names && names[type]) || type;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let _events      = {};   // eid → event record
+let _eventsUnsub = null;
+let _evtType     = 'wedding'; // selected type in form
+let _evtTagged   = {};        // pid → name — tagged people
+let _evtEditId   = null;
+
+// ── Firebase sync ─────────────────────────────────────────────────────────────
+function startEventsSync() {
+  if (_eventsUnsub) return;
+  const evRef = ref(db, `families/${FAM}/events`);
+  _eventsUnsub = onValue(evRef, snap => {
+    _events = snap.exists() ? snap.val() : {};
+    if (selId) _refreshPanelEvents(selId);
+    if (_mobTab === 'memories') renderMemFeed();
+    const det = el('mob-detail');
+    if (det && det.classList.contains('open') && _mobDetailStack.length) {
+      _refreshMobDetailEvents(_mobDetailStack[_mobDetailStack.length - 1]);
+    }
+  }, err => console.warn('events sync error', err));
+}
+
+function stopEventsSync() {
+  if (_eventsUnsub) { _eventsUnsub(); _eventsUnsub = null; }
+  _events = {};
+}
+
+// ── Open / close modal ────────────────────────────────────────────────────────
+function openEventMo(preselectedPid) {
+  _evtEditId  = null;
+  _evtType    = 'wedding';
+  _evtTagged  = {};
+  // Pre-tag person if opened from their profile
+  if (preselectedPid && DB.people[preselectedPid]) {
+    _evtTagged[preselectedPid] = fullName(DB.people[preselectedPid]);
+  }
+  el('event-mo-title').textContent = t('addEvent');
+  _renderEventForm();
+  el('event-mo').classList.add('on');
+}
+
+function closeEventMo() {
+  el('event-mo').classList.remove('on');
+  _evtEditId = null;
+  _evtTagged = {};
+}
+
+// ── Form render ───────────────────────────────────────────────────────────────
+function _renderEventForm() {
+  const existing = _evtEditId ? _events[_evtEditId] : null;
+
+  // Event type tiles
+  const typeTiles = EVENT_TYPES.map(({ key, ico }) => `
+    <div class="event-type-tile${_evtType === key ? ' on' : ''}" onclick="_setEvtType('${key}')">
+      <span>${ico}</span>
+      <span>${escHtml(_eventTypeName(key))}</span>
+    </div>`).join('');
+
+  // Tagged people chips
+  const taggedChips = Object.entries(_evtTagged).map(([pid, name]) => `
+    <span class="event-tagged-chip">
+      ${escHtml(name)}
+      <button onclick="_untagPerson('${pid}')" title="Remove">×</button>
+    </span>`).join('');
+
+  el('event-mo-bd').innerHTML = `
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;color:var(--ink3);text-transform:uppercase;
+        letter-spacing:.07em;margin-bottom:8px">Event type</div>
+      <div class="event-type-grid">${typeTiles}</div>
+    </div>
+
+    <div class="pfg" style="margin-bottom:10px">
+      <label class="pfl">${t('eventTitle')} *</label>
+      <input class="pfi" id="evt-title" placeholder="${escHtml(t('eventTitlePh'))}"
+        value="${escHtml(existing?.title||'')}">
+    </div>
+
+    <div class="pfi-row" style="margin-bottom:10px">
+      <div class="pfg">
+        <label class="pfl">${t('eventDate')}</label>
+        <input class="pfi" type="date" id="evt-date" value="${existing?.date||''}">
+      </div>
+      <div class="pfg">
+        <label class="pfl">${t('eventPlace')}</label>
+        <input class="pfi" id="evt-place" placeholder="${escHtml(t('eventPlacePh'))}"
+          value="${escHtml(existing?.place||'')}">
+      </div>
+    </div>
+
+    <div class="pfg" style="margin-bottom:10px">
+      <label class="pfl">${t('eventPeople')}</label>
+      <div class="event-tagged-wrap" id="evt-tagged-wrap">
+        ${taggedChips || '<span style="font-size:11px;color:var(--ink4)">No one tagged yet</span>'}
+      </div>
+      <div class="event-person-search-row">
+        <input class="pfi" id="event-person-input"
+          placeholder="${escHtml(t('eventPeoplePh'))}"
+          oninput="_evtPersonSearch(this.value)" autocomplete="off">
+      </div>
+      <div id="event-person-drop"></div>
+    </div>
+
+    <div class="pfg">
+      <label class="pfl">${t('eventNotes')}</label>
+      <textarea class="story-ta" id="evt-notes" style="min-height:64px"
+        placeholder="${escHtml(t('eventNotesPh'))}">${escHtml(existing?.notes||'')}</textarea>
+    </div>`;
+}
+
+function _setEvtType(type) {
+  _evtType = type;
+  // Update tiles without full re-render
+  document.querySelectorAll('.event-type-tile').forEach(tile => {
+    const key = tile.getAttribute('onclick').match(/'(\w+)'/)?.[1];
+    tile.classList.toggle('on', key === type);
+  });
+  // Auto-suggest title based on type if title is empty
+  const titleInput = el('evt-title');
+  if (titleInput && !titleInput.value.trim()) {
+    const ico = _eventIco(type);
+    const name = _eventTypeName(type);
+    titleInput.placeholder = `${ico} ${name}…`;
+  }
+}
+
+function _evtPersonSearch(q) {
+  const drop = el('event-person-drop');
+  if (!drop) return;
+  if (!q.trim()) { drop.style.display = 'none'; return; }
+  const results = Object.entries(DB.people)
+    .filter(([pid, p]) => !_evtTagged[pid] && fullName(p).toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 6);
+  if (!results.length) { drop.style.display = 'none'; return; }
+  drop.style.display = 'block';
+  drop.innerHTML = results.map(([pid, p]) =>
+    `<div class="story-person-opt" data-pid="${escHtml(pid)}" onclick="window._tagPerson(this.dataset.pid,this.textContent)">${escHtml(fullName(p))}</div>`
+  ).join('');
+}
+
+function _tagPerson(pid, name) {
+  _evtTagged[pid] = name;
+  // Clear search
+  const inp = el('event-person-input');
+  if (inp) inp.value = '';
+  const drop = el('event-person-drop');
+  if (drop) drop.style.display = 'none';
+  // Refresh chips
+  _refreshTaggedChips();
+}
+
+function _untagPerson(pid) {
+  delete _evtTagged[pid];
+  _refreshTaggedChips();
+}
+
+function _refreshTaggedChips() {
+  const wrap = el('evt-tagged-wrap');
+  if (!wrap) return;
+  const chips = Object.entries(_evtTagged).map(([pid, name]) => `
+    <span class="event-tagged-chip">
+      ${escHtml(name)}
+      <button onclick="_untagPerson('${pid}')" title="Remove">×</button>
+    </span>`).join('');
+  wrap.innerHTML = chips || '<span style="font-size:11px;color:var(--ink4)">No one tagged yet</span>';
+}
+
+// ── Save event ────────────────────────────────────────────────────────────────
+async function saveEvent() {
+  const title = (el('evt-title')?.value || '').trim();
+  const date  = el('evt-date')?.value || '';
+  const place = (el('evt-place')?.value || '').trim();
+  const notes = (el('evt-notes')?.value || '').trim();
+
+  if (!title) { toast('Please add an event title'); el('evt-title')?.focus(); return; }
+
+  const saveBtn = el('event-mo')?.querySelector('.hbtn.primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '…'; }
+
+  try {
+    const now  = Date.now();
+    const who  = fbUser.uid;
+    const name = CU.displayName || fbUser.email || 'Member';
+    // Convert tagged map to Firebase-safe object { pid: true }
+    const personIds = Object.keys(_evtTagged).length
+      ? Object.fromEntries(Object.keys(_evtTagged).map(pid => [pid, true]))
+      : null;
+
+    if (_evtEditId) {
+      await update(ref(db, `families/${FAM}/events/${_evtEditId}`), {
+        title, type: _evtType, date: date || null,
+        place: place || null, notes: notes || null,
+        personIds: personIds || null,
+        editedAt: now, editedBy: who
+      });
+      toast('Event updated ✓');
+    } else {
+      const eid = 'ev_' + now + '_' + Math.random().toString(36).slice(2, 7);
+      await set(ref(db, `families/${FAM}/events/${eid}`), {
+        title, type: _evtType,
+        date:      date  || null,
+        place:     place || null,
+        notes:     notes || null,
+        personIds: personIds || null,
+        createdBy:   who,
+        createdByName: name,
+        createdAt:   now,
+      });
+      toast('Event saved ✓');
+    }
+    closeEventMo();
+  } catch(e) {
+    toast('Error saving event: ' + e.message);
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = t('save'); }
+  }
+}
+
+// ── Delete event ──────────────────────────────────────────────────────────────
+async function deleteEvent(eid) {
+  if (!confirm(t('deleteEventConfirm'))) return;
+  try {
+    await set(ref(db, `families/${FAM}/events/${eid}`), null);
+    toast('Event deleted');
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+// ── Event card HTML helpers ───────────────────────────────────────────────────
+function _eventCardHtml(eid, ev, opts = {}) {
+  const { small = false } = opts;
+  const ico  = _eventIco(ev.type);
+  const name = _eventTypeName(ev.type);
+  const dateStr = ev.date
+    ? new Date(ev.date + 'T00:00:00').toLocaleDateString(undefined, {day:'numeric',month:'long',year:'numeric'})
+    : '';
+  const dateline = [dateStr, ev.place].filter(Boolean).join(' · ');
+  const canDel = ev.createdBy === fbUser?.uid || can('delete');
+  const deleteBtn = canDel
+    ? `<button class="story-del-btn" onclick="deleteEvent('${eid}')">🗑 Delete</button>` : '';
+  const addedDate = ev.createdAt
+    ? new Date(ev.createdAt).toLocaleDateString(undefined, {day:'numeric',month:'short',year:'numeric'}) : '';
+
+  // Tagged people chips
+  const taggedPids = ev.personIds ? Object.keys(ev.personIds) : [];
+  const taggedChips = taggedPids
+    .filter(pid => DB.people[pid])
+    .map(pid =>
+      `<span class="event-person-chip"
+        onclick="isMobile()?showMobDetail('${pid}'):selectPerson('${pid}')"
+      >${escHtml(fullName(DB.people[pid]))}</span>`
+    ).join('');
+
+  if (small) {
+    // Timeline entry for person profile
+    return `
+    <div class="event-tl-item" onclick="void(0)">
+      <span class="event-tl-ico">${ico}</span>
+      <div class="event-tl-body">
+        <div class="event-tl-title">${escHtml(ev.title)}</div>
+        <div class="event-tl-meta">${escHtml(dateline||addedDate)}</div>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="event-card">
+    <div class="event-card-header">
+      <span class="event-type-badge">${ico} ${escHtml(name)}</span>
+    </div>
+    <div class="event-title">${escHtml(ev.title)}</div>
+    ${dateline ? `<div class="event-dateline">📅 ${escHtml(dateline)}</div>` : ''}
+    ${taggedChips ? `<div class="event-people">${taggedChips}</div>` : ''}
+    ${ev.notes ? `<div class="event-notes">${escHtml(ev.notes)}</div>` : ''}
+    <div class="event-meta">
+      <span>Added by ${escHtml(ev.createdByName||'?')}</span>
+      <span>${addedDate}</span>
+    </div>
+    <div class="event-card-actions">${deleteBtn}</div>
+  </div>`;
+}
+
+// ── Person profile Events section ─────────────────────────────────────────────
+function _personEventsHtml(pid) {
+  // Events where this person is tagged
+  const personEvts = Object.entries(_events)
+    .filter(([, ev]) => ev.personIds && ev.personIds[pid])
+    .sort(([,a],[,b]) => {
+      // Sort by event date first, then createdAt
+      const da = a.date || '', db_ = b.date || '';
+      if (da && db_) return db_ > da ? 1 : -1;
+      return (b.createdAt||0) - (a.createdAt||0);
+    });
+
+  const addBtn = `<button class="add-story-btn" onclick="openEventMo('${pid}')">＋ ${t('addEvent')}</button>`;
+
+  const body = personEvts.length
+    ? `<div class="event-timeline">${personEvts.map(([eid, ev]) => _eventCardHtml(eid, ev, { small: true })).join('')}</div>`
+    : `<div class="event-empty">${t('noEventsYet')}</div>`;
+
+  return `<div class="events-section">
+    <div class="sec">
+      <div class="sec-t">
+        <span>🗓 ${t('eventsSection')}</span>
+        ${addBtn}
+      </div>
+      ${body}
+    </div>
+  </div>`;
+}
+
+function _refreshPanelEvents(pid) {
+  const panBd = el('pan-bd');
+  if (!panBd) return;
+  if (!el('panel')?.classList.contains('open')) return;
+  const existing = panBd.querySelector('.events-section');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = _personEventsHtml(pid);
+  const newSection = tmp.firstElementChild;
+  if (existing) existing.replaceWith(newSection);
+  else panBd.appendChild(newSection);
+}
+
+function _refreshMobDetailEvents(pid) {
+  const bd = el('mob-det-bd');
+  if (!bd) return;
+  if (!el('mob-detail')?.classList.contains('open')) return;
+  const existing = bd.querySelector('.events-section');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = _personEventsHtml(pid);
+  const newSection = tmp.firstElementChild;
+  if (existing) existing.replaceWith(newSection);
+  else bd.appendChild(newSection);
+}
+
+// ████████████████████████████████████████████████████████████████████████████
+// ██  END §47  EVENTS                                                        ██
+// ████████████████████████████████████████████████████████████████████████████
+
 // ══ END MOBILE TAB SHELL ═══════════════════════════════════════════════
 
 
@@ -9484,6 +11117,22 @@ Object.assign(window, {
   setPivot, navigateBack,
   // Mobile tab shell
   switchMobTab, setMobGenFilter, showMobDetail, closeMobDetail,
+  // Stories
+  openStoryMo, closeStoryMo, saveStory, deleteStory,
+  // Memories
+  openMemoryMo, closeMemoryMo, saveMemory, deleteMemory,
+  // Events
+  openEventMo, closeEventMo, saveEvent, deleteEvent,
+  // Members live listener
+  _startMembersLiveListener, _stopMembersLiveListener, _renderMembersPanel,
+  _setEvtType, _evtPersonSearch, _tagPerson, _untagPerson,
+  toggleMemAddSheet, closeMemAddSheet,
+  openLightbox, closeLightbox,
+  _setMemSubjectType, _memPersonSearch, _selectMemPerson, _handleMemPhotoFile,
+  setMemFilter, renderMemFeed,
+  _setStorySubjectType, _storyPersonSearch, _selectStoryPerson,
+  _onStoryPhotoUrlChange, _handleStoryPhotoFile,
+  _toggleStoryBody,
   initMobileShell, refreshMobViews, renderMobPeople, renderMobMe,
   _updateMobTreeFab, _clearMobTreeSel, _setTreeFabVisible, selectPersonRouted,
 });

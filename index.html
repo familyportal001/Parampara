@@ -81,6 +81,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 /* ── SCREENS ── */
 .screen{position:fixed;inset:0;z-index:800;background:var(--night);
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+/* auth screen scrolls from the top so long forms (join/create) are fully reachable */
+#s-auth{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-top:max(24px,env(safe-area-inset-top));
+  padding-bottom:max(24px,env(safe-area-inset-bottom))}
 .screen.hide{display:none!important}
 .brand{font-family:'Crimson Pro','Georgia',serif;font-size:50px;font-weight:300;color:var(--gold);
   letter-spacing:.06em;text-shadow:0 0 40px rgba(200,137,58,.3);line-height:1}
@@ -113,14 +117,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 /* auth */
 #s-auth{z-index:850}
 .auth-card{background:var(--bark);border:1px solid var(--clay);border-radius:8px;
-  padding:26px 22px;width:100%;max-width:390px}
+  padding:26px 22px;width:100%;max-width:390px;box-sizing:border-box}
 .tabs{display:flex;border:1px solid var(--clay);border-radius:var(--r);
   overflow:hidden;margin-bottom:20px}
 .tab{flex:1;padding:9px;font-size:11px;font-weight:500;text-align:center;
   cursor:pointer;background:transparent;border:none;color:var(--ink4);
   text-transform:uppercase;letter-spacing:.06em;transition:all .18s}
 .tab.on{background:var(--gold);color:var(--ink)}
-.asec{display:none}.asec.on{display:block}
+.asec{display:none}.asec.on{display:block;padding-bottom:4px}
 .fg{margin-bottom:12px}
 .fl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.09em;
   color:var(--ink4);margin-bottom:4px;font-weight:500}
@@ -1402,8 +1406,8 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 
 <!-- AUTH -->
 <div class="screen hide" id="s-auth">
-  <div class="brand" style="font-size:38px;margin-bottom:4px">Parampara</div>
-  <div style="font-size:11px;color:var(--ink4);margin-bottom:24px;letter-spacing:.12em;text-transform:uppercase">Your family lineage</div>
+  <div class="brand" style="font-size:34px;margin-bottom:2px;margin-top:8px">Parampara</div>
+  <div style="font-size:11px;color:var(--ink4);margin-bottom:16px;letter-spacing:.12em;text-transform:uppercase">Your family lineage</div>
   <div class="auth-card">
     <div class="tabs">
       <button class="tab on" id="tab-login" onclick="switchTab('login')" data-i18n="signIn">Sign In</button>
@@ -1468,7 +1472,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
         <div id="j-invite-note" style="display:none;font-size:12px;color:#5cab6a;margin-bottom:8px;padding:8px 10px;background:rgba(92,171,106,.1);border-radius:4px;border:1px solid rgba(92,171,106,.3)"></div>
         <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn">Request Access</button>
         <div class="anote" data-i18n="joinNote">An admin will approve your request. Get the Family Secret Key from an existing member.</div>
-        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0">
+        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0 16px">
           <input type="checkbox" id="j-tos-ack" style="margin-top:2px;flex-shrink:0;accent-color:var(--gold);width:14px;height:14px">
           <span style="font-size:11px;color:var(--ink4);line-height:1.65">
             I agree to the
@@ -1511,7 +1515,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
           <input class="fi" id="j-pass" type="password" autocomplete="new-password" placeholder="••••••••" data-i18n-ph="passPh"></div>
         <div class="aerr" id="j-err"></div>
         <button class="btn btn-gold" onclick="doJoin()" id="j-submit-btn">🌱 Create Family Tree</button>
-        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0">
+        <label id="j-tos-label" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer;padding:8px 0 16px">
           <input type="checkbox" id="j-tos-ack" style="margin-top:2px;flex-shrink:0;accent-color:var(--gold);width:14px;height:14px">
           <span style="font-size:11px;color:var(--ink4);line-height:1.65">
             I agree to the

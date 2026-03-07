@@ -1464,6 +1464,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
           <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
             <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
         </div>
+        <div class="fg">
+          <label class="fl">Date of Birth <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(must be 18+)</small></label>
+          <input class="fi" id="j-dob" type="date" autocomplete="bday"
+            style="color-scheme:dark"
+            max="" data-dob-gate="1">
+        </div>
         <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
           <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
         <div class="fg"><label class="fl" data-i18n="password">Password<small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(min 8 chars)</small></label>
@@ -1508,6 +1514,12 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
             <input class="fi" id="j-first" type="text" placeholder="First" data-i18n-ph="firstPh"></div>
           <div class="fg"><label class="fl" data-i18n="lastName">Last Name</label>
             <input class="fi" id="j-last" type="text" placeholder="Last" data-i18n-ph="lastPh"></div>
+        </div>
+        <div class="fg">
+          <label class="fl">Date of Birth <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(must be 18+)</small></label>
+          <input class="fi" id="j-dob" type="date" autocomplete="bday"
+            style="color-scheme:dark"
+            max="" data-dob-gate="1">
         </div>
         <div class="fg"><label class="fl" data-i18n="emailAddress">Email Address</label>
           <input class="fi" id="j-email" type="email" autocomplete="email" placeholder="your@email.com" data-i18n-ph="emailPh"></div>
@@ -3493,12 +3505,21 @@ async function resumeFamily(fam) {
 }
 
 // ══ AUTH — SIGN IN / JOIN / FORGOT ════════════════════════════════
+// Set max date on all DOB fields to 18 years ago today (DPDP Act age gate)
+function _setDobMax() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 18);
+  const maxDate = d.toISOString().split('T')[0]; // YYYY-MM-DD
+  document.querySelectorAll('[data-dob-gate]').forEach(el => el.setAttribute('max', maxDate));
+}
+
 function switchTab(t) {
   ['login','join','forgot'].forEach(id => {
     const tab = el('tab-'+id), sec = el('asec-'+id);
     if (tab) tab.classList.toggle('on', id===t);
     if (sec) sec.classList.toggle('on', id===t);
   });
+  if (t === 'join') _setDobMax();
   // Reset error styles when switching away
   const joinErr = el('j-err');
   if (joinErr && t !== 'join') { joinErr.style.color = ''; joinErr.textContent = ''; }
@@ -3561,9 +3582,24 @@ async function doJoin() {
   const tosBox = el('j-tos-ack');
   if (!tosBox || !tosBox.checked) {
     errEl.textContent = 'Please agree to the Terms of Service and Privacy Policy to continue.';
-    // Highlight the checkbox label briefly
     const tosLabel = el('j-tos-label');
     if (tosLabel) { tosLabel.style.color = 'var(--rose)'; setTimeout(() => tosLabel.style.color = '', 2000); }
+    return;
+  }
+
+  // Age gate — DPDP Act 2023 Section 9: users must be 18+ (India)
+  const dobVal = v('j-dob');
+  if (!dobVal) {
+    errEl.textContent = 'Please enter your date of birth. You must be 18 or older to register.';
+    el('j-dob') && el('j-dob').focus();
+    return;
+  }
+  const dobDate = new Date(dobVal);
+  const minAge  = new Date();
+  minAge.setFullYear(minAge.getFullYear() - 18);
+  if (dobDate > minAge) {
+    errEl.textContent = 'You must be at least 18 years old to create an account (DPDP Act, 2023).';
+    el('j-dob') && el('j-dob').focus();
     return;
   }
 
@@ -7993,12 +8029,15 @@ function showJoinMode(mode) {
   if (joinFrm) joinFrm.style.display = mode === 'join'   ? 'block' : 'none';
   if (creFrm)  creFrm.style.display  = mode === 'create' ? 'block' : 'none';
 
-  // Clear errors + reset key state when switching modes
+  // Clear errors + reset key state + DOB when switching modes
   const errEl = el('j-err');
   if (errEl) { errEl.textContent = ''; errEl.style.color = ''; }
   _keyHasFamily = null;
   clearTimeout(_keyCheckTimer);
+  // Clear DOB field when returning to choice screen so next sub-form starts fresh
+  if (!mode) { const dob = el('j-dob'); if (dob) dob.value = ''; }
 
+  _setDobMax(); // refresh max date whenever a sub-form is shown
   if (mode === 'create') {
     // Pre-suggest a family key and set create mode state
     const year = new Date().getFullYear();
@@ -9301,7 +9340,7 @@ Object.assign(window, {
   dismissOnboarding, dismissKeyBanner,
   dismissAbout, showAbout,
   dismissPerfBanner,
-  enterCreateMode, showJoinMode,
+  enterCreateMode, showJoinMode, _setDobMax,
   dismissViewerBanner, dismissMemberOb,
   approveAs,
   _arrowNav, _scrollCardIntoView,

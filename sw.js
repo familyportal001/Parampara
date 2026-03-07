@@ -6,7 +6,7 @@
 // │  Change it to any new string — a date works well:               │
 // │    e.g.  'parampara-2026-03-08'                                 │
 // └─────────────────────────────────────────────────────────────────┘
-const CACHE_VERSION = 'parampara-2026-03-07';
+const CACHE_VERSION = 'parampara-2026-03-07-v0.2';
 
 const CACHE   = CACHE_VERSION;
 const DYNAMIC = CACHE_VERSION + '-dyn';

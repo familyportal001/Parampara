@@ -828,7 +828,14 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .inv-copy-btn{flex-shrink:0;font-size:11px;padding:5px 10px;border-radius:3px;border:1px solid var(--border);
   background:var(--slate);color:white;cursor:pointer;white-space:nowrap;transition:background .15s}
 .inv-copy-btn:hover{background:var(--gold);color:var(--ink)}
-.inv-expire{font-size:10px;color:var(--ink4);margin-bottom:12px}
+.inv-expire{font-size:10px;color:var(--ink4);margin-bottom:8px}
+.inv-share-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.inv-share-btn{flex:1;min-width:100px;display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12px;font-weight:500;padding:8px 10px;border-radius:var(--r);border:none;
+  cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.inv-share-btn:hover{opacity:.88}
+.inv-share-wa{background:#25D366;color:#fff}
+.inv-share-native{background:var(--slate);color:#fff}
 
 /* toast */
 #toast{position:fixed;bottom:calc(20px + var(--sab));left:50%;transform:translateX(-50%) translateY(60px);
@@ -2395,6 +2402,12 @@ const STRINGS = {
     pFirst:'First Name', pLast:'Last Name', pDob:'Date of Birth',
     pDod:'Date of Death', pGender:'Gender', pOccupation:'Occupation',
     pNotes:'Notes', pPhoto:'Photo URL',
+    pGotra:'Gotra', pKula:'Kula', pVamsham:'Vamsham', pKulaDaivam:'Kula Daivam',
+    heritageSection:'Heritage',
+    invCopy:'Copy', invExpires:'Expires {date}', invSingleUse:'single-use',
+    invShareWA:'Share on WhatsApp', invShareMore:'Share…',
+    invShareTitle:'Join {famName} on Parampara',
+    invWAMessage:"You've been invited to join {famName} on Parampara — a private family tree. Tap to request access: {url}",
     gMale:'Male', gFemale:'Female', gOther:'Other/Unknown',
     save:'Save', cancel:'Cancel', delete:'Delete Person', done:'Done',
     addRel:'Add Link',
@@ -2453,8 +2466,8 @@ const STRINGS = {
     impDownload:'↓ Download template',
     impPeople:'👤 People', impRels:'⛓ Relationships',
     impDropLabel:'Click or drag a CSV file here',
-    impColsPeople:'Columns: first, last, dob, dod, gender, occupation, notes',
-    impColsRels:'Columns: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impColsPeople:'Columns: first, last, dob, dod, gender, occupation, gotra, kula, vamsham, notes',
+    impColsRels:'Columns: personA, personB, type, marriageDate (opt), marriagePlace (opt)',
     impRowsReady:'rows ready to import', impBack:'← Back',
     impDupNote:'Relationships require exact name matches.',
     impDupFound:'exact match(es) already in tree — highlighted below.',
@@ -2550,6 +2563,12 @@ const STRINGS = {
     pFirst:'முதல் பெயர்', pLast:'கடைசி பெயர்', pDob:'பிறந்த தேதி',
     pDod:'இறந்த தேதி', pGender:'பாலினம்', pOccupation:'தொழில்',
     pNotes:'குறிப்புகள்', pPhoto:'புகைப்பட URL',
+    pGotra:'கோத்திரம்', pKula:'குலம்', pVamsham:'வம்சம்', pKulaDaivam:'குலதெய்வம்',
+    heritageSection:'பாரம்பரியம்',
+    invCopy:'நகலெடு', invExpires:'{date} வரை செல்லும்', invSingleUse:'ஒருமுறை மட்டும்',
+    invShareWA:'WhatsApp-ல் பகிர்', invShareMore:'பகிர்…',
+    invShareTitle:'{famName} குடும்பத்தில் இணையுங்கள்',
+    invWAMessage:"{famName} குடும்ப மரக்கலை Parampara-வில் இணைய அழைக்கப்பட்டீர்கள். இணையும் இணைப்புக்கு தட்டவும்: {url}",
     gMale:'ஆண்', gFemale:'பெண்', gOther:'பிற/தெரியாத',
     save:'சேமி', cancel:'ரத்துசெய்', delete:'நபரை நீக்கு', done:'முடிந்தது',
     addRel:'இணைப்பு சேர்',
@@ -2607,8 +2626,8 @@ const STRINGS = {
     impDownload:'↓ மாதிரி பதிவிறக்கு',
     impPeople:'👤 மக்கள்', impRels:'⛓ உறவுகள்',
     impDropLabel:'CSV கோப்பை இங்கே கிளிக் செய்யவும் அல்லது இழுக்கவும்',
-    impColsPeople:'நெடுவரிசைகள்: first, last, dob, dod, gender, occupation, notes',
-    impColsRels:'நெடுவரிசைகள்: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impColsPeople:'நெடுவரிசைகள்: first, last, dob, dod, gender, occupation, gotra, kula, vamsham, notes',
+    impColsRels:'நெடுவரிசைகள்: personA, personB, type, marriageDate (விருப்பம்), marriagePlace (விருப்பம்)',
     impRowsReady:'வரிசைகள் இறக்குமதிக்கு தயார்', impBack:'← பின்னால்',
     impDupNote:'உறவுகளுக்கு சரியான பெயர் தேவை.',
     impDupFound:'ஏற்கனவே மரத்தில் உள்ள பொருத்தங்கள் — கீழே சிறப்பிக்கப்பட்டுள்ளன.',
@@ -2698,6 +2717,12 @@ const STRINGS = {
     pFirst:'ആദ്യ നാമം', pLast:'അവസാന നാമം', pDob:'ജനന തീയതി',
     pDod:'മരണ തീയതി', pGender:'ലിംഗം', pOccupation:'തൊഴിൽ',
     pNotes:'കുറിപ്പുകൾ', pPhoto:'ഫോട്ടോ URL',
+    pGotra:'ഗോത്രം', pKula:'കുലം', pVamsham:'വംശം', pKulaDaivam:'കുലദൈവം',
+    heritageSection:'പാരമ്പര്യം',
+    invCopy:'കോപ്പി', invExpires:'{date} വരെ സാധു', invSingleUse:'ഒറ്റ് ഉപയോഗം',
+    invShareWA:'WhatsApp-ൽ ഷേയർ ചെയ്ക', invShareMore:'ഷേയർ ചെയ്ക…',
+    invShareTitle:'{famName} കുടുംബത്തിൽ ചേരുക',
+    invWAMessage:"{famName} കുടുംബത്തിന്റെ Parampara അപ്പിൽ ചേരാൻ ക്ഷണിച്ചു. പ്രവേശനാനുമതി അഭ്യർത്ഥിക്കാൻ ക്ലിക്ക് ചെയ്യൂ: {url}",
     gMale:'പുരുഷൻ', gFemale:'സ്ത്രീ', gOther:'മറ്റ്/അജ്ഞാതം',
     save:'സേവ്', cancel:'റദ്ദാക്കുക', delete:'ആളെ നീക്കം ചെയ്യുക', done:'പൂർത്തിയായി',
     addRel:'ലിങ്ക് ചേർക്കുക',
@@ -2755,8 +2780,8 @@ const STRINGS = {
     impDownload:'↓ ടെംപ്ലേറ്റ് ഡൗൺലോഡ്',
     impPeople:'👤 ആളുകൾ', impRels:'⛓ ബന്ധങ്ങൾ',
     impDropLabel:'CSV ഫയൽ ഇവിടെ ക്ലിക്ക് ചെയ്യുക അല്ലെങ്കിൽ വലിച്ചിടുക',
-    impColsPeople:'നിരകൾ: first, last, dob, dod, gender, occupation, notes',
-    impColsRels:'നിരകൾ: personA, personB, type  (type = Parent | Partner | Sibling)',
+    impColsPeople:'നിരകൾ: first, last, dob, dod, gender, occupation, gotra, kula, vamsham, notes',
+    impColsRels:'നിരകൾ: personA, personB, type, marriageDate (ഓപ്ഷണൽ), marriagePlace (ഓപ്ഷണൽ)',
     impRowsReady:'വരികൾ ഇറക്കുമതിക്ക് തയ്യാർ', impBack:'← പിന്നോട്ട്',
     impDupNote:'ബന്ധങ്ങൾക്ക് കൃത്യ പേര് ആവശ്യം.',
     impDupFound:'ഇതിനകം ട്രീയിൽ കൃത്യ പൊരുത്തങ്ങൾ — ചുവടെ ഹൈലൈറ്റ് ചെയ്തിരിക്കുന്നു.',
@@ -3236,12 +3261,20 @@ async function generateInviteLink() {
     const box = el('invite-link-area');
     if (box) {
       const expDate = new Date(expiresAt).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+      const hasNativeShare = !!navigator.share;
       box.innerHTML = `
         <div class="inv-link-box">
           <span class="inv-link-text" id="inv-url-text">${escHtml(url)}</span>
-          <button class="inv-copy-btn" onclick="copyInviteUrl()">Copy</button>
+          <button class="inv-copy-btn" onclick="copyInviteUrl()">📋 ${t('invCopy')}</button>
         </div>
-        <div class="inv-expire">Expires ${expDate} · single-use</div>`;
+        <div class="inv-expire">${t('invExpires').replace('{date}', expDate)} · ${t('invSingleUse')}</div>
+        <div class="inv-share-row">
+          <button class="inv-share-btn inv-share-wa" onclick="shareInviteWhatsApp()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            ${t('invShareWA')}
+          </button>
+          ${hasNativeShare ? `<button class="inv-share-btn inv-share-native" onclick="shareInviteNative()">↗ ${t('invShareMore')}</button>` : ''}
+        </div>`;
       box._url = url;
     }
     toast('Invite link generated ✓');
@@ -3267,6 +3300,31 @@ function copyInviteUrl() {
     document.body.removeChild(ta);
     toast('Link copied ✓');
   });
+}
+
+function shareInviteWhatsApp() {
+  const box = el('invite-link-area');
+  const url = box && box._url;
+  if (!url) return;
+  const famName = CU && CU.famKey ? CU.famKey : 'our family';
+  const msg = t('invWAMessage').replace('{famName}', famName).replace('{url}', url);
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+}
+
+async function shareInviteNative() {
+  const box = el('invite-link-area');
+  const url = box && box._url;
+  if (!url || !navigator.share) return;
+  const famName = CU && CU.famKey ? CU.famKey : 'our family';
+  try {
+    await navigator.share({
+      title: t('invShareTitle').replace('{famName}', famName),
+      text:  t('invWAMessage').replace('{famName}', famName).replace('{url}', '').trim(),
+      url,
+    });
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('Could not open share sheet');
+  }
 }
 
 let _authUnsub = null; // track the active onAuthStateChanged unsubscriber
@@ -5558,7 +5616,7 @@ function closePanel(){
     ['📅',t('pDob'),p.dob],['✝',t('pDod'),p.dod],
     ['📍',t('pBp'),p.birthplace],['🏠',t('pLoc'),p.location],
     ['💼',t('pOccupation'),p.occupation],['🎓',t('pEdu'),p.education],
-    ['🌍',t('pNat'),p.nationality],
+    ['🪔',t('pGotra'),p.gotra],['🏛',t('pKula'),p.kula],['🌿',t('pVamsham'),p.vamsham],['🙏',t('pKulaDaivam'),p.kulaDaivam],['🌍',t('pNat'),p.nationality],
   ].filter(([,,val])=>val);
   const infoHtml=rows.length
     ?rows.map(([ico,k,val])=>`<div class="info-row"><span class="info-k">${ico} ${k}</span><span class="info-v">${escHtml(val)}</span></div>`).join('')
@@ -5580,8 +5638,16 @@ function closePanel(){
     const loaded = items.filter(it=>DB.people[it.id]);
     if (!loaded.length) return '';
     return `<div class="sec"><div class="sec-t">${title} (${loaded.length})</div><div class="chips">${
-      loaded.map(it=>`<div class="chip" onclick="selectPerson('${it.id}')">
-        <span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role} →</small></div>`).join('')
+      loaded.map(it=>{
+        // For partner chips, look up the rel to get marriage metadata
+        const rel = it.relId ? DB.rels[it.relId] : Object.values(DB.rels).find(r =>
+          r.type === 'Partner' && ((r.from === id && r.to === it.id) || (r.to === id && r.from === it.id)));
+        const marrLine = rel && (rel.marriageDate || rel.marriagePlace)
+          ? `<small style="color:var(--gold);display:block;font-size:10px;margin-top:1px">💍 ${[rel.marriageDate ? rel.marriageDate.slice(0,4) : '', rel.marriagePlace||''].filter(Boolean).join(' · ')}</small>`
+          : '';
+        return `<div class="chip" onclick="selectPerson('${it.id}')">
+          <span>${escHtml(fullName(DB.people[it.id]))}</span><small>${it.role} →</small>${marrLine}</div>`;
+      }).join('')
     }</div></div>`;
   }
 
@@ -5651,6 +5717,17 @@ function personForm(p={}){ return `
         <div class="photo-hint">Max 5 MB · JPEG/PNG/WEBP. Or paste a URL above.</div>
         <div id="pf-upload-status" style="font-size:10px;color:var(--gold);min-height:14px"></div>
       </div>
+    </div>
+  </div>
+  <div style="margin:10px 0 6px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink4);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px">${t('heritageSection')}</div>
+    <div class="pfi-row">
+      <div class="pfg"><label class="pfl">${t('pGotra')}</label><input class="pfi" id="pf-gotra" value="${escHtml(p.gotra||'')}" placeholder="e.g. Bharadwaja"></div>
+      <div class="pfg"><label class="pfl">${t('pKula')}</label><input class="pfi" id="pf-kula" value="${escHtml(p.kula||'')}" placeholder="e.g. Vellalar"></div>
+    </div>
+    <div class="pfi-row">
+      <div class="pfg"><label class="pfl">${t('pVamsham')}</label><input class="pfi" id="pf-vamsham" value="${escHtml(p.vamsham||'')}" placeholder="e.g. Raghu Vamsham"></div>
+      <div class="pfg"><label class="pfl">${t('pKulaDaivam')}</label><input class="pfi" id="pf-kuladaivam" value="${escHtml(p.kulaDaivam||'')}" placeholder="e.g. Murugan, Tirupati"></div>
     </div>
   </div>
   <div class="pfg"><label class="pfl">${t('pNotes')}</label><textarea class="pft" id="pf-notes">${escHtml(p.notes||'')}</textarea></div>`; }
@@ -5849,11 +5926,11 @@ async function savePerson(){
     const changes={};
     [['first','pf-first'],['last','pf-last'],['gender','pf-gender'],['nationality','pf-nat'],
      ['dob','pf-dob'],['dod','pf-dod'],['birthplace','pf-bp'],['location','pf-loc'],
-     ['occupation','pf-occ'],['education','pf-edu'],['photo','pf-photo'],['notes','pf-notes']]
+     ['occupation','pf-occ'],['education','pf-edu'],['gotra','pf-gotra'],['kula','pf-kula'],['vamsham','pf-vamsham'],['kulaDaivam','pf-kuladaivam'],['photo','pf-photo'],['notes','pf-notes']]
       .forEach(([k,fid])=>{const nv=pv(fid).trim();if(nv!==(prev[k]||''))changes[k]={from:prev[k]||'',to:nv};});
     const data={...prev,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
       dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
-      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo,
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),gotra:pv('pf-gotra').trim(),kula:pv('pf-kula').trim(),vamsham:pv('pf-vamsham').trim(),kulaDaivam:pv('pf-kuladaivam').trim(),photo,
       notes:pv('pf-notes').trim(),editedBy:who,editedByName:whoName,editedAt:now};
     // Optimistically apply edit locally first
     const prevData = { ...DB.people[editId] };
@@ -5882,7 +5959,7 @@ async function savePerson(){
     const id=gid(), count=Object.keys(DB.people).length;
     const data={id,first,last:pv('pf-last').trim(),gender:pv('pf-gender'),nationality:pv('pf-nat').trim(),
       dob:pv('pf-dob'),dod:pv('pf-dod'),birthplace:pv('pf-bp').trim(),location:pv('pf-loc').trim(),
-      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),photo,
+      occupation:pv('pf-occ').trim(),education:pv('pf-edu').trim(),gotra:pv('pf-gotra').trim(),kula:pv('pf-kula').trim(),vamsham:pv('pf-vamsham').trim(),kulaDaivam:pv('pf-kuladaivam').trim(),photo,
       notes:pv('pf-notes').trim(),x:60+(count%5)*190,y:60+Math.floor(count/5)*170,
       addedBy:who,addedByName:whoName,addedAt:now};
 
@@ -6019,9 +6096,13 @@ function renderRelMo() {
   const relList = Object.values(DB.rels).map(r => {
     const a = DB.people[r.from], b = DB.people[r.to]; if(!a||!b) return '';
     const labelMap = { Parent: 'is parent of', Partner: 'is partner of', Sibling: 'is sibling of' };
+    const marrMeta = r.type === 'Partner' && (r.marriageDate || r.marriagePlace)
+      ? `<div style="font-size:10px;color:var(--gold);margin-top:2px">💍 ${[r.marriageDate ? r.marriageDate.slice(0,4) : '', r.marriagePlace || ''].filter(Boolean).join(' · ')}</div>`
+      : '';
     return `<div class="member-row" style="padding:8px">
       <div class="member-info">
         <div class="member-name">${escHtml(fullName(a))} <span style="color:var(--ink3);font-size:11px">${labelMap[r.type]||r.type}</span> ${escHtml(fullName(b))}</div>
+        ${marrMeta}
       </div>
       <button class="mbtn mbtn-reject" onclick="removeRel('${r.id}',this.closest('.member-row'))">✕</button>
     </div>`;
@@ -6037,12 +6118,25 @@ function renderRelMo() {
     </div>
     <div class="pfg" style="margin:4px 0">
       <label class="pfl">Relationship</label>
-      <select class="rel-dir-sel" id="r-direction">
+      <select class="rel-dir-sel" id="r-direction" onchange="_onRelDirectionChange()">
         <option value="parent_of">is parent of</option>
         <option value="child_of">is child of</option>
         <option value="partner_of">is partner of</option>
         <option value="sibling_of">is sibling of</option>
       </select>
+    </div>
+    <!-- Marriage fields — revealed when partner_of is selected -->
+    <div id="rel-marriage-fields" style="display:none">
+      <div class="pfi-row">
+        <div class="pfg">
+          <label class="pfl">Marriage Date <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(optional)</small></label>
+          <input class="pfi" type="date" id="r-marr-date" style="color-scheme:dark">
+        </div>
+        <div class="pfg">
+          <label class="pfl">Marriage Place <small style="font-size:9px;text-transform:none;letter-spacing:0;color:var(--ink3)">(optional)</small></label>
+          <input class="pfi" type="text" id="r-marr-place" placeholder="e.g. Chennai, Tamil Nadu">
+        </div>
+      </div>
     </div>
     <div class="pfg">
       <label class="pfl">Person B</label>
@@ -6090,6 +6184,12 @@ function clearRelPerson(slot) {
   renderRelMo();
 }
 
+function _onRelDirectionChange() {
+  const dir = el('r-direction') && el('r-direction').value;
+  const mf  = el('rel-marriage-fields');
+  if (mf) mf.style.display = dir === 'partner_of' ? 'block' : 'none';
+}
+
 async function addRel(){
   if (!_relA || !_relB) { toast('Select both people first'); return; }
   if (_relA.pid === _relB.pid) { toast('Choose two different people'); return; }
@@ -6133,8 +6233,14 @@ async function addRel(){
     }
   }
 
+  // Read marriage metadata (only relevant for Partner rels)
+  const marriageDate  = (type === 'Partner' && el('r-marr-date')  && el('r-marr-date').value)  || null;
+  const marriagePlace = (type === 'Partner' && el('r-marr-place') && el('r-marr-place').value.trim()) || null;
+
   const id = 'r' + Date.now();
   const rel = { id, from, to, type, addedBy: fbUser.uid, addedAt: Date.now() };
+  if (marriageDate)  rel.marriageDate  = marriageDate;
+  if (marriagePlace) rel.marriagePlace = marriagePlace;
 
   // Optimistic update
   DB.rels[id] = rel;
@@ -7562,7 +7668,7 @@ function exportTreeCSV(sheet) {
 
   if (sheet === 'people') {
     const FIELDS = ['first','last','dob','dod','gender','occupation',
-                    'nationality','birthplace','location','education','notes','photo'];
+                    'nationality','birthplace','location','education','gotra','kula','vamsham','kulaDaivam','notes','photo'];
     const header = _csvRow(FIELDS);
     const people = Object.values(DB.people).filter(p => !p.deleted);
     people.sort((a, b) => (a.last || '').localeCompare(b.last || '') ||
@@ -7574,7 +7680,7 @@ function exportTreeCSV(sheet) {
   } else {
     // Relationships sheet — resolve person names for readability
     // Also include IDs so the data is unambiguous when names clash
-    const header = _csvRow(['personA','personB','type','personA_id','personB_id']);
+    const header = _csvRow(['personA','personB','type','marriageDate','marriagePlace','personA_id','personB_id']);
     const rels   = Object.values(DB.rels).filter(r => !r.deleted);
     rels.sort((a, b) => {
       const na = (DB.people[a.from] && (DB.people[a.from].last || DB.people[a.from].first)) || a.from;
@@ -7586,7 +7692,7 @@ function exportTreeCSV(sheet) {
       const pb = DB.people[r.to];
       const nameA = pa ? fullName(pa) : r.from;
       const nameB = pb ? fullName(pb) : r.to;
-      return _csvRow([nameA, nameB, r.type, r.from, r.to]);
+      return _csvRow([nameA, nameB, r.type, r.marriageDate||'', r.marriagePlace||'', r.from, r.to]);
     });
     const csv = [header, ...rows].join('\r\n');
     _csvDownload(csv, `parampara-${famSlug}-relationships-${date}.csv`);
@@ -8858,6 +8964,10 @@ function _renderMobDetail(id) {
     ['🏠', t('pLoc'),        p.location],
     ['💼', t('pOccupation'), p.occupation],
     ['🎓', t('pEdu'),        p.education],
+    ['🪔', t('pGotra'),      p.gotra],
+    ['🏛', t('pKula'),       p.kula],
+    ['🌿', t('pVamsham'),    p.vamsham],
+    ['🙏', t('pKulaDaivam'), p.kulaDaivam],
     ['🌍', t('pNat'),        p.nationality],
   ].filter(([,,v]) => v);
 
@@ -9351,7 +9461,7 @@ Object.assign(window, {
   // Pending screen
   showScreen, startApprovalWatch, stopApprovalWatch,
   checkVerified, resendVerification,
-  generateInviteLink, copyInviteUrl,
+  generateInviteLink, copyInviteUrl, shareInviteWhatsApp, shareInviteNative,
   restoreM, deleteM,
   _onPhotoUrlChange, _handlePhotoFile,
   openPrivacyMo, closePrivacyMo,
@@ -9360,7 +9470,7 @@ Object.assign(window, {
   dismissOnboarding, dismissKeyBanner,
   dismissAbout, showAbout,
   dismissPerfBanner,
-  enterCreateMode, showJoinMode, _setDobMax,
+  enterCreateMode, showJoinMode, _setDobMax, _onRelDirectionChange,
   dismissViewerBanner, dismissMemberOb,
   approveAs,
   _arrowNav, _scrollCardIntoView,

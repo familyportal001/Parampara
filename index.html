@@ -3926,20 +3926,22 @@ let _cachedMembersSnap = null; // latest members snap — same data that drives 
 function startPendingWatch() {
   if (_pendingWatchUnsub || !FAM || CU?.role !== 'admin') return;
   const r = membersRef(FAM);
+  let _pwFirstFire = true;
   const fn = snap => {
     // Cache snap so admin panel can use the same data as the badge (no separate read)
     _cachedMembersSnap = snap.exists() ? snap : null;
-    if (!snap.exists()) { _updatePendingBadge(0); return; }
+    if (!snap.exists()) { _updatePendingBadge(0); _pwFirstFire = false; return; }
     let count = 0;
     snap.forEach(child => { if (child.val().role === 'pending') count++; });
     const isNew = count > _lastPendingCount;
     _lastPendingCount = count;
     _updatePendingBadge(count);
-    if (isNew && count > 0) _firePendingNotification(count, snap);
-    // Re-render admin panel immediately if it's open — keeps badge and panel in sync
-    if (el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
+    if (isNew && count > 0 && !_pwFirstFire) _firePendingNotification(count, snap);
+    // Re-render admin panel on live updates (not initial fire) — keeps panel in sync
+    if (!_pwFirstFire && el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
       _renderMembersSnap(snap);
     }
+    _pwFirstFire = false;
   };
   onValue(r, fn);
   _pendingWatchUnsub = () => off(r, 'value', fn);
@@ -4459,7 +4461,6 @@ function openAdminMo() {
   el('amo-ft').innerHTML = `<button class="hbtn" style="background:var(--slate);color:white;font-size:11px" onclick="adminDiagnostic()">🔍 DB Check</button>
     <button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>`;
   el('admin-mo').classList.add('on');
-  clearPendingNotices();
   // Render immediately from the cached snap (same data the badge used) —
   // this guarantees pending members are visible before any new Firebase read.
   if (_cachedMembersSnap) _renderMembersSnap(_cachedMembersSnap);
@@ -4601,7 +4602,6 @@ function _renderMembersSnap(snap) {
       </div>`;
 
     el('amo-bd').innerHTML = html;
-    clearPendingNotices(); // badge cleared only after we've confirmed what's pending
   } catch(e) {
     if (el('amo-bd')) el('amo-bd').innerHTML =
       `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;

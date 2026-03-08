@@ -3932,7 +3932,13 @@ function startPendingWatch() {
     _cachedMembersSnap = snap.exists() ? snap : null;
     if (!snap.exists()) { _updatePendingBadge(0); _pwFirstFire = false; return; }
     let count = 0;
-    snap.forEach(child => { if (child.val().role === 'pending') count++; });
+    const _diagAll = [];
+    snap.forEach(child => {
+      const v = child.val();
+      _diagAll.push({uid:child.key, role:v.role, email:v.email});
+      if (v.role === 'pending') count++;
+    });
+    console.log('[Admin] startPendingWatch fired — firstFire:', _pwFirstFire, '| pending count:', count, '| all:', JSON.stringify(_diagAll));
     const isNew = count > _lastPendingCount;
     _lastPendingCount = count;
     _updatePendingBadge(count);
@@ -4463,6 +4469,11 @@ function openAdminMo() {
   el('admin-mo').classList.add('on');
   // Render immediately from the cached snap (same data the badge used) —
   // this guarantees pending members are visible before any new Firebase read.
+  const _diagMembers = [];
+  if (_cachedMembersSnap) {
+    _cachedMembersSnap.forEach(c => _diagMembers.push({uid:c.key, role:c.val().role, email:c.val().email}));
+  }
+  console.log('[Admin] openAdminMo — _cachedMembersSnap:', _cachedMembersSnap ? 'EXISTS' : 'NULL', '| members:', JSON.stringify(_diagMembers));
   if (_cachedMembersSnap) _renderMembersSnap(_cachedMembersSnap);
   _startMembersListener();
 }
@@ -4551,6 +4562,7 @@ function _renderMembersSnap(snap) {
     const pending  = members.filter(m => m.role === 'pending');
     const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));
     const revoked  = members.filter(m => m.role === 'removed' || m.role === 'rejected');
+    console.log('[Admin] _renderMembersSnap — total:', members.length, '| pending:', pending.length, '| roles:', members.map(m=>m.role+'('+m.email+')').join(', '));
 
     let html = '';
 

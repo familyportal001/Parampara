@@ -3921,11 +3921,14 @@ function canEditPerson(p) {
 // ── Admin pending-member notification watch ───────────────────────────────
 let _pendingWatchUnsub = null;
 let _lastPendingCount  = 0;  // track previous count to detect new arrivals
+let _cachedMembersSnap = null; // latest members snap — same data that drives the badge
 
 function startPendingWatch() {
   if (_pendingWatchUnsub || !FAM || CU?.role !== 'admin') return;
   const r = membersRef(FAM);
   const fn = snap => {
+    // Cache snap so admin panel can use the same data as the badge (no separate read)
+    _cachedMembersSnap = snap.exists() ? snap : null;
     if (!snap.exists()) { _updatePendingBadge(0); return; }
     let count = 0;
     snap.forEach(child => { if (child.val().role === 'pending') count++; });
@@ -3933,6 +3936,10 @@ function startPendingWatch() {
     _lastPendingCount = count;
     _updatePendingBadge(count);
     if (isNew && count > 0) _firePendingNotification(count, snap);
+    // Re-render admin panel immediately if it's open — keeps badge and panel in sync
+    if (el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
+      _renderMembersSnap(snap);
+    }
   };
   onValue(r, fn);
   _pendingWatchUnsub = () => off(r, 'value', fn);
@@ -4452,8 +4459,10 @@ function openAdminMo() {
   el('amo-ft').innerHTML = `<button class="hbtn" style="background:var(--slate);color:white;font-size:11px" onclick="adminDiagnostic()">🔍 DB Check</button>
     <button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>`;
   el('admin-mo').classList.add('on');
-  // clearPendingNotices() is called inside _renderMembersSnap after successful render,
-  // so the badge stays visible until we've confirmed what's actually pending.
+  clearPendingNotices();
+  // Render immediately from the cached snap (same data the badge used) —
+  // this guarantees pending members are visible before any new Firebase read.
+  if (_cachedMembersSnap) _renderMembersSnap(_cachedMembersSnap);
   _startMembersListener();
 }
 

@@ -4540,27 +4540,51 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-  // Use onValue so the panel auto-refreshes while open (new member joins, approve fires, etc.)
-  // Firebase fires once from local cache then again from server — both are fine since
-  // _renderMembersSnap just rebuilds the HTML from whatever data it receives.
-  // Store the unsubscribe function returned by onValue (Firebase v9 modular API).
-  // Previously used off(r,'value',fn) which silently fails in v9 — the returned
-  // function is the only reliable way to detach the listener.
+
+  // WHY get() for initial render, not onValue snapshot directly:
+  // onValue fires its FIRST callback synchronously from the local IndexedDB
+  // persistence cache. If a pending member joined from another device their
+  // record won't be in the local cache, so the first render shows "0 pending"
+  // even though the member is in Firebase. The server follow-up from onValue
+  // fires asynchronously and may arrive after the admin has already concluded
+  // there are no pending members.
+  //
+  // get() in Firebase RTDB v9 always bypasses the persistence cache and goes
+  // directly to the server — so it always returns authoritative current state.
+  //
+  // Strategy:
+  //  - onValue is used ONLY to detect that something changed while the panel
+  //    is open (new join, approve, etc.). On each change we do a fresh get().
+  //  - Skip the first onValue fire (the synchronous cache hit) — it is
+  //    unreliable for freshly-joined members from other devices.
+  //  - get() on panel open provides the guaranteed-fresh initial render.
+
+  let _firstFire = true;
+
   _membersUnsub = onValue(
     r,
-    snap => { _renderMembersSnap(snap); },
+    () => {
+      if (_firstFire) {
+        _firstFire = false;
+        return; // skip synchronous cache hit — get() below handles initial render
+      }
+      // Something changed on the server — fetch fresh authoritative data
+      get(r).then(snap => { if (snap) _renderMembersSnap(snap); }).catch(() => {});
+    },
     err => {
       if (el('amo-bd')) el('amo-bd').innerHTML =
         `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
     }
   );
-  // Also do a direct get() so the very first render always reflects the
-  // live server state — onValue's first fire may come from local IndexedDB
-  // cache which could be stale (e.g. a pending member joined while admin was
-  // away, so the cache has no record of them).
-  get(r).then(snap => {
-    if (snap) _renderMembersSnap(snap);
-  }).catch(() => { /* non-critical — onValue will still deliver the data */ });
+
+  // Always render from a direct server get() so the list is never stale
+  // regardless of what is in the local persistence cache.
+  get(r)
+    .then(snap => { if (snap) _renderMembersSnap(snap); })
+    .catch(err => {
+      if (el('amo-bd')) el('amo-bd').innerHTML =
+        `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
+    });
 }
 
 function _stopMembersListener() {

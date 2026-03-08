@@ -149,8 +149,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--night);color:v
 
 
 /* ── About / Landing screen ─────────────────────────────────────── */
-#s-about{z-index:990}
-.ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;overflow-y:auto;max-height:calc(100dvh - 60px);padding-bottom:8px}
+#s-about{z-index:990;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-top:max(32px,env(safe-area-inset-top));
+  padding-bottom:max(32px,env(safe-area-inset-bottom))}
+.ab-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;padding-bottom:8px}
 .ab-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(200,137,58,.35))}
 .ab-title{font-family:'Crimson Pro','Georgia',serif;font-size:34px;font-weight:300;color:var(--gold);
   letter-spacing:.06em;text-align:center;line-height:1.1;margin-bottom:6px}
@@ -2263,7 +2265,7 @@ import { getAuth, createUserWithEmailAndPassword,
          sendEmailVerification, reload,
          deleteUser }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getDatabase, ref, set, get, update,
-         onValue, off, push, serverTimestamp,
+         onValue, push, serverTimestamp,
          runTransaction }                             from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 import { getStorage, ref as sref,
          uploadBytes, getDownloadURL,
@@ -3026,11 +3028,33 @@ function getSessions() {
   catch { return { families:[] }; }
 }
 function saveSession(fam) {
+  // Always re-read from localStorage immediately before writing so concurrent
+  // writes from two tabs don't clobber each other.  Tab A and Tab B both call
+  // getSessions() at t=0, then both write back at t=1 — the second write
+  // overwrites the first.  Re-reading at write time means each tab merges on
+  // top of whatever the other tab most recently wrote.
   const s = getSessions();
   const i = s.families.findIndex(f => f.fh === fam.fh);
   if (i >= 0) s.families[i] = fam; else s.families.push(fam);
   localStorage.setItem('para_v3', JSON.stringify(s));
 }
+// If another tab updates the session cache, reload it into memory so the
+// family-switcher and boot logic always see a current list.
+window.addEventListener('storage', e => {
+  if (e.key === 'para_v3' && e.newValue && FAM) {
+    // Only act when the app is fully booted (FAM is set); during boot the
+    // normal getSessions() call already reads the freshest value.
+    try {
+      const s = JSON.parse(e.newValue);
+      const updated = (s.families || []).find(f => f.fh === FAM);
+      if (updated && CU && updated.role !== CU.role) {
+        // Role changed in another tab (e.g. admin promoted this user) — re-boot
+        // so the UI reflects the correct permissions without requiring a reload.
+        CU.role = updated.role;
+      }
+    } catch(_) {}
+  }
+});
 
 // ══ BOOT ═══════════════════════════════════════════════════════════
 // ── Email verification state ──────────────────────────────────────────────
@@ -4221,6 +4245,9 @@ async function startEgoSync(fetchPid) {
       // Redraw connectors after individual renderCard calls so SVG stays
       // in sync with card positions (renderCard does not call redrawLines).
       redrawLines();
+      // renderCard() wipes card className and redrawLines() clears the SVG,
+      // so re-apply selection highlight if a card was selected before layout.
+      if (selId) _applyConnectionHighlight(selId);
     }, 120);
 
   } catch(e) {
@@ -4239,8 +4266,11 @@ function setupEgoListeners() {
     listen(pRef, snap => {
       if (!snap.exists()) return;
       const p = snap.val();
-      if (p.deleted) { delete DB.people[pid]; loadedPids.delete(pid); }
-      else {
+      if (p.deleted) {
+        delete DB.people[pid]; loadedPids.delete(pid);
+        // Keep search cache in sync when a neighbourhood member is deleted
+        searchCache.delete(pid);
+      } else {
         // Preserve ego-layout x,y — they live only in memory and must not
         // be overwritten when the server sends a live person update.
         const savedX = DB.people[pid]?.x;
@@ -4248,6 +4278,8 @@ function setupEgoListeners() {
         DB.people[pid] = p;
         if (viewMode === 'ego' && savedX !== undefined) DB.people[pid].x = savedX;
         if (viewMode === 'ego' && savedY !== undefined) DB.people[pid].y = savedY;
+        // Keep search cache current for neighbourhood edits (name changes etc.)
+        searchCache.set(pid, { first: p.first||'', last: p.last||'', dob: p.dob||'', gender: p.gender||'' });
       }
       scheduleRender();
     });
@@ -4262,6 +4294,12 @@ function setupEgoListeners() {
       scheduleRender();
     });
   }
+  // Refresh the full-family search index whenever we (re)establish ego listeners.
+  // buildSearchCache() does a single get() across all people so search works for
+  // the whole family, not just the loaded neighbourhood.  Calling it here also
+  // covers the reconnect path: drainWriteQueue → startEgoSync → setupEgoListeners
+  // ensures any people added while we were offline appear in search immediately.
+  buildSearchCache();
 }
 
 // ══ FIREBASE SECURITY RULES ════════════════════════════════════════
@@ -4516,6 +4554,13 @@ function _startMembersListener() {
         `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
     }
   );
+  // Also do a direct get() so the very first render always reflects the
+  // live server state — onValue's first fire may come from local IndexedDB
+  // cache which could be stale (e.g. a pending member joined while admin was
+  // away, so the cache has no record of them).
+  get(r).then(snap => {
+    if (snap) _renderMembersSnap(snap);
+  }).catch(() => { /* non-critical — onValue will still deliver the data */ });
 }
 
 function _stopMembersListener() {
@@ -4527,6 +4572,8 @@ function _stopMembersListener() {
 function loadMembers() { _startMembersListener(); }
 
 function _renderMembersSnap(snap) {
+  // Don't overwrite Import or Settings tab content if admin has switched away
+  if (_adminTab !== 'members') return;
   if (!el('amo-bd')) return;
   try {
     if (!snap || !snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
@@ -4738,31 +4785,106 @@ wrap.addEventListener('mousedown',e=>{ if(e.button!==0||e.target.closest('.card'
 window.addEventListener('mousemove',e=>{ panMove(e.clientX,e.clientY); ndMove(e.clientX,e.clientY); });
 window.addEventListener('mouseup',()=>{ panEnd(); ndEnd(); });
 
-// ── Touch pan on #world — header sits outside, fully unaffected ────
-let tp = {pts:{},lastD:null};
-world.addEventListener('touchstart',e=>{
-  if(e.target.closest('.card'))return;
-  [...e.changedTouches].forEach(t=>tp.pts[t.identifier]={x:t.clientX,y:t.clientY});
-  const pts=Object.values(tp.pts);
-  if(pts.length===1) panStart(pts[0].x,pts[0].y);
-  else if(pts.length===2){panEnd();tp.lastD=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);}
-},{passive:true});
-world.addEventListener('touchmove',e=>{
-  [...e.changedTouches].forEach(t=>{if(tp.pts[t.identifier])tp.pts[t.identifier]={x:t.clientX,y:t.clientY};});
-  const pts=Object.values(tp.pts);
-  if(pts.length===1) panMove(pts[0].x,pts[0].y);
-  else if(pts.length===2&&tp.lastD){
-    const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
-    const r=wrap.getBoundingClientRect();
-    zoomAt((pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top,vp.s*(d/tp.lastD)-vp.s);
-    tp.lastD=d;
+// ── Touch pan + pinch-zoom on #world ────────────────────────────────
+//
+// Three bugs fixed vs the original:
+//
+// Fix T1 — Pinch blocked when fingers land on cards.
+//   The old code bailed out of touchstart entirely if the target was a card
+//   (`if(e.target.closest('.card'))return`), so tp.pts never got the second
+//   finger's coordinates and the pinch branch never activated.  We now always
+//   track ALL fingers in tp.pts regardless of target, and only skip the
+//   single-finger panStart when the finger is on a card (so card-drag still
+//   works).  The world touchmove handler always fires because it's on #world
+//   which is below the cards in the DOM, and cards only stopPropagation on
+//   their own touchmove listener — world touchmove still fires for the world
+//   element itself.  We detect "any finger is on a card" to know when card-
+//   drag owns the gesture vs when the user is pinching.
+//
+// Fix T2 — Sequential second-finger: lastD not set when fingers land apart.
+//   If the user puts one finger down (starts panning) and then adds a second
+//   finger, the original touchstart set lastD from pts.length===2 but only
+//   when BOTH fingers arrived in the same changedTouches batch.  With sequential
+//   landing (common on real devices), the second touchstart fires with only one
+//   changedTouch but tp.pts already has two entries after the update.  We now
+//   recompute lastD from the current tp.pts state after every touchstart so the
+//   pinch starts correctly regardless of how the fingers landed.
+//
+// Fix T3 — Smooth pan restart when one finger lifts from a pinch.
+//   Previously touchend cleared everything when any touch ended, even if one
+//   finger remained.  Going from 2→1 fingers now restarts pan from the remaining
+//   finger's current position so the canvas doesn't jump.
+
+let tp = { pts:{}, lastD:null, cardDrag:false };
+
+world.addEventListener('touchstart', e => {
+  // Always track every new finger, regardless of whether it's on a card.
+  // This is what makes pinch work even when one finger is on a card (Fix T1).
+  [...e.changedTouches].forEach(t =>
+    tp.pts[t.identifier] = { x:t.clientX, y:t.clientY, onCard:!!e.target.closest('.card') }
+  );
+  const pts = Object.values(tp.pts);
+
+  if (pts.length === 1) {
+    // Single finger — only start canvas pan if not on a card (card has its own drag)
+    if (!pts[0].onCard) panStart(pts[0].x, pts[0].y);
+    tp.cardDrag = pts[0].onCard;
+    tp.lastD = null;
+  } else if (pts.length >= 2) {
+    // Fix T2: always recompute lastD from current pts when a second (or more)
+    // finger is present — covers both simultaneous and sequential landing.
+    panEnd(); // stop any single-finger pan that was in progress
+    tp.cardDrag = false; // pinch takes priority over card drag
+    tp.lastD = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  }
+}, { passive:true });
+
+world.addEventListener('touchmove', e => {
+  [...e.changedTouches].forEach(t => {
+    if (tp.pts[t.identifier]) {
+      tp.pts[t.identifier].x = t.clientX;
+      tp.pts[t.identifier].y = t.clientY;
+    }
+  });
+  const pts = Object.values(tp.pts);
+
+  if (pts.length === 1 && !tp.cardDrag) {
+    // Single finger on canvas — pan
+    panMove(pts[0].x, pts[0].y);
+  } else if (pts.length >= 2 && tp.lastD) {
+    // Fix T1: two fingers — pinch-to-zoom even if one or both are on cards.
+    const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    const r = wrap.getBoundingClientRect();
+    zoomAt(
+      (pts[0].x + pts[1].x) / 2 - r.left,
+      (pts[0].y + pts[1].y) / 2 - r.top,
+      vp.s * (d / tp.lastD) - vp.s
+    );
+    tp.lastD = d;
   }
   e.preventDefault();
-},{passive:false});
-world.addEventListener('touchend',e=>{
-  [...e.changedTouches].forEach(t=>delete tp.pts[t.identifier]);
-  if(!Object.keys(tp.pts).length){panEnd();tp.lastD=null;}
-},{passive:true});
+}, { passive:false });
+
+world.addEventListener('touchend', e => {
+  [...e.changedTouches].forEach(t => delete tp.pts[t.identifier]);
+  const pts = Object.values(tp.pts);
+
+  if (pts.length === 0) {
+    // All fingers lifted — clean up
+    panEnd();
+    tp.lastD = null;
+    tp.cardDrag = false;
+  } else if (pts.length === 1) {
+    // Fix T3: went from 2→1 fingers (one finger lifted mid-pinch).
+    // Restart pan from the remaining finger so the canvas doesn't jump.
+    tp.lastD = null;
+    tp.cardDrag = false;
+    panStart(pts[0].x, pts[0].y);
+  } else {
+    // Still 2+ fingers — recompute lastD so next pinch frame is stable
+    tp.lastD = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  }
+}, { passive:true });
 wrap.addEventListener('wheel',e=>{
   e.preventDefault();
   const r=wrap.getBoundingClientRect();
@@ -4899,6 +5021,10 @@ async function ndEnd(){
       await queuedSet(`families/${FAM}/people/${id}/x`, DB.people[id].x);
       await queuedSet(`families/${FAM}/people/${id}/y`, DB.people[id].y);
     } catch(e) { /* position sync is non-critical — silently ignore */ }
+    // redrawLines() runs on every ndMove frame and clears all SVG edge classes.
+    // If a different card was selected while dragging, re-apply its highlight now
+    // that the drag is finished so the edge colours are restored.
+    if (selId) _applyConnectionHighlight(selId);
   }
   if(!moved&&id) selectPersonRouted(id);
 }
@@ -5491,6 +5617,9 @@ function render(){
   _syncAllBanners(ids.length);
   checkKeyBanner(ids.length);
   nodesL.querySelectorAll('.card').forEach(c=>{ if(!DB.people[c.dataset.id]) c.remove(); });
+  // If the selected person was deleted by another user, close the panel so it
+  // doesn't display stale data and doesn't incorrectly dim all remaining cards.
+  if (selId && !DB.people[selId]) closePanel();
   _cycleDetectedInRender = false; // reset before each render pass
   const memo={};
   // Pass 1: compute all parent-chain generations
@@ -5540,6 +5669,14 @@ function renderCard(id,gen){
     card.addEventListener('touchstart',e=>{
       const t=e.touches[0]; ndStart(e,id,t.clientX,t.clientY);
       const mv=ev=>{
+        // If a second finger has appeared, stop card-drag and let the world
+        // pinch handler take over (Fix T1: yield gesture to pinch-to-zoom).
+        if (ev.touches.length >= 2) {
+          ndEnd();
+          card.removeEventListener('touchmove',mv);
+          card.removeEventListener('touchend',up);
+          return; // don't stopPropagation — let world touchmove handle the pinch
+        }
         ev.stopPropagation(); // stop world touchmove from also panning
         const t2=ev.touches[0]; ndMove(t2.clientX,t2.clientY);
       };
@@ -5911,6 +6048,11 @@ async function _handlePhotoFile(input) {
   if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5 MB'); return; }
   if (!FAM) { toast('No family loaded'); return; }
 
+  // Capture editId NOW — the user may save this person and open a different
+  // person's form before the async upload completes.  We use this snapshot to
+  // detect that situation and avoid writing the URL into the wrong form field.
+  const uploadEditId = editId;
+
   const btn    = el('pf-upload-btn');
   const status = el('pf-upload-status');
   const urlInp = el('pf-photo');
@@ -5927,7 +6069,7 @@ async function _handlePhotoFile(input) {
     if (status) status.textContent = 'Uploading…';
 
     // Build storage path — use editId if editing, otherwise a temp id
-    const pid   = editId || ('_tmp_' + Date.now());
+    const pid   = uploadEditId || ('_tmp_' + Date.now());
     const ext   = 'jpg'; // always JPEG after compression
     const path  = `photos/${FAM}/${pid}_${Date.now()}.${ext}`;
     const fileRef = sref(storage, path);
@@ -5942,9 +6084,19 @@ async function _handlePhotoFile(input) {
     ]);
     const downloadUrl = await getDownloadURL(fileRef);
 
+    // Safety check: if the form was closed or a different person was opened
+    // while the upload was in-flight, don't silently overwrite the wrong field.
+    if (editId !== uploadEditId) {
+      toast('Upload finished but form changed — photo URL not applied. Copy it manually if needed.');
+      console.warn('photoUpload: editId changed mid-upload', { uploadEditId, currentEditId: editId, url: downloadUrl });
+      return;
+    }
+
     // Update form field and thumbnail
-    if (urlInp) urlInp.value = downloadUrl;
-    if (thumb)  thumb.innerHTML = `<img src="${escHtml(downloadUrl)}" alt="">`;
+    const currentUrlInp = el('pf-photo');
+    const currentThumb  = el('pf-photo-thumb');
+    if (currentUrlInp) currentUrlInp.value = downloadUrl;
+    if (currentThumb)  currentThumb.innerHTML = `<img src="${escHtml(downloadUrl)}" alt="">`;
     if (status) status.textContent = '✓ Uploaded';
     setTimeout(() => { if (status) status.textContent = ''; }, 3000);
   } catch(e) {
@@ -6020,27 +6172,15 @@ async function savePerson(){
     if (birthYear < 1000 || birthYear > currentYear + 1) {
       toast('Please enter a valid birth year'); return;
     }
-  }
-  const photo = rawPhoto;
-
-  // ── Date validation ──────────────────────────────────────
-  const _dobV = (document.getElementById('pf-dob') || {}).value || '';
-  const _dodV = (document.getElementById('pf-dod') || {}).value || '';
-  if (_dobV && _dodV) {
-    const _d1 = new Date(_dobV), _d2 = new Date(_dodV);
-    if (!isNaN(_d1) && !isNaN(_d2) && _d2 < _d1) {
-      toast('Date of death cannot be before date of birth'); return;
-    }
-  }
-  if (_dobV) {
-    const _d1 = new Date(_dobV);
-    if (!isNaN(_d1) && _d1 > new Date()) {
+    const dobDate = new Date(dobVal);
+    if (!isNaN(dobDate) && dobDate > new Date()) {
       toast('Date of birth cannot be in the future'); return;
     }
-    if (!isNaN(_d1) && (Date.now() - _d1) > 150*365.25*24*60*60*1000) {
+    if (!isNaN(dobDate) && (Date.now() - dobDate) > 150*365.25*24*60*60*1000) {
       toast('Date of birth seems too far in the past (over 150 years)'); return;
     }
   }
+  const photo = rawPhoto;
 
   const now=Date.now();
   const who=fbUser.uid;
@@ -6141,9 +6281,53 @@ async function delPerson(id){
   if(!confirm(`Remove "${fullName(DB.people[id])}"?`))return;
   // Commit any previous pending undo before starting a new delete
   if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
-  const backup = { person: {...DB.people[id]}, rels: Object.values(DB.rels).filter(r=>r.from===id||r.to===id) };
+
+  // Capture the person snapshot SYNCHRONOUSLY before any await so that if
+  // another user deletes the same person while we are fetching their full
+  // rel list, backup.person is still intact (not an empty spread of undefined).
+  const personSnapshot = { ...DB.people[id] };
+
+  // In ego mode DB.rels only contains the loaded neighbourhood.
+  // Fetch the full rel index for this person from Firebase so undo can
+  // restore ALL their relationships, not just the ones currently visible.
+  let allRels = Object.values(DB.rels).filter(r=>r.from===id||r.to===id);
+  if (viewMode === 'ego' && FAM) {
+    try {
+      const idxSnap = await get(ref(db, `families/${FAM}/personRels/${id}`));
+      if (idxSnap.exists()) {
+        const rids = Object.keys(idxSnap.val());
+        const missing = rids.filter(rid => !DB.rels[rid]);
+        if (missing.length) {
+          const fetched = await Promise.all(
+            missing.map(async rid => {
+              const rs = await get(ref(db, `families/${FAM}/rels/${rid}`));
+              return rs.exists() ? rs.val() : null;
+            })
+          );
+          fetched.forEach(r => { if (r && !r.deleted) allRels.push(r); });
+        }
+      }
+    } catch(_) { /* non-critical — undo will still restore neighbourhood rels */ }
+  }
+
+  const backup = { person: personSnapshot, rels: allRels };
   delete DB.people[id]; searchCache.delete(id);
-  backup.rels.forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
+  // Only remove the locally-loaded subset from DB.rels — we don't have the
+  // out-of-neighbourhood rels in memory so there's nothing else to clear.
+  Object.values(DB.rels).filter(r=>r.from===id||r.to===id)
+    .forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
+  closePanel(); render();
+  _undoState = { id, backup, committed: false };
+  clearTimeout(_undoTimer);
+  _showUndoToast(fullName(backup.person));
+  _undoTimer = setTimeout(async () => {
+    if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
+  }, 6000);
+}
+  // Only remove the locally-loaded subset from DB.rels — we don't have the
+  // out-of-neighbourhood rels in memory so there's nothing else to clear.
+  Object.values(DB.rels).filter(r=>r.from===id||r.to===id)
+    .forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
   closePanel(); render();
   _undoState = { id, backup, committed: false };
   clearTimeout(_undoTimer);
@@ -6329,9 +6513,29 @@ async function addRel(){
   else if (direction === 'sibling_of') { from=_relA.pid; to=_relB.pid; type='Sibling'; }
   else { toast('Unknown relationship type'); return; }
 
-  // Duplicate check
+  // Duplicate check — local DB.rels first (fast path)
   if (Object.values(DB.rels).find(r => r.from===from && r.to===to && r.type===type)) {
     toast('This link already exists'); return;
+  }
+  // In ego mode DB.rels only contains the loaded neighbourhood.
+  // Do a server-side check via the personRels index to catch duplicates that
+  // exist outside the currently loaded neighbourhood.
+  if (viewMode === 'ego' && FAM) {
+    try {
+      const idxSnap = await get(ref(db, `families/${FAM}/personRels/${from}`));
+      if (idxSnap.exists()) {
+        const rids = Object.keys(idxSnap.val());
+        const serverRels = await Promise.all(
+          rids.filter(rid => !DB.rels[rid])
+              .map(async rid => {
+                const rs = await get(ref(db, `families/${FAM}/rels/${rid}`));
+                return rs.exists() ? rs.val() : null;
+              })
+        );
+        const dupe = serverRels.find(r => r && !r.deleted && r.from===from && r.to===to && r.type===type);
+        if (dupe) { toast('This link already exists'); return; }
+      }
+    } catch(_) { /* non-critical — proceed optimistically */ }
   }
 
   // Cycle guard — Parent rels only.
@@ -6362,7 +6566,7 @@ async function addRel(){
   const marriageDate  = (type === 'Partner' && el('r-marr-date')  && el('r-marr-date').value)  || null;
   const marriagePlace = (type === 'Partner' && el('r-marr-place') && el('r-marr-place').value.trim()) || null;
 
-  const id = 'r' + Date.now();
+  const id = 'r' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   const rel = { id, from, to, type, addedBy: fbUser.uid, addedAt: Date.now() };
   if (marriageDate)  rel.marriageDate  = marriageDate;
   if (marriagePlace) rel.marriagePlace = marriagePlace;
@@ -6742,9 +6946,13 @@ function _markOfflinePending() {
 // Drain the write queue — called on reconnect
 async function drainWriteQueue() {
   if (_wqDraining) return false;
-  const entries = await _wqAll();
-  if (!entries.length) return false; // nothing queued — caller handles re-sync
+  // Set the flag BEFORE the first await so two concurrent calls (e.g. from
+  // rapid online/offline events on flaky WiFi) both see it set and only one
+  // proceeds. Previously the flag was set AFTER _wqAll(), leaving a window
+  // where both calls could pass the guard simultaneously.
   _wqDraining = true;
+  const entries = await _wqAll();
+  if (!entries.length) { _wqDraining = false; return false; } // nothing queued — caller handles re-sync
   setSyncStatus('off', `Syncing ${entries.length} queued write(s)…`);
   try {
     for (const entry of entries) {
@@ -8356,6 +8564,7 @@ let _rfiA = null;        // { pid, name }
 let _rfiB = null;        // { pid, name }
 let _rfiFullRels = null; // full rels graph fetched on open — { rid: relObj }
 let _rfiPeopleCache = {};// pid → person data — merged from DB.people + any fetched for path display
+let _rfiFullRelsPromise = null; // Promise that resolves when the fetch completes
 
 function openRelFinderMo(preIdA) {
   _rfiA = null; _rfiB = null;
@@ -8384,7 +8593,7 @@ function openRelFinderMo(preIdA) {
   // would silently fail for any connection that crosses an unloaded branch.
   // relsRef(FAM) is a shallow read of {rid:{from,to,type}} — no photos,
   // no biographies — so it's fast even for large families.
-  _rfiFetchFullRels();
+  _rfiFullRelsPromise = _rfiFetchFullRels();
 }
 
 async function _rfiFetchFullRels() {
@@ -8726,11 +8935,24 @@ async function runRelFinder() {
       <div class="rfi-state-t">${t('rfiSearching')}</div>
     </div>`;
 
-  // If the background rels fetch hasn't finished yet, wait for it.
-  // We poll briefly rather than blocking the UI thread.
-  if (_rfiFullRels === null && FAM) {
-    for (let i = 0; i < 20 && _rfiFullRels === null; i++) {
-      await new Promise(r => setTimeout(r, 100));
+  // If the background rels fetch hasn't finished yet, await it properly.
+  // Previously used a 20×100ms polling loop which silently fell back to the
+  // incomplete DB.rels on slow connections. Now we await the actual Promise
+  // with a 10s timeout that shows a visible message rather than degrading silently.
+  if (_rfiFullRels === null && FAM && _rfiFullRelsPromise) {
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 10000)
+    );
+    try {
+      await Promise.race([_rfiFullRelsPromise, timeout]);
+    } catch(_) {
+      document.getElementById('rfi-results').innerHTML = `
+        <div class="rfi-state">
+          <div class="rfi-state-ico">⚠️</div>
+          <div class="rfi-state-t">Still loading relationship graph…</div>
+          <div class="rfi-state-s">Your connection may be slow. Please try again in a moment.</div>
+        </div>`;
+      return;
     }
   }
 
@@ -8933,6 +9155,11 @@ function renderPivotBar() {
 // Desktop (>720px) never touches any of this — the tab strip is
 // display:none and selectPerson/closePanel work as before.
 
+// isMobile() reads window.innerWidth synchronously.  During a resize/rotation
+// the browser fires multiple resize events while layout is still in flux, so
+// a raw innerWidth read mid-event can give the pre-layout value.  We debounce
+// via requestAnimationFrame so all callers in the resize handler see the final
+// settled width after the browser has recalculated layout.
 function isMobile() { return window.innerWidth <= 720; }
 
 // ── Active mobile tab state ──────────────────────────────────────────
@@ -9530,17 +9757,41 @@ function _clearMobTreeSel() {
 }
 
 // ── Handle resize: re-init if user rotates to desktop width ──────────
+// Track the last known mobile state so we only act on actual transitions.
+let _wasMobile = isMobile();
 window.addEventListener('resize', () => {
-  if (!isMobile()) {
-    // Restore desktop view — hide mobile tab UI
-    const tv = el('mob-tree-view');
-    if (tv) tv.style.display = '';
-    ['mob-people','mob-me'].forEach(id => {
-      const v = el(id); if (v) v.style.display = 'none';
-    });
-  } else {
-    switchMobTab(_mobTab);
-  }
+  // Defer to rAF so isMobile() reads innerWidth after the browser has
+  // completed layout for this frame — avoids reading a mid-transition value
+  // that can occur on tablet rotation (L4 fix).
+  requestAnimationFrame(() => {
+    const nowMobile = isMobile();
+    if (_wasMobile === nowMobile) return; // no crossing — skip
+    _wasMobile = nowMobile;
+
+    if (!nowMobile) {
+      // Rotated to desktop — restore full tree view, hide mobile-only panels
+      const tv = el('mob-tree-view');
+      if (tv) tv.style.display = '';
+      ['mob-people','mob-me'].forEach(id => {
+        const v = el(id); if (v) v.style.display = 'none';
+      });
+      // Show canvas overlays that were hidden for mobile
+      ['zoom-ctl','sync-bar','canvas-legend'].forEach(id => {
+        const e = document.getElementById(id);
+        if (e) e.style.display = '';
+      });
+      _setTreeFabVisible(false);
+      fitScreen();
+    } else {
+      // Rotated to mobile — re-run shell init to restore the correct overlay
+      // hide state (FAB, zoom controls, sync bar) that initMobileShell sets at
+      // startup. Without this, rotating from desktop leaves those overlays visible
+      // on top of the People/Me tabs.
+      initMobileShell();
+      // Re-render both list views so they show current DB state
+      refreshMobViews();
+    }
+  });
 });
 
 // ══ END MOBILE TAB SHELL ═══════════════════════════════════════════════

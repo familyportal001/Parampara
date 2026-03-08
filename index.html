@@ -524,7 +524,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   color:var(--ink3);font-size:18px;padding:8px;border-radius:4px;transition:color .15s;
   min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
 .pan-x:hover{color:var(--ink)}
-.pan-bd{flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;color:var(--ink)}
+.pan-bd{flex:1;overflow-y:auto;padding:16px 18px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;color:var(--ink)}
 .pan-bd::-webkit-scrollbar{width:3px}.pan-bd::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .pan-ft{display:flex;gap:6px;padding:12px 18px;border-top:1px solid var(--border);
   flex-shrink:0;background:var(--panel);flex-wrap:wrap}
@@ -593,7 +593,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   opacity:0;pointer-events:none;transition:opacity .2s}
 .mo-ov.on{opacity:1;pointer-events:all}
 .mo{background:var(--panel);border-radius:8px;width:100%;max-width:460px;
-  max-height:90vh;display:flex;flex-direction:column;
+  min-height:min(400px,80vh);max-height:90vh;display:flex;flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.4);
   transform:translateY(10px) scale(.98);transition:transform .2s;color:var(--ink)}
 .mo-ov.on .mo{transform:none}
@@ -601,7 +601,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
   background:var(--parch2);border-radius:8px 8px 0 0;flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between}
 .mo-title{font-family:'Crimson Pro','Georgia',serif;font-size:20px;font-weight:600;color:var(--ink)}
-.mo-bd{flex:1;overflow-y:auto;padding:18px 20px;overscroll-behavior:contain}
+.mo-bd{flex:1;overflow-y:auto;padding:18px 20px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .mo-ft{padding:14px 20px;border-top:1px solid var(--border);
   display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
 .pfg{margin-bottom:13px}
@@ -4429,6 +4429,7 @@ const ALL_ROLES = ['admin','editor','contributor','viewer'];
 // A new pending member who joined while the panel is open will appear instantly,
 // and approve/reject actions refresh the list without needing a close/reopen.
 let _membersUnsub = null;
+let _cachedMembers = null; // latest members array — updated by _renderMembersPanel, read by loadSettingsTab
 
 function openAdminMo() {
   _adminTab = 'members';
@@ -4472,6 +4473,7 @@ function _renderMembersSnap(snap) {
     if (!snap || !snap.exists()) { el('amo-bd').innerHTML = '<div class="no-rel">No members found</div>'; return; }
     const members = [];
     snap.forEach(child => members.push({ uid: child.key, ...child.val() }));
+    _cachedMembers = members; // keep for loadSettingsTab member count
 
     const pending  = members.filter(m => m.role === 'pending');
     const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));
@@ -4535,6 +4537,7 @@ function memberRow(m, isPending, isRevoked = false) {
   if (isPending) {
     acts = `<div class="mbtn-approve-row">
               <span style="font-size:11px;color:var(--ink4);margin-right:6px">Approve as:</span>
+              <button class="mbtn mbtn-approve" style="background:var(--slate)" onclick="approveAs('${m.uid}','viewer')">viewer</button>
               <button class="mbtn mbtn-approve" onclick="approveAs('${m.uid}','contributor')">contributor</button>
               <button class="mbtn mbtn-approve" style="background:rgba(61,92,58,.5)" onclick="approveAs('${m.uid}','editor')">editor</button>
             </div>
@@ -7086,17 +7089,7 @@ function switchAdminTab(tab) {
   if (tab==='settings') loadSettingsTab();
 }
 
-function openAdminMo_new() {
-  _adminTab = 'members';
-  ['members','import','settings'].forEach(t => {
-    const btn = el('adm-tab-'+t);
-    if (btn) btn.classList.toggle('on', t==='members');
-  });
-  el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
-  el('admin-mo').classList.add('on');
-  loadMembers();
-}
+// openAdminMo_new removed — openAdminMo (line ~4434) handles all cases
 
 // ══ BULK IMPORT ════════════════════════════════════════════════════
 let _impMode = 'people';   // 'people' | 'rels'
@@ -7503,7 +7496,8 @@ function loadSettingsTab() {
   // Tree stats — in-memory, zero extra Firebase reads
   const _pp = Object.values(DB.people).filter(p => !p.deleted);
   const _rr = Object.values(DB.rels).filter(r => !r.deleted);
-  const _mm = DB.members ? Object.values(DB.members).filter(m => m.role !== 'pending') : [];
+  const _rawMembers = _cachedMembers || (DB.members ? Object.values(DB.members) : []);
+  const _mm = _rawMembers.filter(m => !['pending','removed','rejected'].includes(m.role));
   const _byDob = _pp.filter(p => p.dob).sort((a,b) => a.dob < b.dob ? -1 : 1);
   const _oldest = _byDob[0];
   const _lastEditP = _pp.filter(p => p.editedAt).sort((a,b) => b.editedAt - a.editedAt)[0];
@@ -8909,9 +8903,12 @@ function switchMobTab(tab) {
     if (el_) el_.style.display = onTree ? '' : 'none';
   });
 
-  // Lazy-render the newly-visible tab
-  if (tab === 'people') renderMobPeople();
-  if (tab === 'me')     renderMobMe();
+  // Lazy-render the newly-visible tab.
+  // Guard: skip if DB has no people yet (still loading) — render() → refreshMobViews()
+  // will call renderMobPeople() once data arrives, avoiding a flash of "No people found".
+  const dbReady = Object.keys(DB.people).length > 0;
+  if (tab === 'people') { if (dbReady) renderMobPeople(); }
+  if (tab === 'me')     { if (dbReady) renderMobMe();     }
 }
 
 // Called after DB loads so mobile views start populated.
@@ -9368,6 +9365,11 @@ const _origScheduleRender = scheduleRender;
 // ── Init: apply correct mobile layout on app start ────────────────────
 function initMobileShell() {
   if (!isMobile()) return;
+  // Show a loading placeholder in the people list while Firebase data loads.
+  // refreshMobViews (called from render()) will replace it once DB is populated.
+  const listEl = el('mob-people-list');
+  if (listEl) listEl.innerHTML =
+    '<div style="padding:32px 20px;text-align:center;color:var(--ink4);font-size:13px">Loading…</div>';
   // Start on People tab
   switchMobTab('people');
   // Ensure tree view is hidden initially (People tab is default)

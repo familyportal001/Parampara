@@ -4459,15 +4459,6 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-  // Use get() for the initial render — this always fetches from the server,
-  // bypassing any stale SDK cache that might not yet include a newly-joined member.
-  // The onValue listener then takes over for live updates while the panel is open.
-  get(r).then(snap => {
-    _renderMembersSnap(snap);
-  }).catch(err => {
-    if (el('amo-bd')) el('amo-bd').innerHTML =
-      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
-  });
   const fn = snap => _renderMembersSnap(snap);
   onValue(r, fn, err => {
     if (el('amo-bd')) el('amo-bd').innerHTML =

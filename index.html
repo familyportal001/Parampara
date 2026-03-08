@@ -4238,7 +4238,15 @@ function setupEgoListeners() {
       if (!snap.exists()) return;
       const p = snap.val();
       if (p.deleted) { delete DB.people[pid]; loadedPids.delete(pid); }
-      else DB.people[pid] = p;
+      else {
+        // Preserve ego-layout x,y — they live only in memory and must not
+        // be overwritten when the server sends a live person update.
+        const savedX = DB.people[pid]?.x;
+        const savedY = DB.people[pid]?.y;
+        DB.people[pid] = p;
+        if (viewMode === 'ego' && savedX !== undefined) DB.people[pid].x = savedX;
+        if (viewMode === 'ego' && savedY !== undefined) DB.people[pid].y = savedY;
+      }
       scheduleRender();
     });
   }
@@ -4490,18 +4498,20 @@ function _renderMembersSnap(snap) {
 
     let html = '';
 
-    // ── Pending approvals — shown FIRST so admin sees them immediately ──
+    // ── Pending approvals — always shown first ──────────────────────────
+    html += `<div class="sec-t" style="color:${pending.length ? 'var(--rose)' : 'var(--ink3)'};margin-top:0">
+      ⏳ Pending Approval (${pending.length})
+      <span style="font-size:9px;font-weight:400;color:var(--ink3);margin-left:6px;text-transform:none;letter-spacing:0">
+        ${pending.length ? '· tap to approve or reject' : '· no pending requests'}
+      </span></div>`;
     if (pending.length) {
-      html += `<div class="sec-t" style="color:var(--rose);margin-top:0">
-        ⏳ Pending Approval (${pending.length})
-        <span style="font-size:9px;font-weight:400;color:var(--ink3);margin-left:6px;text-transform:none;letter-spacing:0">
-          · tap to approve or reject
-        </span></div>`;
       pending.forEach(m => html += memberRow(m, true));
-      html += `<div style="margin-bottom:4px"></div>`;
+    } else {
+      html += `<div style="font-size:12px;color:var(--ink4);padding:8px 0 4px">
+        All caught up — no one waiting for approval.</div>`;
     }
 
-    html += `<div class="sec-t" style="margin-top:${pending.length ? '12px' : '0'}">Active Members (${active.length})</div>`;
+    html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
     active.forEach(m => html += memberRow(m, false));
 
     // ── Family Secret Key ──
@@ -4948,9 +4958,8 @@ function applyEgoLayout(pivotId) {
   const pivot = DB.people[pivotId];
   if (!pivot) return;
 
-  // If ego already has a non-zero position, trust stored positions
-  if ((pivot.x || 0) !== 0 || (pivot.y || 0) !== 0) return;
-
+  // Ego layout positions are computed in-memory only — we never write them
+  // to Firebase, so full-tree positions are never overwritten.
   const GAP_H = 200, GAP_V = 190;
   const rels   = Object.values(DB.rels);
 
@@ -4962,36 +4971,31 @@ function applyEgoLayout(pivotId) {
     parents.flatMap(pid => rels.filter(r => r.from===pid && r.type==='Parent' && r.to!==pivotId).map(r=>r.to))
   )];
 
-  const updates = {};
+  // Place in memory only — do NOT write to Firebase
   const place = (pid, x, y) => {
     if (!DB.people[pid]) return;
-    DB.people[pid].x = x; DB.people[pid].y = y;
-    updates[`families/${FAM}/people/${pid}/x`] = x;
-    updates[`families/${FAM}/people/${pid}/y`] = y;
+    DB.people[pid].x = x;
+    DB.people[pid].y = y;
   };
 
-  // Ego at origin
+  // Pivot at origin
   place(pivotId, 0, 0);
 
   // Partners to the right
-  partners.forEach((pid, i) => place(pid, (i+1)*GAP_H, 0));
+  partners.forEach((pid, i) => place(pid, (i + 1) * GAP_H, 0));
 
-  // Parents above, centred
-  const pOff = -(parents.length-1)/2 * GAP_H;
-  parents.forEach((pid, i) => place(pid, pOff + i*GAP_H, -GAP_V));
+  // Parents above, centred over pivot + partners
+  const pOff = -(parents.length - 1) / 2 * GAP_H;
+  parents.forEach((pid, i) => place(pid, pOff + i * GAP_H, -GAP_V));
 
   // Children below, centred
-  const cOff = -(children.length-1)/2 * GAP_H;
-  children.forEach((pid, i) => place(pid, cOff + i*GAP_H, GAP_V));
+  const allBelow = [...partners.slice(0,1), pivotId]; // centre children under pivot
+  const cOff = -(children.length - 1) / 2 * GAP_H;
+  children.forEach((pid, i) => place(pid, cOff + i * GAP_H, GAP_V));
 
-  // Siblings at same level, spread left
-  siblings.forEach((pid, i) => {
-    const offset = -(i+1) * GAP_H;
-    place(pid, offset, 0);
-  });
+  // Siblings at same level, spread left of pivot
+  siblings.forEach((pid, i) => place(pid, -(i + 1) * GAP_H, 0));
 
-  // Persist positions
-  if (Object.keys(updates).length) update(ref(db), updates);
   render();
 }
 

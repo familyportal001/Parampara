@@ -3921,24 +3921,11 @@ function canEditPerson(p) {
 // ── Admin pending-member notification watch ───────────────────────────────
 let _pendingWatchUnsub = null;
 let _lastPendingCount  = 0;  // track previous count to detect new arrivals
-let _cachedMembersSnap = null; // latest members snap — same data that drives the badge
 
 function startPendingWatch() {
   if (_pendingWatchUnsub || !FAM || CU?.role !== 'admin') return;
   const r = membersRef(FAM);
-  let _pwFirstFire = true;
   const fn = snap => {
-    // SKIP the first fire — it comes from the local SDK cache (which only contains
-    // the admin's own record, loaded by resumeFamily). The second fire comes from
-    // the server and has the full members list. Only that one is reliable.
-    if (_pwFirstFire) {
-      _pwFirstFire = false;
-      // Still attach the badge from cache so it shows something, but don't cache snap
-      // for the admin panel — it's incomplete.
-      return;
-    }
-    // Cache the full server snap — this is what the admin panel uses
-    _cachedMembersSnap = snap.exists() ? snap : null;
     if (!snap.exists()) { _updatePendingBadge(0); return; }
     let count = 0;
     snap.forEach(child => { if (child.val().role === 'pending') count++; });
@@ -3946,10 +3933,6 @@ function startPendingWatch() {
     _lastPendingCount = count;
     _updatePendingBadge(count);
     if (isNew && count > 0) _firePendingNotification(count, snap);
-    // Re-render admin panel if it's open — keeps panel in sync with live changes
-    if (el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
-      _renderMembersSnap(snap);
-    }
   };
   onValue(r, fn);
   _pendingWatchUnsub = () => off(r, 'value', fn);
@@ -4469,9 +4452,7 @@ function openAdminMo() {
   el('amo-ft').innerHTML = `<button class="hbtn" style="background:var(--slate);color:white;font-size:11px" onclick="adminDiagnostic()">🔍 DB Check</button>
     <button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>`;
   el('admin-mo').classList.add('on');
-  // Render immediately from the cached snap (same data the badge used) —
-  // this guarantees pending members are visible before any new Firebase read.
-  if (_cachedMembersSnap) _renderMembersSnap(_cachedMembersSnap);
+  clearPendingNotices();
   _startMembersListener();
 }
 
@@ -4522,12 +4503,10 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-  // Renders on every fire — first fire may be from local cache (incomplete),
-  // but the server response follows immediately and corrects it.
-  // If _cachedMembersSnap already has full server data, this is redundant but harmless.
-  const fn = snap => {
-    _renderMembersSnap(snap);
-  };
+  // Use onValue so the panel auto-refreshes while open (new member joins, approve fires, etc.)
+  // Firebase fires once from local cache then again from server — both are fine since
+  // _renderMembersSnap just rebuilds the HTML from whatever data it receives.
+  const fn = snap => { _renderMembersSnap(snap); };
   onValue(r, fn, err => {
     if (el('amo-bd')) el('amo-bd').innerHTML =
       `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;

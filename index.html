@@ -6324,18 +6324,6 @@ async function delPerson(id){
     if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
   }, 6000);
 }
-  // Only remove the locally-loaded subset from DB.rels — we don't have the
-  // out-of-neighbourhood rels in memory so there's nothing else to clear.
-  Object.values(DB.rels).filter(r=>r.from===id||r.to===id)
-    .forEach(r => { delete DB.rels[r.id]; loadedRids.delete(r.id); });
-  closePanel(); render();
-  _undoState = { id, backup, committed: false };
-  clearTimeout(_undoTimer);
-  _showUndoToast(fullName(backup.person));
-  _undoTimer = setTimeout(async () => {
-    if (_undoState && !_undoState.committed) await _commitDelete(_undoState);
-  }, 6000);
-}
 
 function _showUndoToast(name) {
   const toastEl = document.getElementById('toast');

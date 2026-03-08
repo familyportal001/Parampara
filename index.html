@@ -4452,7 +4452,8 @@ function openAdminMo() {
   el('amo-ft').innerHTML = `<button class="hbtn" style="background:var(--slate);color:white;font-size:11px" onclick="adminDiagnostic()">🔍 DB Check</button>
     <button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>`;
   el('admin-mo').classList.add('on');
-  clearPendingNotices(); // reset badge when admin opens panel
+  // clearPendingNotices() is called inside _renderMembersSnap after successful render,
+  // so the badge stays visible until we've confirmed what's actually pending.
   _startMembersListener();
 }
 
@@ -4503,7 +4504,28 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-  const fn = snap => _renderMembersSnap(snap);
+
+  // Step 1: force a direct server fetch so we always see members who joined
+  // after this session started (onValue fires from cache first and misses them).
+  let initialDone = false;
+  get(r).then(snap => {
+    initialDone = true;
+    _renderMembersSnap(snap);
+  }).catch(err => {
+    initialDone = true;
+    if (el('amo-bd')) el('amo-bd').innerHTML =
+      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
+  });
+
+  // Step 2: live onValue for updates while the panel is open.
+  // Skip the very first fire — it comes from cache (possibly stale) and
+  // get() above is already handling the initial render from the server.
+  // All subsequent fires are genuine live updates and should render.
+  let firstFire = true;
+  const fn = snap => {
+    if (firstFire) { firstFire = false; return; } // skip stale cache fire
+    _renderMembersSnap(snap);
+  };
   onValue(r, fn, err => {
     if (el('amo-bd')) el('amo-bd').innerHTML =
       `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
@@ -4581,6 +4603,7 @@ function _renderMembersSnap(snap) {
       </div>`;
 
     el('amo-bd').innerHTML = html;
+    clearPendingNotices(); // badge cleared only after we've confirmed what's pending
   } catch(e) {
     if (el('amo-bd')) el('amo-bd').innerHTML =
       `<div class="no-rel">Error loading members: ${escHtml(e.message)}</div>`;

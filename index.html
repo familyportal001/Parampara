@@ -538,6 +538,7 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .pan-btn.del{background:var(--rose);color:white;border-color:var(--rose)}
 .pf-av{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;
   display:flex;align-items:center;justify-content:center;font-size:28px;
+  border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .photo-upload-wrap{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .photo-thumb{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;background:var(--parch2);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden}
 .photo-thumb img{width:100%;height:100%;object-fit:cover}
@@ -563,7 +564,6 @@ path.edge-lit.e-sibling{stroke:rgba(120,200,130,.9);stroke-width:2.2;opacity:1;s
 .priv-danger{background:rgba(180,60,60,.07);border:1px solid rgba(180,60,60,.25);
   border-radius:var(--r);padding:14px;margin-top:8px}
 .priv-danger p{color:var(--ink3)}
-  border:3px solid var(--gold);overflow:hidden;background:var(--parch2)}
 .pf-av img{width:100%;height:100%;object-fit:cover}
 .pf-name{font-family:'Crimson Pro','Georgia',serif;font-size:23px;font-weight:600;
   text-align:center;color:var(--ink);line-height:1.2}
@@ -2341,12 +2341,13 @@ let fbUser = null;// Firebase auth user
 // active Firebase listeners — tracked so we can unsubscribe on family switch
 let _listeners = [];
 function clearListeners() {
-  _listeners.forEach(({ r, fn }) => off(r, 'value', fn));
+  // Each entry is the unsubscribe function returned by onValue (Firebase v9 modular API).
+  _listeners.forEach(unsub => { try { unsub(); } catch(_) {} });
   _listeners = [];
 }
 function listen(r, fn) {
-  onValue(r, fn);
-  _listeners.push({ r, fn });
+  const unsub = onValue(r, fn);
+  _listeners.push(unsub);
 }
 
 // ══ SYNC STATUS ════════════════════════════════════════════════════
@@ -3855,8 +3856,7 @@ function startApprovalWatch() {
       showApp(snap.val().linkedProfileId || null);
     }
   };
-  onValue(r, fn);
-  _approvalUnsub = () => off(r, 'value', fn);
+  _approvalUnsub = onValue(r, fn);
 }
 function stopApprovalWatch() {
   if (_approvalUnsub) { _approvalUnsub(); _approvalUnsub = null; }
@@ -3934,8 +3934,7 @@ function startPendingWatch() {
     _updatePendingBadge(count);
     if (isNew && count > 0) _firePendingNotification(count, snap);
   };
-  onValue(r, fn);
-  _pendingWatchUnsub = () => off(r, 'value', fn);
+  _pendingWatchUnsub = onValue(r, fn);
 }
 
 function stopPendingWatch() {
@@ -4506,12 +4505,17 @@ function _startMembersListener() {
   // Use onValue so the panel auto-refreshes while open (new member joins, approve fires, etc.)
   // Firebase fires once from local cache then again from server — both are fine since
   // _renderMembersSnap just rebuilds the HTML from whatever data it receives.
-  const fn = snap => { _renderMembersSnap(snap); };
-  onValue(r, fn, err => {
-    if (el('amo-bd')) el('amo-bd').innerHTML =
-      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
-  });
-  _membersUnsub = () => off(r, 'value', fn);
+  // Store the unsubscribe function returned by onValue (Firebase v9 modular API).
+  // Previously used off(r,'value',fn) which silently fails in v9 — the returned
+  // function is the only reliable way to detach the listener.
+  _membersUnsub = onValue(
+    r,
+    snap => { _renderMembersSnap(snap); },
+    err => {
+      if (el('amo-bd')) el('amo-bd').innerHTML =
+        `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
+    }
+  );
 }
 
 function _stopMembersListener() {
@@ -5468,7 +5472,13 @@ let _cycleWarnTimer = null;
 function _dbHash() {
   const pk = Object.keys(DB.people).sort().join(',');
   const rk = Object.keys(DB.rels).sort().join(',');
-  return pk + '|' + rk;
+  // Also hash positions + key fields so card moves and live edits from other
+  // users trigger a re-render (and SVG connectors are redrawn correctly).
+  const pv = Object.keys(DB.people).sort().map(id => {
+    const p = DB.people[id];
+    return id+':'+(p.x|0)+','+(p.y|0)+','+(p.first||'')+'_'+(p.last||'')+'_'+(p.editedAt||0);
+  }).join(';');
+  return pk + '|' + rk + '|' + pv;
 }
 
 function render(){
@@ -5507,6 +5517,11 @@ function render(){
   // Track loaded rels
   Object.keys(DB.rels).forEach(rid => loadedRids.add(rid));
   redrawLines();
+  // Re-apply connection highlight after every render.
+  // renderCard() rebuilds card.className (wiping conn-lit/conn-fade/sel) and
+  // redrawLines() wipes the SVG entirely — so if a card was selected, both
+  // the card borders and edge highlights must be re-applied now.
+  if (selId) _applyConnectionHighlight(selId);
   // Refresh ego view visuals after every render
   if(viewMode==='ego'){ applyDimming(); }
   // Note: updateAllExpandBadges() is NOT called here — it fires async Firebase reads
@@ -5619,14 +5634,8 @@ function redrawLines(){
     }
     wsvg.appendChild(path);
   });
-  // If a card is selected, reapply edge highlights since innerHTML was wiped
-  if (selId) {
-    wsvg.querySelectorAll('path').forEach(p => {
-      const from = p.dataset.from, to = p.dataset.to;
-      if (from === selId || to === selId) p.classList.add('edge-lit');
-      else                                p.classList.add('conn-fade');
-    });
-  }
+  // NOTE: Edge highlight (edge-lit / conn-fade) is applied by _applyConnectionHighlight()
+  // which is called from render() after redrawLines(). No need to duplicate it here.
 }
 
 // ══ AUTO LAYOUT ════════════════════════════════════════════════════
@@ -5658,6 +5667,10 @@ async function autoLayout(){
     });
   });
   render();
+  // Re-apply connection highlight — render() rebuilds card className which wipes
+  // conn-lit/conn-fade/sel classes, and redrawLines() clears SVG edge classes.
+  // Without this, the selected card loses its visual highlight after layout.
+  if (selId) _applyConnectionHighlight(selId);
   // Re-run badge update after layout — render() wipes and rebuilds cards from
   // knownRels cache (sync for cached, async fetch for uncached).
   if (viewMode === 'ego') updateAllExpandBadges();
@@ -5801,7 +5814,7 @@ function personForm(p={}){ return `
     <div class="pfg"><label class="pfl">${t('pDob')}</label><input class="pfi" type="date" id="pf-dob" value="${p.dob||''}" oninput="updateAgeHint()"></div>
     <div class="pfg"><label class="pfl">${t('pDod')}</label><input class="pfi" type="date" id="pf-dod" value="${p.dod||''}" oninput="updateAgeHint()"></div>
   </div>
-  <div id="pf-age-hint-row" style="font-size:11px;color:var(--ink3);padding:0 2px 6px;min-height:18px" id="pf-age-hint"></div>
+  <div id="pf-age-hint" style="font-size:11px;color:var(--ink3);padding:0 2px 6px;min-height:18px"></div>
   <div class="pfi-row">
     <div class="pfg"><label class="pfl">${t('pBp')}</label><input class="pfi" id="pf-bp" value="${escHtml(p.birthplace||'')}"></div>
     <div class="pfg"><label class="pfl">${t('pLoc')}</label><input class="pfi" id="pf-loc" value="${escHtml(p.location||'')}"></div>
@@ -6141,13 +6154,14 @@ async function delPerson(id){
 }
 
 function _showUndoToast(name) {
-  const el = document.getElementById('toast');
-  el.innerHTML = 'Removed ' + escHtml(name)
+  const toastEl = document.getElementById('toast');
+  toastEl.innerHTML = 'Removed ' + escHtml(name)
     + '  <button onclick="undoDelete()" style="background:var(--gold);color:var(--ink);border:none;'
     + 'padding:2px 9px;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:2px">Undo</button>';
-  el.classList.add('on');
-  clearTimeout(window._tt);
-  window._tt = setTimeout(() => el.classList.remove('on'), 6000);
+  toastEl.classList.add('on');
+  clearTimeout(_tt);
+  // Share the module-scoped _tt timer so toast() properly cancels this
+  _tt = setTimeout(() => toastEl.classList.remove('on'), 6000);
 }
 
 async function undoDelete() {

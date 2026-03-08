@@ -4513,26 +4513,15 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-
-  // Step 1: force a direct server fetch so we always see members who joined
-  // after this session started (onValue fires from cache first and misses them).
-  let initialDone = false;
-  get(r).then(snap => {
-    initialDone = true;
-    _renderMembersSnap(snap);
-  }).catch(err => {
-    initialDone = true;
-    if (el('amo-bd')) el('amo-bd').innerHTML =
-      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
-  });
-
-  // Step 2: live onValue for updates while the panel is open.
-  // Skip the very first fire — it comes from cache (possibly stale) and
-  // get() above is already handling the initial render from the server.
-  // All subsequent fires are genuine live updates and should render.
+  // startPendingWatch already has a live listener on this path and its snapshot
+  // is cached in _cachedMembersSnap — used for the initial panel render in openAdminMo.
+  // This listener only handles live updates AFTER the panel is open (e.g. a new
+  // member joins while admin has the panel open) and re-renders after approve/reject.
+  // We skip the first fire because it comes from the SDK cache and _cachedMembersSnap
+  // already gave us the correct initial render.
   let firstFire = true;
   const fn = snap => {
-    if (firstFire) { firstFire = false; return; } // skip stale cache fire
+    if (firstFire) { firstFire = false; return; }
     _renderMembersSnap(snap);
   };
   onValue(r, fn, err => {

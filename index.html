@@ -4449,10 +4449,51 @@ function openAdminMo() {
     if (btn) btn.classList.toggle('on', t==='members');
   });
   el('amo-bd').innerHTML = '<div style="color:var(--ink3);font-size:12px">Loading members…</div>';
-  el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
+  el('amo-ft').innerHTML = `<button class="hbtn" style="background:var(--slate);color:white;font-size:11px" onclick="adminDiagnostic()">🔍 DB Check</button>
+    <button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>`;
   el('admin-mo').classList.add('on');
   clearPendingNotices(); // reset badge when admin opens panel
   _startMembersListener();
+}
+
+// Direct Firebase read — bypasses all caching, shows raw member records.
+// Use this when the badge count doesn't match what the panel shows.
+async function adminDiagnostic() {
+  const box = el('amo-bd');
+  box.innerHTML = '<div style="color:var(--ink3);font-size:12px">Reading directly from Firebase…</div>';
+  try {
+    const snap = await get(membersRef(FAM));
+    if (!snap.exists()) {
+      box.innerHTML = '<div class="no-rel">Firebase returned empty — no member records exist at this path.</div>';
+      return;
+    }
+    const rows = [];
+    snap.forEach(child => {
+      const m = child.val();
+      rows.push({ uid: child.key, ...m });
+    });
+    const pending = rows.filter(m => m.role === 'pending');
+    const active  = rows.filter(m => !['pending','removed','rejected'].includes(m.role));
+    const other   = rows.filter(m => ['removed','rejected'].includes(m.role));
+    let html = `<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">
+      Direct <code>get()</code> from Firebase — no cache. Found <b>${rows.length}</b> member record(s):
+      <b style="color:var(--rose)">${pending.length} pending</b> · 
+      <b>${active.length} active</b> · 
+      <b>${other.length} removed/rejected</b>
+    </div>`;
+    rows.forEach(m => {
+      const roleColor = m.role === 'pending' ? 'var(--rose)' : m.role === 'admin' ? 'var(--gold)' : 'var(--ink3)';
+      html += `<div style="font-size:11px;font-family:monospace;background:var(--parch2);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:6px;line-height:1.8">
+        <b style="color:${roleColor}">${escHtml(m.role || '(no role)')}</b> · ${escHtml(m.email || '(no email)')}
+        <br><span style="color:var(--ink4)">uid: ${escHtml(m.uid || child?.key || '?')} · joined: ${fmtD(m.joinedAt)}</span>
+        <br><span style="color:var(--ink4)">first: "${escHtml(m.first||'')}" last: "${escHtml(m.last||'')}"</span>
+      </div>`;
+    });
+    html += `<div style="font-size:10px;color:var(--ink4);margin-top:8px">Path: families/${FAM}/members</div>`;
+    box.innerHTML = html;
+  } catch(e) {
+    box.innerHTML = `<div class="no-rel" style="color:var(--rose)">Firebase read FAILED: ${escHtml(e.message)}<br><span style="font-size:10px">This means the security rules denied the read. Check firebase-rules.json is deployed.</span></div>`;
+  }
 }
 function closeAMo() {
   el('admin-mo').classList.remove('on');
@@ -9539,7 +9580,7 @@ Object.assign(window, {
   _startMembersListener, _stopMembersListener,
   enterCreateMode, showJoinMode, _setDobMax, _onRelDirectionChange,
   dismissViewerBanner, dismissMemberOb,
-  approveAs,
+  approveAs, adminDiagnostic,
   _arrowNav, _scrollCardIntoView,
   _getStrings: () => STRINGS,
   undoDelete,

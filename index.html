@@ -4451,6 +4451,15 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
+  // Use get() for the initial render — this always fetches from the server,
+  // bypassing any stale SDK cache that might not yet include a newly-joined member.
+  // The onValue listener then takes over for live updates while the panel is open.
+  get(r).then(snap => {
+    _renderMembersSnap(snap);
+  }).catch(err => {
+    if (el('amo-bd')) el('amo-bd').innerHTML =
+      `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
+  });
   const fn = snap => _renderMembersSnap(snap);
   onValue(r, fn, err => {
     if (el('amo-bd')) el('amo-bd').innerHTML =
@@ -4479,7 +4488,24 @@ function _renderMembersSnap(snap) {
     const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));
     const revoked  = members.filter(m => m.role === 'removed' || m.role === 'rejected');
 
-    let html = `<div class="sec-t">Family Secret Key</div>
+    let html = '';
+
+    // ── Pending approvals — shown FIRST so admin sees them immediately ──
+    if (pending.length) {
+      html += `<div class="sec-t" style="color:var(--rose);margin-top:0">
+        ⏳ Pending Approval (${pending.length})
+        <span style="font-size:9px;font-weight:400;color:var(--ink3);margin-left:6px;text-transform:none;letter-spacing:0">
+          · tap to approve or reject
+        </span></div>`;
+      pending.forEach(m => html += memberRow(m, true));
+      html += `<div style="margin-bottom:4px"></div>`;
+    }
+
+    html += `<div class="sec-t" style="margin-top:${pending.length ? '12px' : '0'}">Active Members (${active.length})</div>`;
+    active.forEach(m => html += memberRow(m, false));
+
+    // ── Family Secret Key ──
+    html += `<div class="sec-t" style="margin-top:18px">Family Secret Key</div>
       <div class="key-box">${escHtml(CU.famKey)}</div>
       <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Share only with trusted family members to let them join.</div>`;
 
@@ -4495,17 +4521,6 @@ function _renderMembersSnap(snap) {
         <div id="invite-link-area"></div>
         <div style="margin-bottom:16px"></div>`;
     }
-
-    if (pending.length) {
-      html += `<div class="sec-t" style="color:var(--rose)">
-        Pending Approval (${pending.length})
-        <span style="font-size:9px;font-weight:400;color:var(--ink3);margin-left:6px;text-transform:none;letter-spacing:0">
-          · joined recently
-        </span></div>`;
-      pending.forEach(m => html += memberRow(m, true));
-    }
-    html += `<div class="sec-t" style="margin-top:12px">Active Members (${active.length})</div>`;
-    active.forEach(m => html += memberRow(m, false));
 
     if (revoked.length) {
       html += `<div class="sec-t" style="margin-top:12px;color:var(--ink3)">Removed / Rejected (${revoked.length})</div>

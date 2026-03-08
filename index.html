@@ -3928,26 +3928,28 @@ function startPendingWatch() {
   const r = membersRef(FAM);
   let _pwFirstFire = true;
   const fn = snap => {
-    // Cache snap so admin panel can use the same data as the badge (no separate read)
+    // SKIP the first fire — it comes from the local SDK cache (which only contains
+    // the admin's own record, loaded by resumeFamily). The second fire comes from
+    // the server and has the full members list. Only that one is reliable.
+    if (_pwFirstFire) {
+      _pwFirstFire = false;
+      // Still attach the badge from cache so it shows something, but don't cache snap
+      // for the admin panel — it's incomplete.
+      return;
+    }
+    // Cache the full server snap — this is what the admin panel uses
     _cachedMembersSnap = snap.exists() ? snap : null;
-    if (!snap.exists()) { _updatePendingBadge(0); _pwFirstFire = false; return; }
+    if (!snap.exists()) { _updatePendingBadge(0); return; }
     let count = 0;
-    const _diagAll = [];
-    snap.forEach(child => {
-      const v = child.val();
-      _diagAll.push({uid:child.key, role:v.role, email:v.email});
-      if (v.role === 'pending') count++;
-    });
-    console.log('[Admin] startPendingWatch fired — firstFire:', _pwFirstFire, '| pending count:', count, '| all:', JSON.stringify(_diagAll));
+    snap.forEach(child => { if (child.val().role === 'pending') count++; });
     const isNew = count > _lastPendingCount;
     _lastPendingCount = count;
     _updatePendingBadge(count);
-    if (isNew && count > 0 && !_pwFirstFire) _firePendingNotification(count, snap);
-    // Re-render admin panel on live updates (not initial fire) — keeps panel in sync
-    if (!_pwFirstFire && el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
+    if (isNew && count > 0) _firePendingNotification(count, snap);
+    // Re-render admin panel if it's open — keeps panel in sync with live changes
+    if (el('admin-mo')?.classList.contains('on') && _adminTab === 'members') {
       _renderMembersSnap(snap);
     }
-    _pwFirstFire = false;
   };
   onValue(r, fn);
   _pendingWatchUnsub = () => off(r, 'value', fn);
@@ -4469,11 +4471,6 @@ function openAdminMo() {
   el('admin-mo').classList.add('on');
   // Render immediately from the cached snap (same data the badge used) —
   // this guarantees pending members are visible before any new Firebase read.
-  const _diagMembers = [];
-  if (_cachedMembersSnap) {
-    _cachedMembersSnap.forEach(c => _diagMembers.push({uid:c.key, role:c.val().role, email:c.val().email}));
-  }
-  console.log('[Admin] openAdminMo — _cachedMembersSnap:', _cachedMembersSnap ? 'EXISTS' : 'NULL', '| members:', JSON.stringify(_diagMembers));
   if (_cachedMembersSnap) _renderMembersSnap(_cachedMembersSnap);
   _startMembersListener();
 }
@@ -4525,15 +4522,10 @@ function closeAMo() {
 function _startMembersListener() {
   _stopMembersListener();
   const r = membersRef(FAM);
-  // startPendingWatch already has a live listener on this path and its snapshot
-  // is cached in _cachedMembersSnap — used for the initial panel render in openAdminMo.
-  // This listener only handles live updates AFTER the panel is open (e.g. a new
-  // member joins while admin has the panel open) and re-renders after approve/reject.
-  // We skip the first fire because it comes from the SDK cache and _cachedMembersSnap
-  // already gave us the correct initial render.
-  let firstFire = true;
+  // Renders on every fire — first fire may be from local cache (incomplete),
+  // but the server response follows immediately and corrects it.
+  // If _cachedMembersSnap already has full server data, this is redundant but harmless.
   const fn = snap => {
-    if (firstFire) { firstFire = false; return; }
     _renderMembersSnap(snap);
   };
   onValue(r, fn, err => {
@@ -4562,7 +4554,7 @@ function _renderMembersSnap(snap) {
     const pending  = members.filter(m => m.role === 'pending');
     const active   = members.filter(m => !['pending','removed','rejected'].includes(m.role));
     const revoked  = members.filter(m => m.role === 'removed' || m.role === 'rejected');
-    console.log('[Admin] _renderMembersSnap — total:', members.length, '| pending:', pending.length, '| roles:', members.map(m=>m.role+'('+m.email+')').join(', '));
+
 
     let html = '';
 

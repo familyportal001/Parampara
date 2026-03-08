@@ -4219,6 +4219,9 @@ async function startEgoSync(fetchPid) {
       const memo = {};
       pids.forEach(id => getGen(id, memo));
       pids.forEach(pid => renderCard(pid, (memo[pid] || 0) % 6));
+      // Redraw connectors after individual renderCard calls so SVG stays
+      // in sync with card positions (renderCard does not call redrawLines).
+      redrawLines();
     }, 120);
 
   } catch(e) {
@@ -4969,23 +4972,26 @@ function applyEgoLayout(pivotId) {
     DB.people[pid].y = y;
   };
 
-  // Pivot at origin
-  place(pivotId, 0, 0);
+  // Use a positive canvas origin so all coordinates stay positive and visible.
+  // Pivot goes in the middle row; parents above, children below, siblings left.
+  const OX = Math.max(siblings.length, 1) * GAP_H + GAP_H; // enough left margin for siblings
+  const OY = GAP_V + 60; // enough top margin for parents
 
-  // Partners to the right
-  partners.forEach((pid, i) => place(pid, (i + 1) * GAP_H, 0));
+  place(pivotId, OX, OY);
 
-  // Parents above, centred over pivot + partners
-  const pOff = -(parents.length - 1) / 2 * GAP_H;
-  parents.forEach((pid, i) => place(pid, pOff + i * GAP_H, -GAP_V));
+  // Partners to the right of pivot
+  partners.forEach((pid, i) => place(pid, OX + (i + 1) * GAP_H, OY));
 
-  // Children below, centred
-  const allBelow = [...partners.slice(0,1), pivotId]; // centre children under pivot
-  const cOff = -(children.length - 1) / 2 * GAP_H;
-  children.forEach((pid, i) => place(pid, cOff + i * GAP_H, GAP_V));
+  // Parents above, centred over pivot
+  const pOff = OX - ((parents.length - 1) / 2) * GAP_H;
+  parents.forEach((pid, i) => place(pid, pOff + i * GAP_H, OY - GAP_V));
+
+  // Children below, centred under pivot
+  const cOff = OX - ((children.length - 1) / 2) * GAP_H;
+  children.forEach((pid, i) => place(pid, cOff + i * GAP_H, OY + GAP_V));
 
   // Siblings at same level, spread left of pivot
-  siblings.forEach((pid, i) => place(pid, -(i + 1) * GAP_H, 0));
+  siblings.forEach((pid, i) => place(pid, OX - (i + 1) * GAP_H, OY));
 
   render();
 }

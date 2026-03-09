@@ -4539,52 +4539,53 @@ function closeAMo() {
 
 function _startMembersListener() {
   _stopMembersListener();
+  if (!FAM) return;
   const r = membersRef(FAM);
 
-  // WHY get() for initial render, not onValue snapshot directly:
-  // onValue fires its FIRST callback synchronously from the local IndexedDB
-  // persistence cache. If a pending member joined from another device their
-  // record won't be in the local cache, so the first render shows "0 pending"
-  // even though the member is in Firebase. The server follow-up from onValue
-  // fires asynchronously and may arrive after the admin has already concluded
-  // there are no pending members.
-  //
-  // get() in Firebase RTDB v9 always bypasses the persistence cache and goes
-  // directly to the server — so it always returns authoritative current state.
-  //
-  // Strategy:
-  //  - onValue is used ONLY to detect that something changed while the panel
-  //    is open (new join, approve, etc.). On each change we do a fresh get().
-  //  - Skip the first onValue fire (the synchronous cache hit) — it is
-  //    unreliable for freshly-joined members from other devices.
-  //  - get() on panel open provides the guaranteed-fresh initial render.
+  // Render from a guaranteed-fresh server read so the list is never stale.
+  _fetchAndRenderMembers();
 
+  // onValue keeps the panel live while it is open (new joins, approvals, etc.).
+  // We attach it AFTER the initial get() so there is no race between a stale
+  // cache hit and the fresh server response.
   let _firstFire = true;
+  _membersUnsub = onValue(r, () => {
+    if (_firstFire) { _firstFire = false; return; } // skip synchronous cache hit
+    _fetchAndRenderMembers(); // something changed — re-fetch authoritative data
+  }, err => {
+    console.error('[Members] onValue error:', err);
+    _showMembersError(err.message);
+  });
+}
 
-  _membersUnsub = onValue(
-    r,
-    () => {
-      if (_firstFire) {
-        _firstFire = false;
-        return; // skip synchronous cache hit — get() below handles initial render
-      }
-      // Something changed on the server — fetch fresh authoritative data
-      get(r).then(snap => { if (snap) _renderMembersSnap(snap); }).catch(() => {});
-    },
-    err => {
-      if (el('amo-bd')) el('amo-bd').innerHTML =
-        `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
-    }
-  );
+// Fetch members directly from server (bypasses IndexedDB persistence cache)
+// and pass to renderer. Falls back to adminDiagnostic-style raw render if
+// _renderMembersSnap itself throws.
+async function _fetchAndRenderMembers() {
+  if (!FAM) return;
+  try {
+    const snap = await get(membersRef(FAM));
+    _renderMembersSnap(snap);
+  } catch(err) {
+    console.error('[Members] get() failed:', err);
+    _showMembersError(err.message, true);
+  }
+}
 
-  // Always render from a direct server get() so the list is never stale
-  // regardless of what is in the local persistence cache.
-  get(r)
-    .then(snap => { if (snap) _renderMembersSnap(snap); })
-    .catch(err => {
-      if (el('amo-bd')) el('amo-bd').innerHTML =
-        `<div class="no-rel">Error loading members: ${escHtml(err.message)}</div>`;
-    });
+function _showMembersError(msg, isPermission = false) {
+  const box = el('amo-bd');
+  if (!box || _adminTab !== 'members') return;
+  const hint = isPermission
+    ? 'Firebase denied the read — check that firebase-rules.json is deployed correctly.'
+    : 'Check your connection and try again.';
+  box.innerHTML = `
+    <div style="background:var(--rose,#c0392b);color:white;border-radius:8px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px">⚠️ Could not load members</div>
+      <div style="font-size:11px;opacity:.9">${escHtml(msg)}</div>
+      <div style="font-size:11px;margin-top:4px;opacity:.8">${hint}</div>
+    </div>
+    <button class="hbtn" style="width:100%" onclick="_fetchAndRenderMembers()">🔄 Retry</button>
+    <button class="hbtn" style="width:100%;margin-top:8px" onclick="adminDiagnostic()">🔍 DB Check</button>`;
 }
 
 function _stopMembersListener() {
@@ -9858,7 +9859,7 @@ Object.assign(window, {
   dismissAbout, showAbout,
   dismissPerfBanner,
   // Members live listener (for admin panel)
-  _startMembersListener, _stopMembersListener,
+  _startMembersListener, _stopMembersListener, _fetchAndRenderMembers, _showMembersError,
   enterCreateMode, showJoinMode, _setDobMax, _onRelDirectionChange,
   dismissViewerBanner, dismissMemberOb,
   approveAs, adminDiagnostic,

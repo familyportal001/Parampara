@@ -7786,14 +7786,25 @@ async function unarchiveFamily() {
   } catch(e) { toast('Error restoring: ' + e.message); }
 }
 
-function loadSettingsTab() {
+async function loadSettingsTab() {
   el('amo-ft').innerHTML = '<button class="hbtn" onclick="closeAMo()" data-i18n="done">Close</button>';
   const isArchived = CU && CU.archived;
   // Tree stats — in-memory, zero extra Firebase reads
   const _pp = Object.values(DB.people).filter(p => !p.deleted);
   const _rr = Object.values(DB.rels).filter(r => !r.deleted);
-  const _rawMembers = _cachedMembers || (DB.members ? Object.values(DB.members) : []);
-  const _mm = _rawMembers.filter(m => !['pending','removed','rejected'].includes(m.role));
+  // Always fetch fresh member count from server so it reflects recent approvals/removals.
+  // _cachedMembers is only set when the Members tab was previously visited and may be
+  // stale (e.g. admin just approved someone — cache still shows old count).
+  let _mm = (_cachedMembers || []).filter(m => !['pending','removed','rejected'].includes(m.role));
+  try {
+    const freshSnap = await get(membersRef(FAM));
+    if (freshSnap.exists()) {
+      const freshMembers = [];
+      freshSnap.forEach(child => freshMembers.push({ uid: child.key, ...child.val() }));
+      _cachedMembers = freshMembers; // keep cache up-to-date
+      _mm = freshMembers.filter(m => !['pending','removed','rejected'].includes(m.role));
+    }
+  } catch(_) { /* non-critical — fall back to cached count if server read fails */ }
   const _byDob = _pp.filter(p => p.dob).sort((a,b) => a.dob < b.dob ? -1 : 1);
   const _oldest = _byDob[0];
   const _lastEditP = _pp.filter(p => p.editedAt).sort((a,b) => b.editedAt - a.editedAt)[0];
